@@ -82,6 +82,7 @@ import com.example.ui.audio.LibraryTab
 import com.example.ui.components.EmptyAudioStateView
 import com.example.ui.library.LibraryScreen
 import com.example.ui.library.TrackRowItem
+import com.example.ui.lyrics.LyricsScreen
 import com.example.ui.nowplaying.NowPlayingScreen
 import com.example.ui.search.SearchScreen
 import com.example.ui.theme.MusicProBackground
@@ -121,6 +122,7 @@ fun HomeScreen(
     val context = LocalContext.current
     var currentSection by remember { mutableStateOf(NavigationSection.HOME) }
     var isNowPlayingOpen by remember { mutableStateOf(initialOpenNowPlaying) }
+    var isLyricsOpen by remember { mutableStateOf(false) }
 
     val tracks by audioViewModel.tracks.collectAsStateWithLifecycle()
     val albums by audioViewModel.albumSummaries.collectAsStateWithLifecycle()
@@ -142,6 +144,8 @@ fun HomeScreen(
     val isShuffleEnabled by audioViewModel.isShuffleEnabled.collectAsStateWithLifecycle()
     val playbackSpeed by audioViewModel.playbackSpeed.collectAsStateWithLifecycle()
     val favorites by audioViewModel.favorites.collectAsStateWithLifecycle()
+    val lyricsData by audioViewModel.lyricsData.collectAsStateWithLifecycle()
+    val isLyricsLoading by audioViewModel.isLyricsLoading.collectAsStateWithLifecycle()
 
     val activeTrack = currentTrack ?: tracks.firstOrNull()
 
@@ -161,6 +165,7 @@ fun HomeScreen(
                             onNext = { audioViewModel.playNext() },
                             onPrevious = { audioViewModel.playPrevious() },
                             onClick = { isNowPlayingOpen = true },
+                            onOpenLyrics = { isLyricsOpen = true },
                             modifier = Modifier.testTag("mini_player_bar")
                         )
                     }
@@ -260,7 +265,32 @@ fun HomeScreen(
             onToggleRepeat = { audioViewModel.toggleRepeatMode() },
             onToggleShuffle = { audioViewModel.toggleShuffle() },
             onToggleFavorite = { activeTrack?.let { audioViewModel.toggleFavorite(it.id) } },
-            onSetSpeed = { audioViewModel.setPlaybackSpeed(it) }
+            onSetSpeed = { audioViewModel.setPlaybackSpeed(it) },
+            lyricsData = lyricsData,
+            onOpenLyrics = { isLyricsOpen = true }
+        )
+    }
+
+    // Modal plein écran Paroles Synchronisées (LRC / ID3 SYLT)
+    AnimatedVisibility(
+        visible = isLyricsOpen,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        LyricsScreen(
+            track = activeTrack,
+            lyricsData = lyricsData,
+            currentPositionMs = progressMs,
+            durationMs = durationMs,
+            isPlaying = isPlaying,
+            isLoading = isLyricsLoading,
+            onBack = { isLyricsOpen = false },
+            onPlayPause = { audioViewModel.togglePlayPause() },
+            onNext = { audioViewModel.playNext() },
+            onPrevious = { audioViewModel.playPrevious() },
+            onSeekTo = { audioViewModel.seekTo(it) },
+            onGenerateDemoLyrics = { activeTrack?.let { audioViewModel.generateDemoLyrics(it) } },
+            onImportLrcText = { text -> activeTrack?.let { audioViewModel.importLrcText(it, text) } }
         )
     }
 }
@@ -621,6 +651,7 @@ private fun MiniPlayerBar(
     onNext: () -> Unit,
     onPrevious: () -> Unit,
     onClick: () -> Unit = {},
+    onOpenLyrics: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val progressFraction = if (track.duration > 0) {
@@ -740,6 +771,22 @@ private fun MiniPlayerBar(
                         tint = MusicProTextSecondary,
                         modifier = Modifier.size(20.dp)
                     )
+                }
+
+                if (onOpenLyrics != null) {
+                    IconButton(
+                        onClick = onOpenLyrics,
+                        modifier = Modifier
+                            .size(34.dp)
+                            .testTag("mini_player_lyrics_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Subtitles,
+                            contentDescription = "Paroles",
+                            tint = MusicProCyanNeon,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
         }

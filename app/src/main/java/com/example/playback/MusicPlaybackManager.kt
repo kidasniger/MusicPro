@@ -307,7 +307,7 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
                         }
                     }
                 }
-                delay(250)
+                delay(180)
             }
         }
     }

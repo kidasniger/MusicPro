@@ -5,6 +5,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.local.AudioTrackEntity
 import com.example.data.repository.AudioRepository
+import com.example.lyrics.LyricsData
+import com.example.lyrics.LyricsRepository
 import com.example.playback.MusicPlaybackManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -88,6 +90,14 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     val repeatMode: StateFlow<Int> = playbackManager.repeatMode
     val isShuffleEnabled: StateFlow<Boolean> = playbackManager.isShuffleEnabled
     val playbackSpeed: StateFlow<Float> = playbackManager.playbackSpeed
+
+    // Gestionnaire de paroles synchronisées (LRC et ID3 SYLT via jaudiotagger)
+    private val lyricsRepository = LyricsRepository.getInstance(application)
+    private val _lyricsData = MutableStateFlow(LyricsData())
+    val lyricsData: StateFlow<LyricsData> = _lyricsData.asStateFlow()
+
+    private val _isLyricsLoading = MutableStateFlow(false)
+    val isLyricsLoading: StateFlow<Boolean> = _isLyricsLoading.asStateFlow()
 
     // Filtered search results
     val searchResults: StateFlow<List<AudioTrackEntity>> = combine(
@@ -177,6 +187,17 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
                 _statusMessage.value = "$count morceaux chargés depuis le cache local"
                 if (currentTrack.value == null) {
                     tracks.value.firstOrNull()?.let { playbackManager.setCurrentTrackOnly(it) }
+                }
+            }
+        }
+
+        // Chargement automatique des paroles à chaque changement de piste
+        viewModelScope.launch {
+            currentTrack.collect { track ->
+                if (track != null) {
+                    loadLyricsForTrack(track)
+                } else {
+                    _lyricsData.value = LyricsData()
                 }
             }
         }
@@ -281,5 +302,26 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setPlaybackSpeed(speed: Float) {
         playbackManager.setPlaybackSpeed(speed)
+    }
+
+    fun loadLyricsForTrack(track: AudioTrackEntity) {
+        viewModelScope.launch {
+            _isLyricsLoading.value = true
+            try {
+                _lyricsData.value = lyricsRepository.getLyricsForTrack(track)
+            } finally {
+                _isLyricsLoading.value = false
+            }
+        }
+    }
+
+    fun generateDemoLyrics(track: AudioTrackEntity) {
+        val generated = lyricsRepository.generateDemoLyrics(track)
+        _lyricsData.value = generated
+    }
+
+    fun importLrcText(track: AudioTrackEntity, lrcText: String) {
+        val imported = lyricsRepository.importLrcText(track.id, lrcText)
+        _lyricsData.value = imported
     }
 }

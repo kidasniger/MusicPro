@@ -54,10 +54,12 @@ import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import com.example.lyrics.LyricsData
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
@@ -138,6 +140,8 @@ fun NowPlayingScreen(
     onToggleShuffle: () -> Unit,
     onToggleFavorite: () -> Unit,
     onSetSpeed: (Float) -> Unit,
+    lyricsData: LyricsData = LyricsData(),
+    onOpenLyrics: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -217,20 +221,40 @@ fun NowPlayingScreen(
                     )
                 }
 
-                IconButton(
-                    onClick = onToggleFavorite,
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(MusicProSurfaceElevated)
-                        .testTag("now_playing_favorite_button")
-                ) {
-                    Icon(
-                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = "Favori",
-                        tint = if (isFavorite) MusicProFavorite else MusicProTextSecondary,
-                        modifier = Modifier.size(22.dp)
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = onOpenLyrics,
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(MusicProSurfaceElevated)
+                            .testTag("now_playing_lyrics_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Subtitles,
+                            contentDescription = "Paroles synchronisées",
+                            tint = MusicProCyanNeon,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    IconButton(
+                        onClick = onToggleFavorite,
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(MusicProSurfaceElevated)
+                            .testTag("now_playing_favorite_button")
+                    ) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = "Favori",
+                            tint = if (isFavorite) MusicProFavorite else MusicProTextSecondary,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
                 }
             }
 
@@ -376,7 +400,64 @@ fun NowPlayingScreen(
                 overflow = TextOverflow.Ellipsis
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            // Aperçu interactif des paroles synchronisées (LRC / ID3 SYLT)
+            val activeLineIndex = remember(lyricsData, displayPositionMs) {
+                lyricsData.findActiveLineIndex(displayPositionMs)
+            }
+            val activeLineText = if (activeLineIndex in lyricsData.lines.indices) {
+                lyricsData.lines[activeLineIndex].text
+            } else null
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            Surface(
+                onClick = onOpenLyrics,
+                shape = RoundedCornerShape(14.dp),
+                color = MusicProSurfaceElevated.copy(alpha = 0.85f),
+                border = BorderStroke(
+                    1.dp,
+                    if (activeLineText != null) MusicProCyanNeon.copy(alpha = 0.5f) else Color(0x26FFFFFF)
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("now_playing_lyrics_preview_card")
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Subtitles,
+                            contentDescription = "Paroles",
+                            tint = if (activeLineText != null) MusicProCyanNeon else MusicProVioletLight,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = activeLineText?.ifBlank { "♪ ♪ ♪" } ?: "Voir les paroles synchronisées",
+                            fontSize = 13.sp,
+                            fontWeight = if (activeLineText != null) FontWeight.SemiBold else FontWeight.Normal,
+                            color = if (activeLineText != null) MusicProCyanNeon else MusicProTextSecondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = if (lyricsData.lines.isNotEmpty()) "LRC / SYLT" else "Ouvrir",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MusicProVioletLight
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             // 4. Scrubber / Slider de timeline avec design néon
             Column(modifier = Modifier.fillMaxWidth()) {
