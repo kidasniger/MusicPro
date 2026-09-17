@@ -32,6 +32,10 @@ val MusicProSurfaceVariant = Color(0xFF1A1A2E)
 /** Fond de conteneurs d'icônes et boutons de contrôle - #1E1E2F */
 val MusicProSurfaceElevated = Color(0xFF1E1E2F)
 
+/** Fond de carte MusicPro */
+val MusicProCardBackground = Color(0xFF12121F)
+val MusicProGreenEmerald = Color(0xFF10B981)
+
 /** Surface sombre des modals et aperçu de code LRC - #0F0F19 */
 val MusicProSurfaceCode = Color(0xFF0F0F19)
 
