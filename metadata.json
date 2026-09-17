@@ -1,0 +1,6 @@
+{
+  "name": "MusicPro",
+  "description": "Lecteur audio hors ligne MusicPro avec thème sombre néon violet et cyan et paroles synchronisées",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
