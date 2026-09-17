@@ -27,6 +27,7 @@ fun MusicProNavGraph(
     onCompleteOnboarding: () -> Unit,
     onRequestPermissions: (Map<String, Boolean>) -> Unit,
     onManualCheck: () -> Unit,
+    initialOpenNowPlaying: Boolean = false,
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController()
 ) {
@@ -101,6 +102,7 @@ fun MusicProNavGraph(
         // Écran 4: Écran principal de la bibliothèque musicale
         composable(Destinations.HOME) {
             HomeScreen(
+                initialOpenNowPlaying = initialOpenNowPlaying,
                 onOpenSettings = {
                     navController.navigate(Destinations.PERMISSIONS)
                 },

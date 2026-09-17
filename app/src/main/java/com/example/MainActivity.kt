@@ -19,6 +19,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.permissions.PermissionViewModel
+import com.example.playback.MusicPlaybackService
 import com.example.ui.navigation.MusicProNavGraph
 import com.example.ui.onboarding.OnboardingViewModel
 import com.example.ui.theme.MusicProBackground
@@ -58,9 +59,11 @@ class MainActivity : ComponentActivity() {
           modifier = Modifier.fillMaxSize(),
           color = MusicProBackground
         ) {
+          val openNowPlaying = intent?.action == MusicPlaybackService.ACTION_SHOW_NOW_PLAYING
           MusicProNavGraph(
             uiState = uiState,
             isOnboardingCompleted = isOnboardingCompleted,
+            initialOpenNowPlaying = openNowPlaying,
             onCompleteOnboarding = {
               onboardingViewModel.completeOnboarding()
             },

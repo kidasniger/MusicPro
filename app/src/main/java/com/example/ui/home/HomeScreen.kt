@@ -82,6 +82,7 @@ import com.example.ui.audio.LibraryTab
 import com.example.ui.components.EmptyAudioStateView
 import com.example.ui.library.LibraryScreen
 import com.example.ui.library.TrackRowItem
+import com.example.ui.nowplaying.NowPlayingScreen
 import com.example.ui.search.SearchScreen
 import com.example.ui.theme.MusicProBackground
 import com.example.ui.theme.MusicProCardBackground
@@ -113,11 +114,13 @@ enum class NavigationSection(val label: String, val icon: ImageVector) {
 fun HomeScreen(
     onOpenSettings: () -> Unit,
     onOpenOnboarding: () -> Unit = {},
+    initialOpenNowPlaying: Boolean = false,
     audioViewModel: AudioViewModel = viewModel(),
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     var currentSection by remember { mutableStateOf(NavigationSection.HOME) }
+    var isNowPlayingOpen by remember { mutableStateOf(initialOpenNowPlaying) }
 
     val tracks by audioViewModel.tracks.collectAsStateWithLifecycle()
     val albums by audioViewModel.albumSummaries.collectAsStateWithLifecycle()
@@ -134,35 +137,42 @@ fun HomeScreen(
     val currentTrack by audioViewModel.currentTrack.collectAsStateWithLifecycle()
     val isPlaying by audioViewModel.isPlaying.collectAsStateWithLifecycle()
     val progressMs by audioViewModel.progressMs.collectAsStateWithLifecycle()
+    val durationMs by audioViewModel.durationMs.collectAsStateWithLifecycle()
+    val repeatMode by audioViewModel.repeatMode.collectAsStateWithLifecycle()
+    val isShuffleEnabled by audioViewModel.isShuffleEnabled.collectAsStateWithLifecycle()
+    val playbackSpeed by audioViewModel.playbackSpeed.collectAsStateWithLifecycle()
     val favorites by audioViewModel.favorites.collectAsStateWithLifecycle()
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        containerColor = MusicProBackground,
-        bottomBar = {
-            Column(modifier = Modifier.navigationBarsPadding()) {
-                // Persistent Mini Player if there is a track
-                val activeTrack = currentTrack ?: tracks.firstOrNull()
-                if (activeTrack != null) {
-                    MiniPlayerBar(
-                        track = activeTrack,
-                        isPlaying = isPlaying,
-                        progressMs = progressMs,
-                        onPlayPauseToggle = { audioViewModel.togglePlayPause() },
-                        onNext = { audioViewModel.playNext() },
-                        onPrevious = { audioViewModel.playPrevious() },
-                        modifier = Modifier.testTag("mini_player_bar")
+    val activeTrack = currentTrack ?: tracks.firstOrNull()
+
+    Box(modifier = modifier.fillMaxSize()) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = MusicProBackground,
+            bottomBar = {
+                Column(modifier = Modifier.navigationBarsPadding()) {
+                    // Persistent Mini Player if there is a track
+                    if (activeTrack != null) {
+                        MiniPlayerBar(
+                            track = activeTrack,
+                            isPlaying = isPlaying,
+                            progressMs = progressMs,
+                            onPlayPauseToggle = { audioViewModel.togglePlayPause() },
+                            onNext = { audioViewModel.playNext() },
+                            onPrevious = { audioViewModel.playPrevious() },
+                            onClick = { isNowPlayingOpen = true },
+                            modifier = Modifier.testTag("mini_player_bar")
+                        )
+                    }
+
+                    // Bottom Navigation Bar with neon accents
+                    MusicProBottomNavBar(
+                        currentSection = currentSection,
+                        onSelectSection = { currentSection = it }
                     )
                 }
-
-                // Bottom Navigation Bar with neon accents
-                MusicProBottomNavBar(
-                    currentSection = currentSection,
-                    onSelectSection = { currentSection = it }
-                )
             }
-        }
-    ) { innerPadding ->
+        ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -226,6 +236,34 @@ fun HomeScreen(
             }
         }
     }
+
+    // Modal plein écran Now Playing avec animations néon
+    AnimatedVisibility(
+        visible = isNowPlayingOpen,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        NowPlayingScreen(
+            track = activeTrack,
+            isPlaying = isPlaying,
+            progressMs = progressMs,
+            durationMs = durationMs,
+            repeatMode = repeatMode,
+            isShuffleEnabled = isShuffleEnabled,
+            playbackSpeed = playbackSpeed,
+            isFavorite = favorites.contains(activeTrack?.id ?: -1L),
+            onBack = { isNowPlayingOpen = false },
+            onPlayPause = { audioViewModel.togglePlayPause() },
+            onNext = { audioViewModel.playNext() },
+            onPrevious = { audioViewModel.playPrevious() },
+            onSeekTo = { audioViewModel.seekTo(it) },
+            onToggleRepeat = { audioViewModel.toggleRepeatMode() },
+            onToggleShuffle = { audioViewModel.toggleShuffle() },
+            onToggleFavorite = { activeTrack?.let { audioViewModel.toggleFavorite(it.id) } },
+            onSetSpeed = { audioViewModel.setPlaybackSpeed(it) }
+        )
+    }
+}
 }
 
 @Composable
@@ -582,6 +620,7 @@ private fun MiniPlayerBar(
     onPlayPauseToggle: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
+    onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val progressFraction = if (track.duration > 0) {
@@ -591,6 +630,7 @@ private fun MiniPlayerBar(
     Surface(
         modifier = modifier
             .fillMaxWidth()
+            .clickable(onClick = onClick)
             .shadow(16.dp, spotColor = MusicProVioletGlow),
         color = MusicProSurfaceElevated,
         border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.35f))

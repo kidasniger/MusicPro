@@ -5,8 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.local.AudioTrackEntity
 import com.example.data.repository.AudioRepository
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
+import com.example.playback.MusicPlaybackManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -79,17 +78,16 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     private val _favorites = MutableStateFlow<Set<Long>>(emptySet())
     val favorites: StateFlow<Set<Long>> = _favorites.asStateFlow()
 
-    // Playback state
-    private val _currentTrack = MutableStateFlow<AudioTrackEntity?>(null)
-    val currentTrack: StateFlow<AudioTrackEntity?> = _currentTrack.asStateFlow()
+    // Gestionnaire de lecture Media3 (Foreground Service, Audio Focus, MediaStyle notification)
+    private val playbackManager = MusicPlaybackManager.getInstance(application)
 
-    private val _isPlaying = MutableStateFlow(false)
-    val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
-
-    private val _progressMs = MutableStateFlow(0L)
-    val progressMs: StateFlow<Long> = _progressMs.asStateFlow()
-
-    private var playbackTickerJob: Job? = null
+    val currentTrack: StateFlow<AudioTrackEntity?> = playbackManager.currentTrack
+    val isPlaying: StateFlow<Boolean> = playbackManager.isPlaying
+    val progressMs: StateFlow<Long> = playbackManager.currentPositionMs
+    val durationMs: StateFlow<Long> = playbackManager.durationMs
+    val repeatMode: StateFlow<Int> = playbackManager.repeatMode
+    val isShuffleEnabled: StateFlow<Boolean> = playbackManager.isShuffleEnabled
+    val playbackSpeed: StateFlow<Float> = playbackManager.playbackSpeed
 
     // Filtered search results
     val searchResults: StateFlow<List<AudioTrackEntity>> = combine(
@@ -170,13 +168,16 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     init {
-        // Au démarrage, si le cache Room est vide, tenter un scan MediaStore
+        // Au démarrage, si le cache Room est vide, tenter un scan MediaStore sans injecter de fausses pistes
         viewModelScope.launch {
             val count = repository.getTrackCount()
             if (count == 0) {
-                refreshScan(autoFallbackDemoIfEmpty = true)
+                refreshScan(autoFallbackDemoIfEmpty = false)
             } else {
                 _statusMessage.value = "$count morceaux chargés depuis le cache local"
+                if (currentTrack.value == null) {
+                    tracks.value.firstOrNull()?.let { playbackManager.setCurrentTrackOnly(it) }
+                }
             }
         }
     }
@@ -188,13 +189,16 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val count = repository.refreshMediaStoreScan()
                 if (count > 0) {
-                    _statusMessage.value = "$count morceaux trouvés et mis en cache"
+                    _statusMessage.value = "$count morceau(x) trouvé(s) et mis en cache Room"
+                    if (currentTrack.value == null) {
+                        tracks.value.firstOrNull()?.let { playbackManager.setCurrentTrackOnly(it) }
+                    }
                 } else {
                     if (autoFallbackDemoIfEmpty) {
                         val demoCount = repository.loadDemoTracks()
-                        _statusMessage.value = "Mode Démo activé ($demoCount morceaux de test)"
+                        _statusMessage.value = "Mode Démo activé ($demoCount morceaux)"
                     } else {
-                        _statusMessage.value = "Aucun fichier audio trouvé dans le MediaStore"
+                        _statusMessage.value = "Aucun fichier audio trouvé"
                     }
                 }
             } catch (e: Exception) {
@@ -213,7 +217,7 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
                 _statusMessage.value = "Catalogue démo chargé ($count morceaux)"
                 // Set first track as current
                 tracks.value.firstOrNull()?.let {
-                    _currentTrack.value = it
+                    playbackManager.setCurrentTrackOnly(it)
                 }
             } finally {
                 _isScanning.value = false
@@ -242,74 +246,40 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun playTrack(track: AudioTrackEntity) {
-        _currentTrack.value = track
-        _isPlaying.value = true
-        _progressMs.value = 0L
-        startPlaybackTicker(track.duration)
+    fun playTrack(track: AudioTrackEntity, playlist: List<AudioTrackEntity> = tracks.value) {
+        val activePlaylist = if (playlist.isNotEmpty()) playlist else listOf(track)
+        playbackManager.playTrack(track, activePlaylist)
     }
 
     fun togglePlayPause() {
-        if (_currentTrack.value == null) {
+        if (currentTrack.value == null) {
             tracks.value.firstOrNull()?.let { playTrack(it) }
             return
         }
-        val newState = !_isPlaying.value
-        _isPlaying.value = newState
-        if (newState) {
-            _currentTrack.value?.let { startPlaybackTicker(it.duration) }
-        } else {
-            playbackTickerJob?.cancel()
-        }
+        playbackManager.togglePlayPause()
     }
 
     fun playNext() {
-        val all = tracks.value
-        if (all.isEmpty()) return
-        val current = _currentTrack.value
-        val currentIndex = all.indexOfFirst { it.id == current?.id }
-        val nextTrack = if (currentIndex != -1 && currentIndex < all.size - 1) {
-            all[currentIndex + 1]
-        } else {
-            all.first()
-        }
-        playTrack(nextTrack)
+        playbackManager.playNext()
     }
 
     fun playPrevious() {
-        val all = tracks.value
-        if (all.isEmpty()) return
-        val current = _currentTrack.value
-        val currentIndex = all.indexOfFirst { it.id == current?.id }
-        val prevTrack = if (currentIndex > 0) {
-            all[currentIndex - 1]
-        } else {
-            all.last()
-        }
-        playTrack(prevTrack)
+        playbackManager.playPrevious()
     }
 
     fun seekTo(progressMs: Long) {
-        _progressMs.value = progressMs
+        playbackManager.seekTo(progressMs)
     }
 
-    private fun startPlaybackTicker(totalDurationMs: Long) {
-        playbackTickerJob?.cancel()
-        playbackTickerJob = viewModelScope.launch {
-            while (_isPlaying.value) {
-                delay(500)
-                if (_progressMs.value + 500 >= totalDurationMs && totalDurationMs > 0) {
-                    playNext()
-                    break
-                } else {
-                    _progressMs.value += 500
-                }
-            }
-        }
+    fun toggleRepeatMode() {
+        playbackManager.toggleRepeatMode()
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        playbackTickerJob?.cancel()
+    fun toggleShuffle() {
+        playbackManager.toggleShuffle()
+    }
+
+    fun setPlaybackSpeed(speed: Float) {
+        playbackManager.setPlaybackSpeed(speed)
     }
 }

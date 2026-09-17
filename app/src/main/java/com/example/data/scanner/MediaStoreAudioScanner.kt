@@ -39,11 +39,12 @@ class MediaStoreAudioScanner(private val context: Context) {
         )
 
         // Add ALBUM_ID for album artwork URI
-        val albumIdColumn = "album_id"
+        val albumIdColumn = MediaStore.Audio.AudioColumns.ALBUM_ID
         projection.add(albumIdColumn)
 
-        // Select only real music tracks with duration > 5 seconds
-        val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0 AND ${MediaStore.Audio.Media.DURATION} >= 5000"
+        // Select real audio music tracks, excluding ringtones, alarms, and notifications
+        val selection = "(${MediaStore.Audio.Media.IS_MUSIC} != 0 OR ${MediaStore.Audio.Media.MIME_TYPE} LIKE 'audio/%') " +
+                "AND (${MediaStore.Audio.Media.DURATION} >= 1000 OR ${MediaStore.Audio.Media.DURATION} IS NULL)"
         val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
 
         try {
@@ -70,11 +71,11 @@ class MediaStoreAudioScanner(private val context: Context) {
                     val rawTitle = cursor.getString(titleColumn) ?: "Titre Inconnu"
                     val rawArtist = cursor.getString(artistColumn) ?: "Artiste Inconnu"
                     val rawAlbum = cursor.getString(albumColumn) ?: "Album Inconnu"
-                    val duration = cursor.getLong(durationColumn)
+                    val duration = if (cursor.isNull(durationColumn)) 0L else cursor.getLong(durationColumn)
                     val path = cursor.getString(dataColumn) ?: ""
                     val mimeType = cursor.getString(mimeTypeColumn)
-                    val size = cursor.getLong(sizeColumn)
-                    val dateAdded = cursor.getLong(dateAddedColumn)
+                    val size = if (cursor.isNull(sizeColumn)) 0L else cursor.getLong(sizeColumn)
+                    val dateAdded = if (cursor.isNull(dateAddedColumn)) 0L else cursor.getLong(dateAddedColumn)
 
                     // Normalize unknown values from Android MediaStore
                     val title = if (rawTitle.isBlank() || rawTitle == "<unknown>") {
@@ -90,8 +91,8 @@ class MediaStoreAudioScanner(private val context: Context) {
                     } else rawAlbum
 
                     // Construct Album Art Uri
-                    val albumId = if (albumIdIdx != -1) cursor.getLong(albumIdIdx) else -1L
-                    val albumArtUri = if (albumId != -1L) {
+                    val albumId = if (albumIdIdx != -1 && !cursor.isNull(albumIdIdx)) cursor.getLong(albumIdIdx) else -1L
+                    val albumArtUri = if (albumId > 0) {
                         ContentUris.withAppendedId(
                             Uri.parse("content://media/external/audio/albumart"),
                             albumId

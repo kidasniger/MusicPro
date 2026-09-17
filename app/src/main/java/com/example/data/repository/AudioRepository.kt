@@ -41,8 +41,8 @@ class AudioRepository(
      */
     suspend fun refreshMediaStoreScan(): Int = withContext(Dispatchers.IO) {
         val scannedTracks = scanner.scanAudioFiles()
+        audioTrackDao.clearAllTracks()
         if (scannedTracks.isNotEmpty()) {
-            audioTrackDao.clearAllTracks()
             audioTrackDao.insertTracks(scannedTracks)
         }
         scannedTracks.size

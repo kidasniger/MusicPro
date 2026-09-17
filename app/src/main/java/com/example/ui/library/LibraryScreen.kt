@@ -32,6 +32,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.Equalizer
@@ -45,6 +46,8 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Badge
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -52,6 +55,9 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -120,6 +126,10 @@ fun LibraryScreen(
         ),
         label = "spin"
     )
+
+    var selectedAlbum by remember { mutableStateOf<AlbumSummary?>(null) }
+    var selectedArtist by remember { mutableStateOf<ArtistSummary?>(null) }
+    var selectedFolder by remember { mutableStateOf<FolderSummary?>(null) }
 
     Column(
         modifier = modifier
@@ -223,7 +233,12 @@ fun LibraryScreen(
                             if (isSelected) MusicProVioletGlow else Color(0x1AFFFFFF),
                             RoundedCornerShape(12.dp)
                         )
-                        .clickable { onSelectTab(tab) }
+                        .clickable {
+                            selectedAlbum = null
+                            selectedArtist = null
+                            selectedFolder = null
+                            onSelectTab(tab)
+                        }
                         .testTag("library_tab_${tab.name.lowercase()}"),
                     contentAlignment = Alignment.Center
                 ) {
@@ -261,32 +276,75 @@ fun LibraryScreen(
                     )
                 }
                 LibraryTab.ALBUMS -> {
-                    AlbumsGrid(
-                        albums = albums,
-                        onAlbumClick = { album ->
-                            onTrackClick(album.sampleTrack)
-                        }
-                    )
+                    if (selectedAlbum != null) {
+                        val albumTracks = tracks.filter { it.album == selectedAlbum!!.name }
+                        AlbumDetailView(
+                            album = selectedAlbum!!,
+                            tracks = albumTracks,
+                            currentPlayingTrack = currentPlayingTrack,
+                            isPlaying = isPlaying,
+                            favorites = favorites,
+                            onBack = { selectedAlbum = null },
+                            onPlayAll = { albumTracks.firstOrNull()?.let { onTrackClick(it) } },
+                            onTrackClick = onTrackClick,
+                            onToggleFavorite = onToggleFavorite
+                        )
+                    } else {
+                        AlbumsGrid(
+                            albums = albums,
+                            onAlbumClick = { album ->
+                                selectedAlbum = album
+                            }
+                        )
+                    }
                 }
                 LibraryTab.ARTISTS -> {
-                    ArtistsList(
-                        artists = artists,
-                        tracks = tracks,
-                        onArtistClick = { artist ->
-                            val track = tracks.firstOrNull { it.artist == artist.name }
-                            track?.let { onTrackClick(it) }
-                        }
-                    )
+                    if (selectedArtist != null) {
+                        val artistTracks = tracks.filter { it.artist == selectedArtist!!.name }
+                        ArtistDetailView(
+                            artist = selectedArtist!!,
+                            tracks = artistTracks,
+                            currentPlayingTrack = currentPlayingTrack,
+                            isPlaying = isPlaying,
+                            favorites = favorites,
+                            onBack = { selectedArtist = null },
+                            onPlayAll = { artistTracks.firstOrNull()?.let { onTrackClick(it) } },
+                            onTrackClick = onTrackClick,
+                            onToggleFavorite = onToggleFavorite
+                        )
+                    } else {
+                        ArtistsList(
+                            artists = artists,
+                            tracks = tracks,
+                            onArtistClick = { artist ->
+                                selectedArtist = artist
+                            }
+                        )
+                    }
                 }
                 LibraryTab.FOLDERS -> {
-                    FoldersList(
-                        folders = folders,
-                        tracks = tracks,
-                        onFolderClick = { folder ->
-                            val track = tracks.firstOrNull { it.folder == folder.name }
-                            track?.let { onTrackClick(it) }
-                        }
-                    )
+                    if (selectedFolder != null) {
+                        val folderTracks = tracks.filter { it.folder == selectedFolder!!.name }
+                        FolderDetailView(
+                            folder = selectedFolder!!,
+                            tracks = folderTracks,
+                            currentPlayingTrack = currentPlayingTrack,
+                            isPlaying = isPlaying,
+                            favorites = favorites,
+                            onBack = { selectedFolder = null },
+                            onPlayAll = { folderTracks.firstOrNull()?.let { onTrackClick(it) } },
+                            onTrackClick = onTrackClick,
+                            onToggleFavorite = onToggleFavorite
+                        )
+                    } else {
+                        FoldersList(
+                            folders = folders,
+                            tracks = tracks,
+                            onFolderClick = { folder ->
+                                selectedFolder = folder
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -369,6 +427,8 @@ fun TrackRowItem(
         }
 
         // Pochette d'album ou icône avec gradient
+        var imageLoadError by remember(track.id) { mutableStateOf(false) }
+
         Box(
             modifier = Modifier
                 .size(46.dp)
@@ -381,11 +441,12 @@ fun TrackRowItem(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            if (!track.albumArtUri.isNullOrBlank()) {
+            if (!track.albumArtUri.isNullOrBlank() && !imageLoadError) {
                 AsyncImage(
                     model = track.albumArtUri,
                     contentDescription = track.album,
                     contentScale = ContentScale.Crop,
+                    onError = { imageLoadError = true },
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
@@ -512,6 +573,8 @@ private fun AlbumGridItem(
     album: AlbumSummary,
     onClick: () -> Unit
 ) {
+    var imageLoadError by remember(album.name) { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
@@ -533,11 +596,12 @@ private fun AlbumGridItem(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            if (!album.coverUri.isNullOrBlank()) {
+            if (!album.coverUri.isNullOrBlank() && !imageLoadError) {
                 AsyncImage(
                     model = album.coverUri,
                     contentDescription = album.name,
                     contentScale = ContentScale.Crop,
+                    onError = { imageLoadError = true },
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
@@ -718,6 +782,417 @@ private fun FoldersList(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun AlbumDetailView(
+    album: AlbumSummary,
+    tracks: List<AudioTrackEntity>,
+    currentPlayingTrack: AudioTrackEntity?,
+    isPlaying: Boolean,
+    favorites: Set<Long>,
+    onBack: () -> Unit,
+    onPlayAll: () -> Unit,
+    onTrackClick: (AudioTrackEntity) -> Unit,
+    onToggleFavorite: (Long) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 120.dp)
+    ) {
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Retour aux albums",
+                        tint = MusicProCyanNeon
+                    )
+                }
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "Albums",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MusicProTextSecondary
+                )
+            }
+        }
+
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                var imageLoadError by remember(album.name) { mutableStateOf(false) }
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(MusicProSurfaceVariant)
+                        .border(1.dp, MusicProVioletPrimary, RoundedCornerShape(14.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (!album.coverUri.isNullOrBlank() && !imageLoadError) {
+                        AsyncImage(
+                            model = album.coverUri,
+                            contentDescription = album.name,
+                            contentScale = ContentScale.Crop,
+                            onError = { imageLoadError = true },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Album,
+                            contentDescription = null,
+                            tint = MusicProCyanNeon,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = album.name,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MusicProTextPrimary,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = album.artist,
+                        fontSize = 13.sp,
+                        color = MusicProVioletLight
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "${album.trackCount} titre(s) disponible(s)",
+                        fontSize = 11.sp,
+                        color = MusicProTextMuted
+                    )
+                }
+            }
+        }
+
+        item {
+            Button(
+                onClick = onPlayAll,
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 8.dp)
+                    .height(44.dp)
+                    .background(MusicProPrimaryGradient, RoundedCornerShape(12.dp))
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Lire tout l'album",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+            }
+        }
+
+        itemsIndexed(tracks, key = { _, track -> track.id }) { index, track ->
+            val isCurrent = currentPlayingTrack?.id == track.id
+            val isFav = favorites.contains(track.id)
+
+            TrackRowItem(
+                index = index + 1,
+                track = track,
+                isCurrent = isCurrent,
+                isPlaying = isPlaying,
+                isFavorite = isFav,
+                onClick = { onTrackClick(track) },
+                onToggleFavorite = { onToggleFavorite(track.id) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ArtistDetailView(
+    artist: ArtistSummary,
+    tracks: List<AudioTrackEntity>,
+    currentPlayingTrack: AudioTrackEntity?,
+    isPlaying: Boolean,
+    favorites: Set<Long>,
+    onBack: () -> Unit,
+    onPlayAll: () -> Unit,
+    onTrackClick: (AudioTrackEntity) -> Unit,
+    onToggleFavorite: (Long) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 120.dp)
+    ) {
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Retour aux artistes",
+                        tint = MusicProCyanNeon
+                    )
+                }
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "Artistes",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MusicProTextSecondary
+                )
+            }
+        }
+
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(70.dp)
+                        .clip(CircleShape)
+                        .background(MusicProPrimaryGradient)
+                        .border(2.dp, MusicProCyanNeon, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(36.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = artist.name,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MusicProTextPrimary
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "${artist.trackCount} morceau(x) • ${artist.albumsCount} album(s)",
+                        fontSize = 12.sp,
+                        color = MusicProCyanLight
+                    )
+                }
+            }
+        }
+
+        item {
+            Button(
+                onClick = onPlayAll,
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 8.dp)
+                    .height(44.dp)
+                    .background(MusicProPrimaryGradient, RoundedCornerShape(12.dp))
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Lire les morceaux de l'artiste",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+            }
+        }
+
+        itemsIndexed(tracks, key = { _, track -> track.id }) { index, track ->
+            val isCurrent = currentPlayingTrack?.id == track.id
+            val isFav = favorites.contains(track.id)
+
+            TrackRowItem(
+                index = index + 1,
+                track = track,
+                isCurrent = isCurrent,
+                isPlaying = isPlaying,
+                isFavorite = isFav,
+                onClick = { onTrackClick(track) },
+                onToggleFavorite = { onToggleFavorite(track.id) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun FolderDetailView(
+    folder: FolderSummary,
+    tracks: List<AudioTrackEntity>,
+    currentPlayingTrack: AudioTrackEntity?,
+    isPlaying: Boolean,
+    favorites: Set<Long>,
+    onBack: () -> Unit,
+    onPlayAll: () -> Unit,
+    onTrackClick: (AudioTrackEntity) -> Unit,
+    onToggleFavorite: (Long) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 120.dp)
+    ) {
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Retour aux dossiers",
+                        tint = MusicProCyanNeon
+                    )
+                }
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "Dossiers",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MusicProTextSecondary
+                )
+            }
+        }
+
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(MusicProSurfaceElevated)
+                        .border(1.5.dp, MusicProCyanNeon, RoundedCornerShape(14.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Folder,
+                        contentDescription = null,
+                        tint = MusicProCyanNeon,
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = folder.name,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MusicProTextPrimary
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = folder.samplePath,
+                        fontSize = 11.sp,
+                        color = MusicProTextSecondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "${folder.trackCount} fichier(s) audio",
+                        fontSize = 11.sp,
+                        color = MusicProVioletLight
+                    )
+                }
+            }
+        }
+
+        item {
+            Button(
+                onClick = onPlayAll,
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 8.dp)
+                    .height(44.dp)
+                    .background(MusicProPrimaryGradient, RoundedCornerShape(12.dp))
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Lire tout le dossier",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+            }
+        }
+
+        itemsIndexed(tracks, key = { _, track -> track.id }) { index, track ->
+            val isCurrent = currentPlayingTrack?.id == track.id
+            val isFav = favorites.contains(track.id)
+
+            TrackRowItem(
+                index = index + 1,
+                track = track,
+                isCurrent = isCurrent,
+                isPlaying = isPlaying,
+                isFavorite = isFav,
+                onClick = { onTrackClick(track) },
+                onToggleFavorite = { onToggleFavorite(track.id) }
+            )
         }
     }
 }
