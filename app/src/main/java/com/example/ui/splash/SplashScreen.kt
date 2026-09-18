@@ -30,6 +30,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -56,13 +58,18 @@ import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletPastel
 import com.example.ui.theme.MusicProVioletPrimary
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 
 @Composable
 fun SplashScreen(
     onSplashFinished: () -> Unit,
     modifier: Modifier = Modifier,
+    isReadyToNavigate: Boolean = true,
     splashDurationMillis: Long = 1500L
 ) {
+    val currentOnSplashFinished by rememberUpdatedState(onSplashFinished)
+    val currentIsReady by rememberUpdatedState(isReadyToNavigate)
+
     // Scale and Alpha animation for logo entry
     val scale = remember { Animatable(0.6f) }
     val alpha = remember { Animatable(0f) }
@@ -100,7 +107,11 @@ fun SplashScreen(
             animationSpec = tween(durationMillis = 400, easing = LinearEasing)
         )
         delay(splashDurationMillis - 600L) // Remaining time to reach 1.5s exactly
-        onSplashFinished()
+
+        // Ensure preferences and readiness check are completed before navigating
+        snapshotFlow { currentIsReady }.first { it }
+
+        currentOnSplashFinished()
     }
 
     Box(

@@ -6,6 +6,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -68,16 +70,20 @@ fun MusicProNavGraph(
     ) {
         // Écran 1: Splash avec logo animé (1,5s)
         composable(Destinations.SPLASH) {
+            val currentOnboardingCompleted by rememberUpdatedState(isOnboardingCompleted)
+            val currentCanProceed by rememberUpdatedState(uiState.canProceedToApp)
+
             SplashScreen(
+                isReadyToNavigate = (isOnboardingCompleted != null),
                 splashDurationMillis = 1500L,
                 onSplashFinished = {
-                    val onboardingDone = isOnboardingCompleted ?: false
+                    val onboardingDone = currentOnboardingCompleted == true
                     if (!onboardingDone) {
                         navController.navigate(Destinations.ONBOARDING) {
                             popUpTo(Destinations.SPLASH) { inclusive = true }
                         }
                     } else {
-                        if (uiState.canProceedToApp) {
+                        if (currentCanProceed) {
                             navController.navigate(Destinations.HOME) {
                                 popUpTo(Destinations.SPLASH) { inclusive = true }
                             }

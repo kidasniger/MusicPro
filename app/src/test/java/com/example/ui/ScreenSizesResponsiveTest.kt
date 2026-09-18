@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.core.app.ApplicationProvider
 import com.example.data.preferences.AppThemeMode
 import com.example.permissions.PermissionUiState
@@ -75,8 +76,8 @@ class ScreenSizesResponsiveTest {
         composeTestRule.onNodeWithTag("theme_settings_card").assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_light_button").assertIsDisplayed()
         composeTestRule.onNodeWithTag("groq_settings_card").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("cache_settings_card").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("about_settings_card").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("cache_settings_card").performScrollTo().assertIsDisplayed()
+        composeTestRule.onNodeWithTag("about_settings_card").performScrollTo().assertIsDisplayed()
     }
 
     /**
@@ -103,8 +104,8 @@ class ScreenSizesResponsiveTest {
         composeTestRule.onNodeWithTag("theme_settings_card").assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_system_button").assertIsDisplayed()
         composeTestRule.onNodeWithTag("groq_settings_card").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("cache_settings_card").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("about_settings_card").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("cache_settings_card").performScrollTo().assertIsDisplayed()
+        composeTestRule.onNodeWithTag("about_settings_card").performScrollTo().assertIsDisplayed()
     }
 
     /**
