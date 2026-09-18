@@ -52,6 +52,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -80,7 +81,10 @@ import com.example.data.local.PlaylistSummary
 import com.example.permissions.PermissionUtils
 import com.example.ui.audio.AudioViewModel
 import com.example.ui.audio.LibraryTab
+import com.example.ui.components.AppUpdateDialog
 import com.example.ui.components.EmptyAudioStateView
+import com.example.ui.settings.SettingsViewModel
+import com.example.updater.UpdateCheckState
 import com.example.ui.library.LibraryScreen
 import com.example.ui.library.TrackRowItem
 import com.example.ui.playlist.AddTracksToPlaylistDialog
@@ -123,6 +127,7 @@ fun HomeScreen(
     onOpenOnboarding: () -> Unit = {},
     initialOpenNowPlaying: Boolean = false,
     audioViewModel: AudioViewModel = viewModel(),
+    settingsViewModel: SettingsViewModel = viewModel(),
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -130,6 +135,15 @@ fun HomeScreen(
     var isNowPlayingOpen by remember { mutableStateOf(initialOpenNowPlaying) }
     var isLyricsOpen by remember { mutableStateOf(false) }
     var isLrclibSearchOpen by remember { mutableStateOf(false) }
+
+    // État et vérification automatique des mises à jour au démarrage
+    val updateCheckState by settingsViewModel.updateCheckState.collectAsStateWithLifecycle()
+    val downloadState by settingsViewModel.downloadState.collectAsStateWithLifecycle()
+    var isUpdateDialogDismissed by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        settingsViewModel.checkForUpdates()
+    }
 
     val tracks by audioViewModel.tracks.collectAsStateWithLifecycle()
     val albums by audioViewModel.albumSummaries.collectAsStateWithLifecycle()
@@ -434,6 +448,22 @@ fun HomeScreen(
             onCreateAndAdd = { name, desc ->
                 audioViewModel.createPlaylist(name, desc, initialTrackIds = listOf(trk.id))
                 trackForAddToPlaylistChooser = null
+            }
+        )
+    }
+
+    // Dialogue d'alerte de nouvelle mise à jour disponible au lancement
+    val currentUpdate = updateCheckState
+    if (currentUpdate is UpdateCheckState.UpdateAvailable && !isUpdateDialogDismissed) {
+        AppUpdateDialog(
+            updateInfo = currentUpdate,
+            downloadState = downloadState,
+            onDismiss = {
+                isUpdateDialogDismissed = true
+                settingsViewModel.resetUpdateState()
+            },
+            onDownloadAndInstall = { downloadUrl ->
+                settingsViewModel.downloadAndInstallUpdate(downloadUrl)
             }
         )
     }

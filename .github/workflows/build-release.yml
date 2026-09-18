@@ -44,13 +44,17 @@ jobs:
       - name: Extract Version Info
         id: version_info
         run: |
-          VERSION_NAME=$(grep 'versionName' app/build.gradle.kts | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/' | tr -d ' ')
-          VERSION_CODE=$(grep 'versionCode' app/build.gradle.kts | head -n 1 | grep -o '[0-9]\+' | head -n 1)
-          if [ -z "$VERSION_NAME" ]; then
-            VERSION_NAME="1.0"
+          BASE_VERSION=$(grep 'releaseVersionName' app/build.gradle.kts | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/' | tr -d ' ')
+          if [ -z "$BASE_VERSION" ]; then
+            BASE_VERSION=$(grep 'versionName' app/build.gradle.kts | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/' | tr -d ' ')
           fi
-          # Création d'un tag unique avec le run_number pour éviter les conflits
-          TAG_NAME="v${VERSION_NAME}-b${{ github.run_number }}"
+          if [ -z "$BASE_VERSION" ]; then
+            BASE_VERSION="1.0"
+          fi
+          # Version Name complet qui apparaîtra dans les paramètres Android du téléphone (ex: 1.0-b12)
+          VERSION_NAME="${BASE_VERSION}-b${{ github.run_number }}"
+          VERSION_CODE="${{ github.run_number }}"
+          TAG_NAME="v${VERSION_NAME}"
           echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
           echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
@@ -67,11 +71,12 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           GRADLE_OPTS: "-Djava.awt.headless=true -Xmx4g"
         run: |
+          GRADLE_ARGS="assembleRelease -PversionName=${{ steps.version_info.outputs.version_name }} -PversionCode=${{ steps.version_info.outputs.version_code }} --no-daemon -Djava.awt.headless=true"
           if [ -f "./gradlew" ]; then
             chmod +x ./gradlew
-            ./gradlew assembleRelease --no-daemon -Djava.awt.headless=true
+            ./gradlew $GRADLE_ARGS
           else
-            gradle assembleRelease --no-daemon -Djava.awt.headless=true
+            gradle $GRADLE_ARGS
           fi
 
       - name: Rename APK

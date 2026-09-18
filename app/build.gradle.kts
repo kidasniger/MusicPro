@@ -13,12 +13,15 @@ android {
   namespace = "com.example"
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
+  val releaseVersionCode = project.findProperty("versionCode")?.toString()?.toIntOrNull() ?: 1
+  val releaseVersionName = project.findProperty("versionName")?.toString() ?: "1.0"
+
   defaultConfig {
     applicationId = "com.aistudio.musicpro.qkzmvp"
     minSdk = 26
     targetSdk = 35
-    versionCode = 1
-    versionName = "1.0"
+    versionCode = releaseVersionCode
+    versionName = releaseVersionName
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
