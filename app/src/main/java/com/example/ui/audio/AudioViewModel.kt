@@ -152,6 +152,9 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     val repeatMode: StateFlow<Int> = playbackManager.repeatMode
     val isShuffleEnabled: StateFlow<Boolean> = playbackManager.isShuffleEnabled
     val playbackSpeed: StateFlow<Float> = playbackManager.playbackSpeed
+    val playbackErrorMessage: StateFlow<String?> = playbackManager.errorMessage
+
+    fun clearPlaybackErrorMessage() = playbackManager.clearErrorMessage()
 
     // Gestionnaire de paroles synchronisées (LRC et ID3 SYLT via jaudiotagger)
     private val lyricsRepository = LyricsRepository.getInstance(application)
@@ -263,8 +266,9 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     init {
-        // Au démarrage, si le cache Room est vide, tenter un scan MediaStore sans injecter de fausses pistes
+        // Au démarrage, assainir les pistes démo et vérifier le cache Room
         viewModelScope.launch {
+            repository.sanitizeCachedTracks()
             val count = repository.getTrackCount()
             if (count == 0) {
                 refreshScan(autoFallbackDemoIfEmpty = false)

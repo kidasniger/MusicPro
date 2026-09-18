@@ -168,6 +168,7 @@ fun HomeScreen(
     val repeatMode by audioViewModel.repeatMode.collectAsStateWithLifecycle()
     val isShuffleEnabled by audioViewModel.isShuffleEnabled.collectAsStateWithLifecycle()
     val playbackSpeed by audioViewModel.playbackSpeed.collectAsStateWithLifecycle()
+    val playbackErrorMessage by audioViewModel.playbackErrorMessage.collectAsStateWithLifecycle()
     val favorites by audioViewModel.favorites.collectAsStateWithLifecycle()
     val lyricsData by audioViewModel.lyricsData.collectAsStateWithLifecycle()
     val isLyricsLoading by audioViewModel.isLyricsLoading.collectAsStateWithLifecycle()
@@ -182,6 +183,13 @@ fun HomeScreen(
     val selectedPlaylistTracks by audioViewModel.selectedPlaylistTracks.collectAsStateWithLifecycle()
     var isAddTracksToPlaylistOpen by remember { mutableStateOf(false) }
     var trackForAddToPlaylistChooser by remember { mutableStateOf<AudioTrackEntity?>(null) }
+
+    LaunchedEffect(playbackErrorMessage) {
+        playbackErrorMessage?.let { msg ->
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+            audioViewModel.clearPlaybackErrorMessage()
+        }
+    }
 
     val activeTrack = currentTrack ?: tracks.firstOrNull()
 

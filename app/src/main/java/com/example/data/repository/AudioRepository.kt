@@ -67,6 +67,24 @@ class AudioRepository(
         demoTracks.size
     }
 
+    /**
+     * Met à jour automatiquement les pistes de démo déjà stockées en base Room
+     * dont les URIs étaient des chemins virtuels obsolètes, vers de vrais fichiers WAV audibles.
+     */
+    suspend fun sanitizeCachedTracks() = withContext(Dispatchers.IO) {
+        try {
+            val demoTracks = scanner.getFallbackDemoTracks()
+            demoTracks.forEach { demoTrack ->
+                val existing = audioTrackDao.getTrackById(demoTrack.id)
+                if (existing != null && (existing.contentUri.startsWith("content://media/external/audio/media/100") || !existing.contentUri.startsWith("file://"))) {
+                    audioTrackDao.insertTrack(demoTrack)
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("AudioRepository", "Erreur assainissement pistes: ${e.message}")
+        }
+    }
+
     suspend fun clearCache() = withContext(Dispatchers.IO) {
         audioTrackDao.clearAllTracks()
     }

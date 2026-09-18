@@ -89,6 +89,11 @@ class MusicPlaybackService : MediaSessionService() {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 notifyWidgetUpdate(exoPlayer, exoPlayer.isPlaying)
             }
+
+            override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                android.util.Log.e("MusicPlaybackService", "ExoPlayer error: ${error.errorCodeName} - ${error.message}", error)
+                notifyWidgetUpdate(exoPlayer, false)
+            }
         })
 
         // 5. Notification Media système avec canal dédié et id

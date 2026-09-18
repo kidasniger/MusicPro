@@ -155,128 +155,128 @@ class MediaStoreAudioScanner(private val context: Context) {
     /**
      * Fournit un catalogue d'échantillons haute fidélité pour émulateur / premier test
      * lorsque l'appareil ne contient pas encore de fichiers audio locaux.
+     * Chaque piste est associée à un véritable fichier audio WAV généré localement
+     * pour garantir une lecture fluide sans erreur de source Media3.
      */
     fun getFallbackDemoTracks(): List<AudioTrackEntity> {
+        fun makeDemoTrack(
+            id: Long,
+            title: String,
+            artist: String,
+            album: String,
+            duration: Long,
+            folder: String,
+            mimeType: String,
+            size: Long,
+            hasSyncedLyrics: Boolean
+        ): AudioTrackEntity {
+            val file = com.example.playback.DemoAudioGenerator.getOrCreateDemoAudioFile(context, id)
+            val fileUri = Uri.fromFile(file).toString()
+            return AudioTrackEntity(
+                id = id,
+                title = title,
+                artist = artist,
+                album = album,
+                duration = duration,
+                contentUri = fileUri,
+                albumArtUri = null,
+                path = file.absolutePath,
+                folder = folder,
+                mimeType = mimeType,
+                size = size,
+                hasSyncedLyrics = hasSyncedLyrics,
+                dateAdded = System.currentTimeMillis()
+            )
+        }
+
         return listOf(
-            AudioTrackEntity(
+            makeDemoTrack(
                 id = 1001L,
                 title = "Neon Horizons (Synthwave Mix)",
                 artist = "Cyber Pulse",
                 album = "Neon Drift 2088",
                 duration = 225000L,
-                contentUri = "content://media/external/audio/media/1001",
-                albumArtUri = null,
-                path = "/storage/emulated/0/Music/Pop/Neon_Horizons.flac",
                 folder = "Pop",
-                mimeType = "audio/flac",
+                mimeType = "audio/wav",
                 size = 34500000L,
-                hasSyncedLyrics = true,
-                dateAdded = System.currentTimeMillis()
+                hasSyncedLyrics = true
             ),
-            AudioTrackEntity(
+            makeDemoTrack(
                 id = 1002L,
                 title = "Electric Aurora",
                 artist = "Luna & The Starlight",
                 album = "Starlight Odyssey",
                 duration = 252000L,
-                contentUri = "content://media/external/audio/media/1002",
-                albumArtUri = null,
-                path = "/storage/emulated/0/Music/Pop/Electric_Aurora.mp3",
                 folder = "Pop",
-                mimeType = "audio/mpeg",
+                mimeType = "audio/wav",
                 size = 10240000L,
-                hasSyncedLyrics = true,
-                dateAdded = System.currentTimeMillis()
+                hasSyncedLyrics = true
             ),
-            AudioTrackEntity(
+            makeDemoTrack(
                 id = 1003L,
                 title = "Midnight City Ride",
                 artist = "Kavinsky Wave",
                 album = "Retro Overdrive",
                 duration = 198000L,
-                contentUri = "content://media/external/audio/media/1003",
-                albumArtUri = null,
-                path = "/storage/emulated/0/Music/Dance/Midnight_City_Ride.wav",
                 folder = "Dance",
                 mimeType = "audio/wav",
                 size = 45200000L,
-                hasSyncedLyrics = true,
-                dateAdded = System.currentTimeMillis()
+                hasSyncedLyrics = true
             ),
-            AudioTrackEntity(
+            makeDemoTrack(
                 id = 1004L,
                 title = "Retro Wave Dreams",
                 artist = "Synth Master",
                 album = "Neon Drift 2088",
                 duration = 304000L,
-                contentUri = "content://media/external/audio/media/1004",
-                albumArtUri = null,
-                path = "/storage/emulated/0/Music/Electro/Retro_Wave_Dreams.flac",
                 folder = "Electro",
-                mimeType = "audio/flac",
+                mimeType = "audio/wav",
                 size = 48100000L,
-                hasSyncedLyrics = false,
-                dateAdded = System.currentTimeMillis()
+                hasSyncedLyrics = false
             ),
-            AudioTrackEntity(
+            makeDemoTrack(
                 id = 1005L,
                 title = "Hyperdrive Odyssey",
                 artist = "Orbit Velocity",
                 album = "Cosmic Journey",
                 duration = 176000L,
-                contentUri = "content://media/external/audio/media/1005",
-                albumArtUri = null,
-                path = "/storage/emulated/0/Download/Hyperdrive_Odyssey.mp3",
                 folder = "Download",
-                mimeType = "audio/mpeg",
+                mimeType = "audio/wav",
                 size = 8400000L,
-                hasSyncedLyrics = true,
-                dateAdded = System.currentTimeMillis()
+                hasSyncedLyrics = true
             ),
-            AudioTrackEntity(
+            makeDemoTrack(
                 id = 1006L,
                 title = "Dark Cybernetic Void",
                 artist = "Void Walker",
                 album = "Void Protocol",
                 duration = 275000L,
-                contentUri = "content://media/external/audio/media/1006",
-                albumArtUri = null,
-                path = "/storage/emulated/0/Music/Rock/Cybernetic_Void.flac",
                 folder = "Rock",
-                mimeType = "audio/flac",
+                mimeType = "audio/wav",
                 size = 52000000L,
-                hasSyncedLyrics = true,
-                dateAdded = System.currentTimeMillis()
+                hasSyncedLyrics = true
             ),
-            AudioTrackEntity(
+            makeDemoTrack(
                 id = 1007L,
                 title = "Blinding Starlight",
                 artist = "The Weeknd Style",
                 album = "After Hours Tribute",
                 duration = 200000L,
-                contentUri = "content://media/external/audio/media/1007",
-                albumArtUri = null,
-                path = "/storage/emulated/0/Music/Pop/Blinding_Starlight.mp3",
                 folder = "Pop",
-                mimeType = "audio/mpeg",
+                mimeType = "audio/wav",
                 size = 9800000L,
-                hasSyncedLyrics = true,
-                dateAdded = System.currentTimeMillis()
+                hasSyncedLyrics = true
             ),
-            AudioTrackEntity(
+            makeDemoTrack(
                 id = 1008L,
                 title = "Summer Breeze Escape",
                 artist = "Luna & The Starlight",
                 album = "Starlight Odyssey",
                 duration = 210000L,
-                contentUri = "content://media/external/audio/media/1008",
-                albumArtUri = null,
-                path = "/storage/emulated/0/Music/Pop/Summer_Breeze.m4a",
                 folder = "Pop",
-                mimeType = "audio/m4a",
+                mimeType = "audio/wav",
                 size = 11200000L,
-                hasSyncedLyrics = false,
-                dateAdded = System.currentTimeMillis()
+                hasSyncedLyrics = false
             )
         )
     }

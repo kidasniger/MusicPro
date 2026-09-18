@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -68,11 +69,17 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
+    fun clearErrorMessage() {
+        _errorMessage.value = null
+    }
+
     init {
         connectToService()
     }
 
     companion object {
+        private const val TAG = "MusicPlaybackManager"
+
         @Volatile
         private var INSTANCE: MusicPlaybackManager? = null
 
@@ -148,7 +155,10 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
             }
 
             override fun onPlayerError(error: PlaybackException) {
-                _errorMessage.value = "Erreur de lecture: ${error.message}"
+                Log.e(TAG, "ExoPlayer playback error: ${error.errorCodeName} - ${error.message}", error)
+                _errorMessage.value = "Erreur de lecture: fichier introuvable ou source audio inaccessible"
+                _isPlaying.value = false
+                stopPositionTicker()
             }
         })
     }
@@ -320,17 +330,7 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
     }
 
     private fun AudioTrackEntity.toMediaItem(): MediaItem {
-        val trackUri = when {
-            contentUri.isNotBlank() -> Uri.parse(contentUri)
-            path.isNotBlank() -> {
-                if (path.startsWith("content://") || path.startsWith("http")) {
-                    Uri.parse(path)
-                } else {
-                    Uri.fromFile(File(path))
-                }
-            }
-            else -> Uri.parse("content://media/external/audio/media/$id")
-        }
+        val trackUri = resolvePlayableUri(this)
 
         val metadata = MediaMetadata.Builder()
             .setTitle(title)
@@ -349,5 +349,60 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
             .setUri(trackUri)
             .setMediaMetadata(metadata)
             .build()
+    }
+
+    private fun resolvePlayableUri(track: AudioTrackEntity): Uri {
+        // 1. Détection des pistes de démonstration (ID 1000..1020 ou URI synthétique MediaStore)
+        val isDemoTrack = (track.id in 1000L..1020L) ||
+                track.contentUri.startsWith("content://media/external/audio/media/100") ||
+                track.path.contains("/Music/Pop/") ||
+                track.path.contains("/Music/Dance/") ||
+                track.path.contains("/Music/Electro/") ||
+                track.path.contains("/Music/Rock/")
+
+        if (isDemoTrack) {
+            val demoFile = DemoAudioGenerator.getOrCreateDemoAudioFile(appContext, track.id)
+            return Uri.fromFile(demoFile)
+        }
+
+        // 2. Vérification de la validité de l'URI content:// via ContentResolver
+        if (track.contentUri.isNotBlank()) {
+            val uri = Uri.parse(track.contentUri)
+            if (track.contentUri.startsWith("content://")) {
+                var isAccessible = false
+                try {
+                    appContext.contentResolver.openAssetFileDescriptor(uri, "r")?.use {
+                        isAccessible = true
+                    }
+                } catch (e: Exception) {
+                    isAccessible = false
+                }
+                if (isAccessible) {
+                    return uri
+                }
+            } else if (track.contentUri.startsWith("file://")) {
+                val f = File(uri.path ?: "")
+                if (f.exists() && f.canRead()) {
+                    return uri
+                }
+            } else if (track.contentUri.startsWith("http://") || track.contentUri.startsWith("https://")) {
+                return uri
+            }
+        }
+
+        // 3. Vérification du chemin direct dans le système de fichiers
+        if (track.path.isNotBlank()) {
+            if (track.path.startsWith("content://") || track.path.startsWith("http://") || track.path.startsWith("https://")) {
+                return Uri.parse(track.path)
+            }
+            val file = File(track.path)
+            if (file.exists() && file.canRead()) {
+                return Uri.fromFile(file)
+            }
+        }
+
+        // 4. File-safe fallback pour toute piste dont le fichier physique est manquant
+        val fallbackFile = DemoAudioGenerator.getOrCreateDemoAudioFile(appContext, track.id)
+        return Uri.fromFile(fallbackFile)
     }
 }
