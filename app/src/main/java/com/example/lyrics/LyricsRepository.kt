@@ -4,9 +4,15 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import com.example.data.local.AudioTrackEntity
+import com.example.lyrics.remote.LrclibClient
+import com.example.lyrics.remote.LrclibSearchResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import retrofit2.HttpException
 import java.io.File
+import java.net.ConnectException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import java.util.concurrent.ConcurrentHashMap
 
 class LyricsRepository private constructor(private val context: Context) {
@@ -47,6 +53,100 @@ class LyricsRepository private constructor(private val context: Context) {
      */
     fun setLyricsForTrack(trackId: Long, lyricsData: LyricsData) {
         cache[trackId] = lyricsData
+    }
+
+    /**
+     * Recherche des paroles en ligne sur l'API lrclib.net.
+     * Gère les erreurs réseau (pas de connexion, timeout, erreur HTTP) avec des messages explicites.
+     */
+    suspend fun searchLyricsOnline(
+        trackTitle: String?,
+        artistName: String?,
+        durationSec: Int?
+    ): Result<List<LrclibSearchResult>> = withContext(Dispatchers.IO) {
+        try {
+            val cleanTitle = trackTitle?.trim()?.takeIf { it.isNotBlank() }
+            val cleanArtist = artistName?.trim()?.takeIf { it.isNotBlank() }
+
+            // 1. Recherche ciblée avec titre, artiste et durée
+            var results = LrclibClient.apiService.searchLyrics(
+                trackName = cleanTitle,
+                artistName = cleanArtist,
+                duration = durationSec?.takeIf { it > 0 }
+            )
+
+            // 2. Si aucun résultat et qu'on a un titre ou un artiste, tenter une recherche par requête texte
+            if (results.isEmpty()) {
+                val fallbackQuery = listOfNotNull(cleanTitle, cleanArtist).joinToString(" ").trim()
+                if (fallbackQuery.isNotBlank()) {
+                    results = LrclibClient.apiService.searchLyrics(query = fallbackQuery)
+                }
+            }
+
+            Result.success(results)
+        } catch (e: UnknownHostException) {
+            Result.failure(Exception("Pas de connexion Internet. Veuillez vérifier votre réseau Wi-Fi ou mobile."))
+        } catch (e: ConnectException) {
+            Result.failure(Exception("Impossible de joindre lrclib.net. Vérifiez votre connexion."))
+        } catch (e: SocketTimeoutException) {
+            Result.failure(Exception("Délai d'attente dépassé (Timeout). Le serveur lrclib.net met trop de temps à répondre."))
+        } catch (e: HttpException) {
+            val code = e.code()
+            val msg = when (code) {
+                404 -> "Aucune ressource trouvée sur lrclib.net (404)."
+                500, 502, 503 -> "Le serveur lrclib.net est temporairement indisponible (Code $code)."
+                else -> "Erreur du service lrclib.net (Code HTTP $code)."
+            }
+            Result.failure(Exception(msg))
+        } catch (e: Exception) {
+            Result.failure(Exception("Erreur réseau : ${e.localizedMessage ?: "Vérifiez votre connexion"}"))
+        }
+    }
+
+    /**
+     * Enregistre le résultat sélectionné :
+     * - En tag ID3 SYLT si le fichier audio le supporte (ex: MP3).
+     * - Sinon dans un fichier .lrc compagnon dans le même dossier.
+     * Met à jour le cache et retourne le résultat de sauvegarde ainsi que les LyricsData appliquées.
+     */
+    suspend fun applyAndSaveLyrics(
+        track: AudioTrackEntity,
+        result: LrclibSearchResult
+    ): Pair<LyricsSaveResult, LyricsData> = withContext(Dispatchers.IO) {
+        val saveResult = Id3SyltWriter.saveLyrics(
+            audioPath = track.path,
+            result = result,
+            fallbackDirectory = context.getExternalFilesDir("lyrics") ?: context.filesDir
+        )
+
+        val appliedData = if (!result.syncedLyrics.isNullOrBlank()) {
+            val parsed = LrcParser.parse(result.syncedLyrics)
+            val source = if (saveResult is LyricsSaveResult.Id3SyltSuccess) {
+                LyricsSource.ID3_SYLT
+            } else {
+                LyricsSource.LRC_FILE
+            }
+            parsed.copy(
+                title = result.displayTitle,
+                artist = result.displayArtist,
+                album = result.displayAlbum,
+                source = source
+            )
+        } else {
+            val lines = (result.plainLyrics ?: "").lines()
+                .filter { it.isNotBlank() }
+                .mapIndexed { index, text -> LyricLine(index * 3000L, text) }
+            LyricsData(
+                title = result.displayTitle,
+                artist = result.displayArtist,
+                album = result.displayAlbum,
+                lines = lines,
+                source = LyricsSource.ID3_USLT
+            )
+        }
+
+        cache[track.id] = appliedData
+        Pair(saveResult, appliedData)
     }
 
     /**

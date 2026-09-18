@@ -7,6 +7,8 @@ import com.example.data.local.AudioTrackEntity
 import com.example.data.repository.AudioRepository
 import com.example.lyrics.LyricsData
 import com.example.lyrics.LyricsRepository
+import com.example.lyrics.LyricsSaveResult
+import com.example.lyrics.remote.LrclibSearchResult
 import com.example.playback.MusicPlaybackManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,6 +17,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.io.File
+
+sealed class LrclibSearchUiState {
+    data object Idle : LrclibSearchUiState()
+    data object Loading : LrclibSearchUiState()
+    data class Success(val results: List<LrclibSearchResult>) : LrclibSearchUiState()
+    data class Empty(val queryTitle: String, val queryArtist: String) : LrclibSearchUiState()
+    data class Error(val message: String) : LrclibSearchUiState()
+}
 
 enum class LibraryTab(val label: String) {
     TRACKS("Morceaux"),
@@ -98,6 +109,13 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _isLyricsLoading = MutableStateFlow(false)
     val isLyricsLoading: StateFlow<Boolean> = _isLyricsLoading.asStateFlow()
+
+    // Recherche en ligne lrclib.net
+    private val _lrclibSearchState = MutableStateFlow<LrclibSearchUiState>(LrclibSearchUiState.Idle)
+    val lrclibSearchState: StateFlow<LrclibSearchUiState> = _lrclibSearchState.asStateFlow()
+
+    private val _saveFeedbackMessage = MutableStateFlow<String?>(null)
+    val saveFeedbackMessage: StateFlow<String?> = _saveFeedbackMessage.asStateFlow()
 
     // Filtered search results
     val searchResults: StateFlow<List<AudioTrackEntity>> = combine(
@@ -323,5 +341,66 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     fun importLrcText(track: AudioTrackEntity, lrcText: String) {
         val imported = lyricsRepository.importLrcText(track.id, lrcText)
         _lyricsData.value = imported
+    }
+
+    /**
+     * Lance la recherche de paroles sur lrclib.net avec titre, artiste et durée.
+     * Gère les états d'erreur réseau, timeout et aucun résultat.
+     */
+    fun searchOnlineLyrics(title: String, artist: String, durationSec: Int?) {
+        viewModelScope.launch {
+            _lrclibSearchState.value = LrclibSearchUiState.Loading
+            val result = lyricsRepository.searchLyricsOnline(title, artist, durationSec)
+            result.fold(
+                onSuccess = { list ->
+                    if (list.isEmpty()) {
+                        _lrclibSearchState.value = LrclibSearchUiState.Empty(title, artist)
+                    } else {
+                        _lrclibSearchState.value = LrclibSearchUiState.Success(list)
+                    }
+                },
+                onFailure = { error ->
+                    _lrclibSearchState.value = LrclibSearchUiState.Error(
+                        error.message ?: "Erreur inconnue lors de la recherche."
+                    )
+                }
+            )
+        }
+    }
+
+    /**
+     * Enregistre le résultat de paroles sélectionné en tag ID3 SYLT (si MP3 supporté)
+     * ou en fichier .lrc compagnon, et applique immédiatement les paroles à la lecture en cours.
+     */
+    fun applyLrclibResult(
+        track: AudioTrackEntity,
+        result: LrclibSearchResult,
+        onComplete: ((LyricsSaveResult) -> Unit)? = null
+    ) {
+        viewModelScope.launch {
+            val (saveResult, appliedData) = lyricsRepository.applyAndSaveLyrics(track, result)
+            _lyricsData.value = appliedData
+            when (saveResult) {
+                is LyricsSaveResult.Id3SyltSuccess -> {
+                    _saveFeedbackMessage.value = "✓ Paroles écrites en tag ID3 SYLT (${saveResult.linesCount} lignes)"
+                }
+                is LyricsSaveResult.LrcFileSuccess -> {
+                    val fName = File(saveResult.lrcPath).name
+                    _saveFeedbackMessage.value = "✓ Fichier $fName sauvegardé à côté du morceau"
+                }
+                is LyricsSaveResult.Error -> {
+                    _saveFeedbackMessage.value = "Paroles appliquées en mémoire (${saveResult.message})"
+                }
+            }
+            onComplete?.invoke(saveResult)
+        }
+    }
+
+    fun clearSaveFeedback() {
+        _saveFeedbackMessage.value = null
+    }
+
+    fun resetLrclibSearch() {
+        _lrclibSearchState.value = LrclibSearchUiState.Idle
     }
 }

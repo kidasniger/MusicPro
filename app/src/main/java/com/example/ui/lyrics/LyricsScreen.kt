@@ -96,6 +96,7 @@ import com.example.lyrics.LyricsData
 import com.example.lyrics.LyricsSource
 import com.example.ui.theme.MusicProBackground
 import com.example.ui.theme.MusicProCardBackground
+import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProPrimaryGradient
 import com.example.ui.theme.MusicProSurfaceElevated
@@ -124,6 +125,7 @@ fun LyricsScreen(
     onSeekTo: (Long) -> Unit,
     onGenerateDemoLyrics: () -> Unit,
     onImportLrcText: (String) -> Unit,
+    onOpenLrclibSearch: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
@@ -195,6 +197,7 @@ fun LyricsScreen(
                     track = track,
                     lyricsSource = lyricsData.source,
                     onBack = onBack,
+                    onOpenLrclibSearch = onOpenLrclibSearch,
                     onOpenImportDialog = { showImportDialog = true }
                 )
 
@@ -224,6 +227,7 @@ fun LyricsScreen(
                     } else if (lyricsData.lines.isEmpty()) {
                         EmptyLyricsView(
                             track = track,
+                            onOpenLrclibSearch = onOpenLrclibSearch,
                             onGenerateDemoLyrics = onGenerateDemoLyrics,
                             onOpenImportDialog = { showImportDialog = true }
                         )
@@ -378,6 +382,7 @@ private fun LyricsTopBar(
     track: AudioTrackEntity?,
     lyricsSource: LyricsSource,
     onBack: () -> Unit,
+    onOpenLrclibSearch: () -> Unit,
     onOpenImportDialog: () -> Unit
 ) {
     Row(
@@ -430,20 +435,42 @@ private fun LyricsTopBar(
             }
         }
 
-        IconButton(
-            onClick = onOpenImportDialog,
-            modifier = Modifier
-                .size(42.dp)
-                .clip(CircleShape)
-                .background(MusicProSurfaceElevated)
-                .testTag("lyrics_import_button")
-        ) {
-            Icon(
-                imageVector = Icons.Default.ContentPaste,
-                contentDescription = "Importer LRC",
-                tint = MusicProVioletLight,
-                modifier = Modifier.size(20.dp)
-            )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            // Bouton recherche en ligne lrclib.net
+            IconButton(
+                onClick = onOpenLrclibSearch,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(MusicProSurfaceElevated)
+                    .testTag("lyrics_lrclib_search_button")
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Rechercher sur lrclib.net",
+                    tint = MusicProCyanNeon,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // Bouton import manuel LRC
+            IconButton(
+                onClick = onOpenImportDialog,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(MusicProSurfaceElevated)
+                    .testTag("lyrics_import_button")
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ContentPaste,
+                    contentDescription = "Importer LRC",
+                    tint = MusicProVioletLight,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
         }
     }
 }
@@ -526,6 +553,7 @@ private fun LyricLineItem(
 @Composable
 private fun EmptyLyricsView(
     track: AudioTrackEntity?,
+    onOpenLrclibSearch: () -> Unit,
     onGenerateDemoLyrics: () -> Unit,
     onOpenImportDialog: () -> Unit
 ) {
@@ -566,22 +594,50 @@ private fun EmptyLyricsView(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Le fichier ne contient ni tag ID3 SYLT ni fichier .lrc compagnon.",
+            text = "Recherchez instantanément sur lrclib.net pour télécharger les paroles synchronisées et les sauvegarder dans vos fichiers.",
             fontSize = 13.sp,
             color = MusicProTextSecondary,
             textAlign = TextAlign.Center,
             lineHeight = 18.sp
         )
 
-        Spacer(modifier = Modifier.height(28.dp))
+        Spacer(modifier = Modifier.height(26.dp))
 
-        // Bouton 1 : Générer les paroles synchronisées de démonstration
+        // Bouton 1 : Rechercher en ligne sur lrclib.net (Option principale)
+        Button(
+            onClick = onOpenLrclibSearch,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .shadow(10.dp, spotColor = MusicProCyanNeon)
+                .testTag("search_lrclib_online_button"),
+            colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = null,
+                tint = Color.Black,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Rechercher sur lrclib.net (En ligne)",
+                color = Color.Black,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Bouton 2 : Générer les paroles synchronisées de démonstration
         Button(
             onClick = onGenerateDemoLyrics,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp)
-                .shadow(8.dp, spotColor = MusicProVioletGlow)
+                .height(46.dp)
+                .shadow(6.dp, spotColor = MusicProVioletGlow)
                 .testTag("generate_demo_lyrics_button"),
             colors = ButtonDefaults.buttonColors(containerColor = MusicProVioletPrimary),
             shape = RoundedCornerShape(12.dp)
@@ -590,26 +646,26 @@ private fun EmptyLyricsView(
                 imageVector = Icons.Default.AutoAwesome,
                 contentDescription = null,
                 tint = Color.White,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(16.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Générer les paroles synchronisées (Démo)",
+                text = "Générer les paroles (Démo hors-ligne)",
                 color = Color.White,
-                fontSize = 13.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
-        // Bouton 2 : Importer manuellement un texte LRC
+        // Bouton 3 : Importer manuellement un texte LRC
         Button(
             onClick = onOpenImportDialog,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp)
-                .border(1.dp, MusicProCyanNeon, RoundedCornerShape(12.dp))
+                .height(46.dp)
+                .border(1.dp, MusicProVioletPrimary.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
                 .testTag("import_lrc_button"),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             shape = RoundedCornerShape(12.dp)
@@ -617,14 +673,14 @@ private fun EmptyLyricsView(
             Icon(
                 imageVector = Icons.Default.ContentPaste,
                 contentDescription = null,
-                tint = MusicProCyanNeon,
-                modifier = Modifier.size(18.dp)
+                tint = MusicProCyanLight,
+                modifier = Modifier.size(16.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Importer un fichier / texte .LRC",
-                color = MusicProCyanNeon,
-                fontSize = 13.sp,
+                text = "Coller un texte / fichier .LRC manuel",
+                color = MusicProCyanLight,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
             )
         }

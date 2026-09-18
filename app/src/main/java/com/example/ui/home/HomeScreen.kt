@@ -82,6 +82,7 @@ import com.example.ui.audio.LibraryTab
 import com.example.ui.components.EmptyAudioStateView
 import com.example.ui.library.LibraryScreen
 import com.example.ui.library.TrackRowItem
+import com.example.ui.lyrics.LrclibSearchScreen
 import com.example.ui.lyrics.LyricsScreen
 import com.example.ui.nowplaying.NowPlayingScreen
 import com.example.ui.search.SearchScreen
@@ -123,6 +124,7 @@ fun HomeScreen(
     var currentSection by remember { mutableStateOf(NavigationSection.HOME) }
     var isNowPlayingOpen by remember { mutableStateOf(initialOpenNowPlaying) }
     var isLyricsOpen by remember { mutableStateOf(false) }
+    var isLrclibSearchOpen by remember { mutableStateOf(false) }
 
     val tracks by audioViewModel.tracks.collectAsStateWithLifecycle()
     val albums by audioViewModel.albumSummaries.collectAsStateWithLifecycle()
@@ -290,7 +292,37 @@ fun HomeScreen(
             onPrevious = { audioViewModel.playPrevious() },
             onSeekTo = { audioViewModel.seekTo(it) },
             onGenerateDemoLyrics = { activeTrack?.let { audioViewModel.generateDemoLyrics(it) } },
-            onImportLrcText = { text -> activeTrack?.let { audioViewModel.importLrcText(it, text) } }
+            onImportLrcText = { text -> activeTrack?.let { audioViewModel.importLrcText(it, text) } },
+            onOpenLrclibSearch = { isLrclibSearchOpen = true }
+        )
+    }
+
+    // Modal plein écran Recherche de paroles lrclib.net
+    AnimatedVisibility(
+        visible = isLrclibSearchOpen,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        val searchState by audioViewModel.lrclibSearchState.collectAsStateWithLifecycle()
+        val saveFeedback by audioViewModel.saveFeedbackMessage.collectAsStateWithLifecycle()
+
+        LrclibSearchScreen(
+            track = activeTrack,
+            searchState = searchState,
+            saveFeedback = saveFeedback,
+            onBack = {
+                isLrclibSearchOpen = false
+                audioViewModel.resetLrclibSearch()
+            },
+            onSearch = { title, artist, durationSec ->
+                audioViewModel.searchOnlineLyrics(title, artist, durationSec)
+            },
+            onSelectAndSave = { result ->
+                activeTrack?.let { track ->
+                    audioViewModel.applyLrclibResult(track, result)
+                }
+            },
+            onClearFeedback = { audioViewModel.clearSaveFeedback() }
         )
     }
 }
