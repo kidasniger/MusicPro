@@ -68,8 +68,11 @@ Lecteur audio Android hors ligne avec bibliothèque locale, playlists, lecture e
 
 # Captures d'écran
 
-- À renseigner
-- À renseigner
+- https://i.ibb.co/cSgQnMNZ/Screenshot-20260918-204648.jpg
+- https://i.ibb.co/6RFyrXV2/Screenshot-20260918-204646.jpg
+- https://i.ibb.co/FqnfrVJF/Screenshot-20260918-204643.jpg
+- https://i.ibb.co/Txhc58Z7/Screenshot-20260918-204639.jpg
+- https://i.ibb.co/xtrksGNX/Screenshot-20260918-204635.jpg
 
 # Vidéos
 
