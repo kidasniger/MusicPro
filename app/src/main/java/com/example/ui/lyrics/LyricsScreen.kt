@@ -1,5 +1,6 @@
 package com.example.ui.lyrics
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -140,6 +141,15 @@ fun LyricsScreen(
     var isUserScrollingManually by remember { mutableStateOf(false) }
     var showImportDialog by remember { mutableStateOf(false) }
     var manualLrcInput by remember { mutableStateOf("") }
+
+    // Interception de la touche retour pour fermer la boîte de dialogue ou l'écran des paroles
+    BackHandler {
+        if (showImportDialog) {
+            showImportDialog = false
+        } else {
+            onBack()
+        }
+    }
 
     // Calcul réactif de l'index de la ligne active selon ExoPlayer.currentPosition
     val activeLineIndex by remember(lyricsData, currentPositionMs) {

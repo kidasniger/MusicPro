@@ -69,6 +69,7 @@ fun AppUpdateDialog(
     downloadState: DownloadState,
     onDismiss: () -> Unit,
     onDownloadAndInstall: (String) -> Unit,
+    onInstallExisting: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val isDownloading = downloadState is DownloadState.Downloading
@@ -204,31 +205,43 @@ fun AppUpdateDialog(
                 Spacer(modifier = Modifier.height(14.dp))
 
                 // Notes de version avec ascenseur si long
-                Text(
-                    text = "Nouveautés & Corrections :",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MusicProTextSecondary,
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 6.dp)
-                )
+                        .padding(bottom = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = MusicProCyanNeon,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Ce qui a été réglé et amélioré :",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MusicProTextPrimary
+                    )
+                }
 
                 val scrollState = rememberScrollState()
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(max = 130.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    color = MusicProBackground.copy(alpha = 0.6f),
+                        .heightIn(max = 140.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = MusicProBackground.copy(alpha = 0.7f),
                     border = androidx.compose.foundation.BorderStroke(1.dp, MusicProSurfaceElevated)
                 ) {
                     Text(
-                        text = updateInfo.releaseNotes.ifBlank { "Mise à jour et améliorations de stabilité." },
+                        text = updateInfo.releaseNotes.ifBlank { "• Optimisations des performances audio et stabilité générale\n• Corrections de bugs et améliorations de l'interface" },
                         fontSize = 12.sp,
+                        lineHeight = 18.sp,
                         color = MusicProTextSecondary,
                         modifier = Modifier
-                            .padding(10.dp)
+                            .padding(12.dp)
                             .verticalScroll(scrollState)
                     )
                 }
@@ -332,24 +345,77 @@ fun AppUpdateDialog(
                     }
 
                     is DownloadState.Downloaded -> {
-                        Row(
+                        Column(
                             modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.CheckCircle,
-                                contentDescription = null,
-                                tint = MusicProSuccess,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Téléchargé ! Lancement de l'installateur...",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MusicProSuccess
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    tint = MusicProSuccess,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Mise à jour déjà prête à l'installation",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MusicProSuccess
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(14.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                OutlinedButton(
+                                    onClick = onDismiss,
+                                    shape = RoundedCornerShape(12.dp),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, MusicProSurfaceElevated),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(44.dp)
+                                ) {
+                                    Text(
+                                        text = "Plus tard",
+                                        color = MusicProTextSecondary,
+                                        fontSize = 13.sp
+                                    )
+                                }
+
+                                Button(
+                                    onClick = onInstallExisting,
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MusicProSuccess
+                                    ),
+                                    modifier = Modifier
+                                        .weight(1.4f)
+                                        .height(44.dp)
+                                        .testTag("update_dialog_install_existing_button")
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.SystemUpdate,
+                                        contentDescription = null,
+                                        tint = MusicProBackground,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = "Installer maintenant",
+                                        color = MusicProBackground,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp
+                                    )
+                                }
+                            }
                         }
                     }
 

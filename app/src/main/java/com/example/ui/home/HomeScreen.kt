@@ -1,5 +1,8 @@
 package com.example.ui.home
 
+import android.app.Activity
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -180,6 +183,50 @@ fun HomeScreen(
     var trackForAddToPlaylistChooser by remember { mutableStateOf<AudioTrackEntity?>(null) }
 
     val activeTrack = currentTrack ?: tracks.firstOrNull()
+
+    // Gestion intelligente du retour arrière :
+    // 1. Fermer les dialogues / sous-écrans ouverts (Paroles, Recherche Lrclib, Plein écran Now Playing, Détail Playlist)
+    // 2. Si on est sur l'onglet Bibliothèque ou Recherche, revenir à l'onglet Accueil
+    // 3. Si on est déjà sur l'onglet Accueil, demander deux retours pour quitter l'application
+    var lastBackPressTime by remember { mutableStateOf(0L) }
+
+    BackHandler {
+        when {
+            isLrclibSearchOpen -> {
+                isLrclibSearchOpen = false
+            }
+            isLyricsOpen -> {
+                isLyricsOpen = false
+            }
+            isNowPlayingOpen -> {
+                isNowPlayingOpen = false
+            }
+            isAddTracksToPlaylistOpen -> {
+                isAddTracksToPlaylistOpen = false
+            }
+            trackForAddToPlaylistChooser != null -> {
+                trackForAddToPlaylistChooser = null
+            }
+            selectedPlaylist != null -> {
+                audioViewModel.selectPlaylist(null)
+            }
+            searchQuery.isNotBlank() -> {
+                audioViewModel.setSearchQuery("")
+            }
+            currentSection != NavigationSection.HOME -> {
+                currentSection = NavigationSection.HOME
+            }
+            else -> {
+                val currentTime = System.currentTimeMillis()
+                if (currentTime - lastBackPressTime < 2000) {
+                    (context as? Activity)?.finish()
+                } else {
+                    lastBackPressTime = currentTime
+                    Toast.makeText(context, "Appuyez encore une fois pour quitter", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         Scaffold(
@@ -464,6 +511,9 @@ fun HomeScreen(
             },
             onDownloadAndInstall = { downloadUrl ->
                 settingsViewModel.downloadAndInstallUpdate(downloadUrl)
+            },
+            onInstallExisting = {
+                settingsViewModel.installExistingApk()
             }
         )
     }

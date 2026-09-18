@@ -1,5 +1,6 @@
 package com.example.ui.nowplaying
 
+import androidx.activity.compose.BackHandler
 import android.content.Context
 import android.media.AudioManager
 import androidx.compose.animation.AnimatedVisibility
@@ -168,6 +169,11 @@ fun NowPlayingScreen(
         ),
         label = "vinyl_angle"
     )
+
+    // Interception de la touche retour pour fermer l'écran Now Playing et revenir à la bibliothèque
+    BackHandler {
+        onBack()
+    }
 
     Surface(
         modifier = modifier.fillMaxSize(),

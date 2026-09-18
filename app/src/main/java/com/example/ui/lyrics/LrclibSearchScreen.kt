@@ -1,5 +1,6 @@
 package com.example.ui.lyrics
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -119,6 +120,11 @@ fun LrclibSearchScreen(
         if (track != null && (track.title.isNotBlank() || track.artist.isNotBlank())) {
             onSearch(track.title, track.artist, trackDurationSec)
         }
+    }
+
+    // Interception de la touche retour pour revenir à l'écran précédent
+    BackHandler {
+        onBack()
     }
 
     Surface(

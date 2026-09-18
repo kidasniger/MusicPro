@@ -131,7 +131,10 @@ fun MusicProNavGraph(
                 onRequestPermissions = { result ->
                     onRequestPermissions(result)
                 },
-                onManualCheck = onManualCheck
+                onManualCheck = onManualCheck,
+                onBack = {
+                    navController.popBackStack()
+                }
             )
         }
 

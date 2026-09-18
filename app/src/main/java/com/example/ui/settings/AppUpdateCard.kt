@@ -66,6 +66,7 @@ fun AppUpdateCard(
     downloadState: DownloadState,
     onCheckForUpdates: () -> Unit,
     onDownloadAndInstall: (String) -> Unit,
+    onInstallExisting: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -374,22 +375,46 @@ fun AppUpdateCard(
                                 }
 
                                 is DownloadState.Downloaded -> {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.CheckCircle,
-                                            contentDescription = null,
-                                            tint = MusicProSuccess,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = "Téléchargement terminé ! Installation en cours...",
-                                            fontSize = 12.sp,
-                                            color = MusicProSuccess
-                                        )
+                                    Column(modifier = Modifier.fillMaxWidth()) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.CheckCircle,
+                                                contentDescription = null,
+                                                tint = MusicProSuccess,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                text = "APK prêt à l'installation",
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = MusicProSuccess
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Button(
+                                            onClick = onInstallExisting,
+                                            colors = ButtonDefaults.buttonColors(containerColor = MusicProSuccess),
+                                            shape = RoundedCornerShape(10.dp),
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.SystemUpdate,
+                                                contentDescription = null,
+                                                tint = MusicProBackground,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                text = "Installer la mise à jour maintenant",
+                                                color = MusicProBackground,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 12.sp
+                                            )
+                                        }
                                     }
                                 }
 

@@ -1,5 +1,6 @@
 package com.example.ui.playlist
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -123,6 +124,17 @@ fun PlaylistDetailScreen(
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
     var showRenameDialog by remember { mutableStateOf(false) }
     var trackPendingRemoval by remember { mutableStateOf<AudioTrackEntity?>(null) }
+
+    // Interception du bouton retour Android pour fermer les dialogues ou revenir à la vue précédente
+    BackHandler {
+        when {
+            showDeleteConfirmDialog -> showDeleteConfirmDialog = false
+            showRenameDialog -> showRenameDialog = false
+            trackPendingRemoval != null -> trackPendingRemoval = null
+            showMenu -> showMenu = false
+            else -> onBack()
+        }
+    }
 
     Scaffold(
         modifier = modifier

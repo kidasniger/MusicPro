@@ -1,6 +1,7 @@
 package com.example.ui.permissions
 
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -81,10 +82,17 @@ fun PermissionScreen(
     state: PermissionUiState,
     onRequestPermissions: (Map<String, Boolean>) -> Unit,
     onManualCheck: () -> Unit,
+    onBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val permissionsToRequest = PermissionUtils.getAppPermissions()
+
+    if (onBack != null) {
+        BackHandler {
+            onBack()
+        }
+    }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()

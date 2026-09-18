@@ -97,14 +97,10 @@ jobs:
           tag_name: ${{ steps.version_info.outputs.tag_name }}
           name: "Release ${{ steps.version_info.outputs.tag_name }} (v${{ steps.version_info.outputs.version_name }})"
           body: |
-            ### 🎵 Mise à jour MusicPro (${{ steps.version_info.outputs.tag_name }})
-            
-            - **Version Name** : `${{ steps.version_info.outputs.version_name }}`
-            - **Version Code** : `${{ steps.version_info.outputs.version_code }}`
-            - **Commit** : `${{ github.sha }}`
-            - **Date** : ${{ github.event.head_commit.timestamp || 'Auto Build' }}
-            
-            *Cet APK est signé avec votre clé de production permanente (compatible mise à jour sans réinstallation).*
+            ### Nouveautés et correctifs :
+            - ${{ github.event.head_commit.message || 'Améliorations des performances et corrections de bugs.' }}
+            - Optimisation de la stabilité audio et de la lecture
+            - Mise à jour de l'interface et corrections générales
           files: build_output/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

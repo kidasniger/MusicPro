@@ -98,6 +98,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun installExistingApk() {
+        val existing = appUpdateManager.getExistingDownloadedApk(0)
+        if (existing != null) {
+            appUpdateManager.installApk(existing)
+        }
+    }
+
     fun resetUpdateState() {
         appUpdateManager.resetState()
     }

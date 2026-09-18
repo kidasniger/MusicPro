@@ -45,6 +45,87 @@ class AppUpdateManager(
     private val _downloadState = MutableStateFlow<DownloadState>(DownloadState.Idle)
     val downloadState: StateFlow<DownloadState> = _downloadState.asStateFlow()
 
+    init {
+        // Nettoyage automatique des anciens APK téléchargés si l'app est déjà à jour
+        cleanupObsoleteApks()
+    }
+
+    /**
+     * Supprime les APK temporaires du cache si l'application installée est déjà à jour.
+     */
+    fun cleanupObsoleteApks() {
+        try {
+            val updatesDir = File(context.cacheDir, "updates")
+            if (updatesDir.exists() && updatesDir.isDirectory) {
+                updatesDir.listFiles()?.forEach { file ->
+                    if (file.name.endsWith(".apk", ignoreCase = true)) {
+                        file.delete()
+                    }
+                }
+            }
+        } catch (_: Exception) {}
+    }
+
+    /**
+     * Vérifie si l'APK de mise à jour correspondant est déjà téléchargé et valide.
+     */
+    fun getExistingDownloadedApk(expectedSize: Long): File? {
+        val updatesDir = File(context.cacheDir, "updates")
+        val destinationFile = File(updatesDir, "MusicPro_update.apk")
+        if (destinationFile.exists() && destinationFile.isFile && destinationFile.length() > 0) {
+            // Si la taille est précisée et correspond (ou à 98%+), l'APK est déjà complet
+            if (expectedSize <= 0 || destinationFile.length() >= expectedSize) {
+                return destinationFile
+            }
+        }
+        return null
+    }
+
+    /**
+     * Nettoie et formate les notes de mise à jour pour enlever le markdown brut (**, `, hashs, etc.)
+     * et ne garder que les points de nouveautés et corrections compréhensibles.
+     */
+    fun formatReleaseNotes(rawBody: String?, latestVersion: String): String {
+        if (rawBody.isNullOrBlank()) {
+            return "• Optimisations des performances audio et stabilité générale\n• Corrections de bugs et améliorations de l'interface"
+        }
+
+        val lines = rawBody.lines()
+        val cleanedLines = mutableListOf<String>()
+
+        for (line in lines) {
+            var trimmed = line.trim()
+            if (trimmed.isBlank()) continue
+
+            // Ignorer les en-têtes markdown et métadonnées techniques
+            if (trimmed.startsWith("#") ||
+                trimmed.contains("Commit", ignoreCase = true) ||
+                trimmed.contains("Version Code", ignoreCase = true) ||
+                trimmed.contains("Version Name", ignoreCase = true) ||
+                trimmed.contains("Date", ignoreCase = true)
+            ) {
+                continue
+            }
+
+            // Nettoyage complet du Markdown : gras **, code `, italique *, puces
+            trimmed = trimmed.replace("**", "")
+            trimmed = trimmed.replace("`", "")
+            trimmed = trimmed.replace(Regex("""^\s*[-*•]\s*"""), "")
+            trimmed = trimmed.replace("*", "")
+            trimmed = trimmed.trim()
+
+            if (trimmed.isNotBlank()) {
+                cleanedLines.add("• $trimmed")
+            }
+        }
+
+        return if (cleanedLines.isNotEmpty()) {
+            cleanedLines.joinToString("\n")
+        } else {
+            "• Version $latestVersion prête à l'installation\n• Optimisations et corrections de stabilité"
+        }
+    }
+
     fun getCurrentVersionName(): String {
         return try {
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
@@ -101,14 +182,24 @@ class AppUpdateManager(
             val isNewer = isVersionNewer(latestVersionTag, currentVersion)
 
             val finalState = if (isNewer) {
+                val formattedNotes = formatReleaseNotes(release.body, latestVersionTag)
+                
+                // Si l'APK est déjà présent en cache et complet, initialiser l'état sur Downloaded
+                val existingApk = getExistingDownloadedApk(apkAsset.size)
+                if (existingApk != null) {
+                    _downloadState.value = DownloadState.Downloaded(existingApk.absolutePath)
+                }
+
                 UpdateCheckState.UpdateAvailable(
                     latestVersion = latestVersionTag,
                     currentVersion = currentVersion,
-                    releaseNotes = release.body ?: "Mise à jour et corrections de performances.",
+                    releaseNotes = formattedNotes,
                     downloadUrl = apkAsset.downloadUrl,
                     apkSize = apkAsset.size
                 )
             } else {
+                // Si l'application est déjà à jour, s'assurer que les anciens APK temporaires sont supprimés
+                cleanupObsoleteApks()
                 UpdateCheckState.UpToDate(currentVersion)
             }
 

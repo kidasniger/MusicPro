@@ -1,5 +1,6 @@
 package com.example.ui.settings
 
+import androidx.activity.compose.BackHandler
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -147,6 +148,15 @@ fun SettingsScreen(
     // Dialog de confirmation pour effacer le cache
     var showClearCacheDialog by remember { mutableStateOf(false) }
 
+    // Interception du bouton retour Android pour revenir proprement à l'écran précédent
+    BackHandler {
+        if (showClearCacheDialog) {
+            showClearCacheDialog = false
+        } else {
+            onBack()
+        }
+    }
+
     Scaffold(
         modifier = modifier
             .fillMaxSize()
@@ -259,6 +269,9 @@ fun SettingsScreen(
                 onCheckForUpdates = { settingsViewModel.checkForUpdates() },
                 onDownloadAndInstall = { downloadUrl ->
                     settingsViewModel.downloadAndInstallUpdate(downloadUrl)
+                },
+                onInstallExisting = {
+                    settingsViewModel.installExistingApk()
                 }
             )
 
