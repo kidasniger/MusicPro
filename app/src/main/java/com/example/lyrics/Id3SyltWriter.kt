@@ -36,24 +36,35 @@ object Id3SyltWriter {
         fallbackDirectory: File? = null
     ): LyricsSaveResult {
         val lrcContent = result.syncedLyrics ?: result.plainLyrics ?: ""
+        return saveLrcText(
+            audioPath = audioPath,
+            lrcContent = lrcContent,
+            fallbackDirectory = fallbackDirectory,
+            customFallbackFileName = "lyrics_${result.id ?: System.currentTimeMillis()}"
+        )
+    }
+
+    /**
+     * Enregistre un texte au format LRC (généré par Groq Whisper ou importé manuellement) :
+     * Tente l'écriture ID3 SYLT si MP3, sinon sauvegarde sous forme de fichier .lrc compagnon.
+     */
+    fun saveLrcText(
+        audioPath: String?,
+        lrcContent: String,
+        fallbackDirectory: File? = null,
+        customFallbackFileName: String? = null
+    ): LyricsSaveResult {
         if (lrcContent.isBlank()) {
             return LyricsSaveResult.Error("Aucune parole disponible à enregistrer.")
         }
 
         // Parsing des lignes pour le format SYLT
-        val parsedData = if (!result.syncedLyrics.isNullOrBlank()) {
-            LrcParser.parse(result.syncedLyrics)
-        } else {
-            val plainLines = (result.plainLyrics ?: "").lines()
-                .filter { it.isNotBlank() }
-                .mapIndexed { index, text -> LyricLine(index * 3000L, text) }
-            LyricsData(lines = plainLines, source = LyricsSource.ID3_USLT)
-        }
+        val parsedData = LrcParser.parse(lrcContent)
 
         if (audioPath.isNullOrBlank()) {
             return writeLrcCompanion(
                 directory = fallbackDirectory,
-                fileName = "lyrics_${result.id ?: System.currentTimeMillis()}",
+                fileName = customFallbackFileName ?: "lyrics_${System.currentTimeMillis()}",
                 content = lrcContent,
                 linesCount = parsedData.lines.size
             )
@@ -62,7 +73,7 @@ object Id3SyltWriter {
         val audioFile = File(audioPath)
 
         // 1. Tenter d'écrire le tag ID3 SYLT si le fichier est un MP3 existant et inscriptible
-        if (result.hasSyncedLyrics && canSupportId3Sylt(audioFile)) {
+        if (parsedData.lines.isNotEmpty() && canSupportId3Sylt(audioFile)) {
             val syltAttempt = tryWriteSylt(audioFile, parsedData.lines)
             if (syltAttempt is LyricsSaveResult.Id3SyltSuccess) {
                 Log.d(TAG, "Paroles enregistrées en tag ID3 SYLT dans ${audioFile.name}")

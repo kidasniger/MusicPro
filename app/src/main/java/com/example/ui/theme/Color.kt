@@ -113,6 +113,10 @@ val MusicProWarningContainer = Color(0x26F59E0B)
 val MusicProFavorite = Color(0xFFFF4D6D)
 val MusicProFavoriteContainer = Color(0x33FF4D6D)
 
+/** Rouge écarlate néon (Erreurs, quota dépassé, échec API) - #EF4444 */
+val MusicProError = Color(0xFFEF4444)
+val MusicProErrorContainer = Color(0x26EF4444)
+
 /** Rose vif (Accents de playlists) - #FF6B9D */
 val MusicProPinkAccent = Color(0xFFFF6B9D)
 

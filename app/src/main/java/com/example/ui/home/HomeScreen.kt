@@ -82,6 +82,7 @@ import com.example.ui.audio.LibraryTab
 import com.example.ui.components.EmptyAudioStateView
 import com.example.ui.library.LibraryScreen
 import com.example.ui.library.TrackRowItem
+import com.example.ui.lyrics.GroqPreviewDialog
 import com.example.ui.lyrics.LrclibSearchScreen
 import com.example.ui.lyrics.LyricsScreen
 import com.example.ui.nowplaying.NowPlayingScreen
@@ -148,6 +149,11 @@ fun HomeScreen(
     val favorites by audioViewModel.favorites.collectAsStateWithLifecycle()
     val lyricsData by audioViewModel.lyricsData.collectAsStateWithLifecycle()
     val isLyricsLoading by audioViewModel.isLyricsLoading.collectAsStateWithLifecycle()
+
+    val isGroqTranscribing by audioViewModel.isGroqTranscribing.collectAsStateWithLifecycle()
+    val groqProgressMessage by audioViewModel.groqProgressMessage.collectAsStateWithLifecycle()
+    val groqErrorMessage by audioViewModel.groqErrorMessage.collectAsStateWithLifecycle()
+    val groqTranscriptionResult by audioViewModel.groqTranscriptionResult.collectAsStateWithLifecycle()
 
     val activeTrack = currentTrack ?: tracks.firstOrNull()
 
@@ -293,7 +299,28 @@ fun HomeScreen(
             onSeekTo = { audioViewModel.seekTo(it) },
             onGenerateDemoLyrics = { activeTrack?.let { audioViewModel.generateDemoLyrics(it) } },
             onImportLrcText = { text -> activeTrack?.let { audioViewModel.importLrcText(it, text) } },
-            onOpenLrclibSearch = { isLrclibSearchOpen = true }
+            onOpenLrclibSearch = { isLrclibSearchOpen = true },
+            onStartGroqTranscription = { activeTrack?.let { audioViewModel.startGroqTranscription(it) } },
+            isGroqTranscribing = isGroqTranscribing,
+            groqProgressMessage = groqProgressMessage,
+            groqErrorMessage = groqErrorMessage,
+            onClearGroqError = { audioViewModel.clearGroqError() },
+            onOpenSettings = onOpenSettings
+        )
+    }
+
+    // Aperçu interactif du résultat Groq Whisper avant intégration ID3 SYLT / .LRC
+    groqTranscriptionResult?.let { result ->
+        GroqPreviewDialog(
+            result = result,
+            onDismiss = {
+                audioViewModel.dismissGroqPreview()
+            },
+            onIntegrate = { res ->
+                activeTrack?.let { track ->
+                    audioViewModel.applyGroqResult(track, res)
+                }
+            }
         )
     }
 

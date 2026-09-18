@@ -150,6 +150,41 @@ class LyricsRepository private constructor(private val context: Context) {
     }
 
     /**
+     * Enregistre un texte LRC (provenant de Groq Whisper ou d'une saisie) :
+     * - En tag ID3 SYLT si MP3 supporté
+     * - Sinon dans un fichier .lrc compagnon dans le même dossier
+     * Met à jour le cache et retourne le résultat de sauvegarde ainsi que les LyricsData.
+     */
+    suspend fun applyAndSaveLrcText(
+        track: AudioTrackEntity,
+        lrcText: String
+    ): Pair<LyricsSaveResult, LyricsData> = withContext(Dispatchers.IO) {
+        val saveResult = Id3SyltWriter.saveLrcText(
+            audioPath = track.path,
+            lrcContent = lrcText,
+            fallbackDirectory = context.getExternalFilesDir("lyrics") ?: context.filesDir,
+            customFallbackFileName = "${track.title.ifBlank { "track" }}_${track.id}"
+        )
+
+        val parsed = LrcParser.parse(lrcText)
+        val source = if (saveResult is LyricsSaveResult.Id3SyltSuccess) {
+            LyricsSource.ID3_SYLT
+        } else {
+            LyricsSource.LRC_FILE
+        }
+
+        val appliedData = parsed.copy(
+            title = track.title,
+            artist = track.artist,
+            album = track.album,
+            source = source
+        )
+
+        cache[track.id] = appliedData
+        Pair(saveResult, appliedData)
+    }
+
+    /**
      * Parse et applique une chaîne LRC manuelle pour une piste.
      */
     fun importLrcText(trackId: Long, lrcContent: String): LyricsData {

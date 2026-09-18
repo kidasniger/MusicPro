@@ -126,6 +126,12 @@ fun LyricsScreen(
     onGenerateDemoLyrics: () -> Unit,
     onImportLrcText: (String) -> Unit,
     onOpenLrclibSearch: () -> Unit = {},
+    onStartGroqTranscription: () -> Unit = {},
+    isGroqTranscribing: Boolean = false,
+    groqProgressMessage: String = "",
+    groqErrorMessage: String? = null,
+    onClearGroqError: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
@@ -198,6 +204,7 @@ fun LyricsScreen(
                     lyricsSource = lyricsData.source,
                     onBack = onBack,
                     onOpenLrclibSearch = onOpenLrclibSearch,
+                    onStartGroqTranscription = onStartGroqTranscription,
                     onOpenImportDialog = { showImportDialog = true }
                 )
 
@@ -228,6 +235,7 @@ fun LyricsScreen(
                         EmptyLyricsView(
                             track = track,
                             onOpenLrclibSearch = onOpenLrclibSearch,
+                            onStartGroqTranscription = onStartGroqTranscription,
                             onGenerateDemoLyrics = onGenerateDemoLyrics,
                             onOpenImportDialog = { showImportDialog = true }
                         )
@@ -375,6 +383,134 @@ fun LyricsScreen(
             }
         )
     }
+
+    // Dialogue d'attente pendant la transcription IA Groq Whisper
+    if (isGroqTranscribing) {
+        AlertDialog(
+            onDismissRequest = { /* Empêcher la fermeture accidentelle pendant la transcription */ },
+            containerColor = MusicProBackground,
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(MusicProVioletPrimary.copy(alpha = 0.25f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = null,
+                            tint = MusicProCyanNeon,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = "Groq Whisper large-v3",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MusicProTextPrimary
+                    )
+                }
+            },
+            text = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator(
+                        color = MusicProCyanNeon,
+                        strokeWidth = 3.dp,
+                        modifier = Modifier.size(46.dp)
+                    )
+                    Spacer(modifier = Modifier.height(18.dp))
+                    Text(
+                        text = groqProgressMessage.ifBlank { "Transcription audio en cours..." },
+                        fontSize = 13.sp,
+                        color = MusicProCyanLight,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "Découpage automatique si fichier > 25 Mo",
+                        fontSize = 11.sp,
+                        color = MusicProTextMuted,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            },
+            confirmButton = {}
+        )
+    }
+
+    // Dialogue d'erreur Groq Whisper
+    if (groqErrorMessage != null) {
+        val isApiKeyIssue = groqErrorMessage.contains("clé", ignoreCase = true) ||
+                groqErrorMessage.contains("api", ignoreCase = true) ||
+                groqErrorMessage.contains("paramètres", ignoreCase = true)
+
+        AlertDialog(
+            onDismissRequest = onClearGroqError,
+            containerColor = MusicProSurfaceElevated,
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.SubtitlesOff,
+                        contentDescription = null,
+                        tint = MusicProVioletLight,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Transcription Whisper",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MusicProTextPrimary
+                    )
+                }
+            },
+            text = {
+                Text(
+                    text = groqErrorMessage,
+                    fontSize = 13.sp,
+                    color = MusicProTextSecondary,
+                    lineHeight = 18.sp
+                )
+            },
+            confirmButton = {
+                if (isApiKeyIssue) {
+                    Button(
+                        onClick = {
+                            onClearGroqError()
+                            onOpenSettings()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text("Ouvrir Paramètres", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
+                } else {
+                    Button(
+                        onClick = onClearGroqError,
+                        colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text("D'accord", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
+                }
+            },
+            dismissButton = {
+                if (isApiKeyIssue) {
+                    TextButton(onClick = onClearGroqError) {
+                        Text("Fermer", color = MusicProTextSecondary)
+                    }
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -383,6 +519,7 @@ private fun LyricsTopBar(
     lyricsSource: LyricsSource,
     onBack: () -> Unit,
     onOpenLrclibSearch: () -> Unit,
+    onStartGroqTranscription: () -> Unit,
     onOpenImportDialog: () -> Unit
 ) {
     Row(
@@ -436,6 +573,25 @@ private fun LyricsTopBar(
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
+            // Bouton Transcription Groq Whisper IA
+            IconButton(
+                onClick = onStartGroqTranscription,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(MusicProVioletPrimary.copy(alpha = 0.25f))
+                    .testTag("lyrics_whisper_button")
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AutoAwesome,
+                    contentDescription = "Transcrire avec Groq Whisper (IA)",
+                    tint = MusicProCyanNeon,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(6.dp))
+
             // Bouton recherche en ligne lrclib.net
             IconButton(
                 onClick = onOpenLrclibSearch,
@@ -453,7 +609,7 @@ private fun LyricsTopBar(
                 )
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(6.dp))
 
             // Bouton import manuel LRC
             IconButton(
@@ -554,6 +710,7 @@ private fun LyricLineItem(
 private fun EmptyLyricsView(
     track: AudioTrackEntity?,
     onOpenLrclibSearch: () -> Unit,
+    onStartGroqTranscription: () -> Unit,
     onGenerateDemoLyrics: () -> Unit,
     onOpenImportDialog: () -> Unit
 ) {
@@ -594,63 +751,63 @@ private fun EmptyLyricsView(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Recherchez instantanément sur lrclib.net pour télécharger les paroles synchronisées et les sauvegarder dans vos fichiers.",
+            text = "Générez les paroles avec Whisper IA ou recherchez instantanément sur lrclib.net pour les sauvegarder dans vos fichiers.",
             fontSize = 13.sp,
             color = MusicProTextSecondary,
             textAlign = TextAlign.Center,
             lineHeight = 18.sp
         )
 
-        Spacer(modifier = Modifier.height(26.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // Bouton 1 : Rechercher en ligne sur lrclib.net (Option principale)
+        // Bouton 1 : Transcrire avec Groq Whisper large-v3 (IA)
         Button(
-            onClick = onOpenLrclibSearch,
+            onClick = onStartGroqTranscription,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
-                .shadow(10.dp, spotColor = MusicProCyanNeon)
-                .testTag("search_lrclib_online_button"),
+                .shadow(12.dp, spotColor = MusicProCyanNeon)
+                .testTag("transcribe_whisper_button"),
             colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon),
             shape = RoundedCornerShape(12.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.Search,
+                imageVector = Icons.Default.AutoAwesome,
                 contentDescription = null,
                 tint = Color.Black,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Rechercher sur lrclib.net (En ligne)",
+                text = "Transcrire avec Groq Whisper (IA)",
                 color = Color.Black,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
-        // Bouton 2 : Générer les paroles synchronisées de démonstration
+        // Bouton 2 : Rechercher en ligne sur lrclib.net
         Button(
-            onClick = onGenerateDemoLyrics,
+            onClick = onOpenLrclibSearch,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(46.dp)
                 .shadow(6.dp, spotColor = MusicProVioletGlow)
-                .testTag("generate_demo_lyrics_button"),
+                .testTag("search_lrclib_online_button"),
             colors = ButtonDefaults.buttonColors(containerColor = MusicProVioletPrimary),
             shape = RoundedCornerShape(12.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.AutoAwesome,
+                imageVector = Icons.Default.Search,
                 contentDescription = null,
                 tint = Color.White,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(18.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Générer les paroles (Démo hors-ligne)",
+                text = "Rechercher sur lrclib.net (En ligne)",
                 color = Color.White,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
@@ -659,13 +816,41 @@ private fun EmptyLyricsView(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Bouton 3 : Importer manuellement un texte LRC
+        // Bouton 3 : Générer les paroles synchronisées de démonstration
+        Button(
+            onClick = onGenerateDemoLyrics,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(44.dp)
+                .border(1.dp, MusicProVioletPrimary.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                .testTag("generate_demo_lyrics_button"),
+            colors = ButtonDefaults.buttonColors(containerColor = MusicProSurfaceElevated),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.AutoAwesome,
+                contentDescription = null,
+                tint = MusicProVioletLight,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Générer les paroles (Démo hors-ligne)",
+                color = MusicProVioletLight,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Bouton 4 : Importer manuellement un texte LRC
         Button(
             onClick = onOpenImportDialog,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(46.dp)
-                .border(1.dp, MusicProVioletPrimary.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
+                .height(44.dp)
+                .border(1.dp, MusicProSurfaceElevated, RoundedCornerShape(12.dp))
                 .testTag("import_lrc_button"),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             shape = RoundedCornerShape(12.dp)
@@ -673,15 +858,15 @@ private fun EmptyLyricsView(
             Icon(
                 imageVector = Icons.Default.ContentPaste,
                 contentDescription = null,
-                tint = MusicProCyanLight,
+                tint = MusicProTextSecondary,
                 modifier = Modifier.size(16.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "Coller un texte / fichier .LRC manuel",
-                color = MusicProCyanLight,
+                color = MusicProTextSecondary,
                 fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Medium
             )
         }
     }

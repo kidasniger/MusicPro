@@ -11,6 +11,7 @@ import com.example.permissions.PermissionUiState
 import com.example.ui.home.HomeScreen
 import com.example.ui.onboarding.OnboardingScreen
 import com.example.ui.permissions.PermissionScreen
+import com.example.ui.settings.SettingsScreen
 import com.example.ui.splash.SplashScreen
 
 object Destinations {
@@ -18,6 +19,7 @@ object Destinations {
     const val ONBOARDING = "onboarding"
     const val PERMISSIONS = "permissions"
     const val HOME = "home"
+    const val SETTINGS = "settings"
 }
 
 @Composable
@@ -104,10 +106,22 @@ fun MusicProNavGraph(
             HomeScreen(
                 initialOpenNowPlaying = initialOpenNowPlaying,
                 onOpenSettings = {
-                    navController.navigate(Destinations.PERMISSIONS)
+                    navController.navigate(Destinations.SETTINGS)
                 },
                 onOpenOnboarding = {
                     navController.navigate(Destinations.ONBOARDING)
+                }
+            )
+        }
+
+        // Écran 5: Paramètres de l'application (Clé API Groq Whisper, sécurité, etc.)
+        composable(Destinations.SETTINGS) {
+            SettingsScreen(
+                onBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToPermissions = {
+                    navController.navigate(Destinations.PERMISSIONS)
                 }
             )
         }
