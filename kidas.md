@@ -16,29 +16,39 @@ technologies:
   - "Hilt"
   - "Coil"
   - "Retrofit"
+  - "Moshi"
+  - "Groq Whisper"
 featured: false
-github: "À renseigner"
+github: "https://github.com/kidasniger/MusicPro"
 demo: "À renseigner"
 website: "À renseigner"
 documentation: "À renseigner"
-download: "À renseigner"
+download: "https://github.com/kidasniger/MusicPro/releases/download/v1.0-b8/MusicPro-v1.0-b8.apk"
 icon: "https://raw.githubusercontent.com/kidasniger/MusicPro/main/app/src/main/res/drawable/musicpro_logo_cutout.png"
 cover: "À renseigner"
 ---
 
 # Description
 
-À renseigner
+MusicPro est une application Android de lecture audio hors ligne avec une interface sombre aux accents violet et cyan. Elle indexe les fichiers audio locaux, conserve la bibliothèque dans une base Room et utilise Media3 pour la lecture en arrière-plan. L'application intègre également la gestion des playlists et des favoris, la recherche et l'organisation par morceaux, albums, artistes et dossiers, ainsi que les commandes de lecture comme l'aléatoire, la répétition et la vitesse de lecture. Les paroles peuvent être lues et synchronisées depuis les formats LRC et ID3 SYLT, recherchées en ligne via LRCLIB et générées par transcription avec Groq Whisper large-v3. MusicPro comprend aussi un widget d'écran d'accueil et un mécanisme de mise à jour de l'application via les GitHub Releases.
 
 # Description courte
 
-À renseigner
+Lecteur audio Android hors ligne avec bibliothèque locale, playlists, lecture en arrière-plan, paroles synchronisées et transcription IA via Groq Whisper.
 
 # Fonctionnalités
 
-- À renseigner
-- À renseigner
-- À renseigner
+- Indexation locale des fichiers audio avec mise en cache de la bibliothèque dans Room.
+- Lecture audio en arrière-plan avec Android Media3, notification multimédia et gestion de l'audio focus.
+- Organisation de la bibliothèque par morceaux, playlists, albums, artistes et dossiers.
+- Création, modification, suppression et réorganisation des playlists, avec gestion des morceaux favoris.
+- Recherche locale avec filtres par titres, artistes et albums.
+- Commandes de lecture avec aléatoire, répétition et réglage de la vitesse.
+- Affichage et gestion des paroles synchronisées LRC et ID3 SYLT.
+- Recherche de paroles en ligne via LRCLIB et transcription IA via Groq Whisper large-v3.
+- Widget d'écran d'accueil pour afficher le morceau en cours et contrôler la lecture.
+- Paramètres de thème, couleur dynamique, gestion du cache et permissions système.
+- Vérification et installation des mises à jour APK depuis les GitHub Releases.
 
 # Technologies
 
@@ -49,6 +59,8 @@ cover: "À renseigner"
 - Hilt
 - Coil
 - Retrofit
+- Moshi
+- Groq Whisper
 
 # Plateformes
 
@@ -68,10 +80,10 @@ cover: "À renseigner"
 
 ## Android
 
-- URL: "À renseigner"
+- URL: "https://github.com/kidasniger/MusicPro/releases/download/v1.0-b8/MusicPro-v1.0-b8.apk"
 - Version: "1.0"
 - Architecture: "À renseigner"
-- Taille: "À renseigner"
+- Taille: "22014522 bytes"
 
 ## Windows
 
@@ -96,40 +108,49 @@ cover: "À renseigner"
 
 # Liens
 
-- GitHub: "À renseigner"
+- GitHub: "https://github.com/kidasniger/MusicPro"
 - Démo: "À renseigner"
 - Site web: "À renseigner"
 - Documentation: "À renseigner"
-- Téléchargement: "À renseigner"
+- Téléchargement: "https://github.com/kidasniger/MusicPro/releases/download/v1.0-b8/MusicPro-v1.0-b8.apk"
 - YouTube: "À renseigner"
 - Vidéo de présentation: "À renseigner"
 
 # Nouveautés
 
-- À renseigner
-- À renseigner
+- Mise à jour intégrée de l'application via les GitHub Releases, avec téléchargement et installation de l'APK depuis les paramètres.
+- Support des playlists locales et du widget d'écran d'accueil pour contrôler la lecture.
+- Transcription des paroles avec Groq Whisper large-v3 et recherche/import de paroles en ligne via LRCLIB.
 
 # Changelog
 
 ## 1.0
 
-- À renseigner
-- À renseigner
+- Mise en place de la base Android MusicPro et de la gestion des permissions système.
+- Intégration de la lecture audio en arrière-plan avec Android Media3.
+- Ajout de la gestion des paroles, de la recherche en ligne via LRCLIB et de la transcription Groq Whisper.
+- Ajout des playlists locales, de la base Room et du widget d'écran d'accueil.
+- Ajout du système de mise à jour intégré reposant sur les GitHub Releases.
 
 # SEO
 
 ## Title
 
-À renseigner
+MusicPro - Lecteur audio Android hors ligne
 
 ## Description
 
-À renseigner
+MusicPro est un lecteur audio Android hors ligne avec bibliothèque locale, playlists, lecture en arrière-plan, paroles synchronisées et transcription IA via Groq Whisper.
 
 ## Keywords
 
-- À renseigner
-- À renseigner
+- MusicPro
+- lecteur audio Android
+- musique hors ligne
+- playlists Android
+- paroles synchronisées
+- Groq Whisper
+- LRCLIB
 
 ## Open Graph Image
 
@@ -141,4 +162,11 @@ cover: "À renseigner"
 
 # Informations supplémentaires
 
-À renseigner
+Application ID: com.aistudio.musicpro.qkzmvp
+Version Name: 1.0
+Version Code: 1
+Min SDK: 26
+Target SDK: 35
+Compile SDK: 36.1
+Branche principale du dépôt: main
+Dépôt public: https://github.com/kidasniger/MusicPro
