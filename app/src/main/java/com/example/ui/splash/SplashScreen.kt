@@ -124,13 +124,13 @@ fun SplashScreen(
         // Neon ambient glow in the background
         Box(
             modifier = Modifier
-                .size(280.dp)
-                .blur(70.dp)
+                .size(320.dp)
+                .blur(80.dp)
                 .background(
                     Brush.radialGradient(
                         colors = listOf(
-                            MusicProVioletPrimary.copy(alpha = 0.35f),
-                            MusicProCyanVibrant.copy(alpha = 0.15f),
+                            MusicProVioletPrimary.copy(alpha = 0.45f),
+                            MusicProCyanVibrant.copy(alpha = 0.25f),
                             Color.Transparent
                         )
                     ),
@@ -143,7 +143,7 @@ fun SplashScreen(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.padding(horizontal = 24.dp)
         ) {
-            // Animated Logo Card
+            // Elegant & modern animated Logo (No nested black box, direct glowing transparent icon)
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
@@ -151,84 +151,43 @@ fun SplashScreen(
                     .alpha(alpha.value)
                     .testTag("splash_logo")
             ) {
-                // Outer Glow halo
+                // Radial soft glow behind the logo
                 Box(
                     modifier = Modifier
-                        .size(136.dp)
-                        .blur(30.dp)
+                        .size(140.dp)
+                        .blur(36.dp)
                         .background(
                             Brush.linearGradient(
                                 listOf(MusicProVioletPrimary, MusicProCyanNeon)
                             ),
-                            shape = RoundedCornerShape(36.dp)
+                            shape = CircleShape
                         )
                 )
 
-                // Glass container with border
-                Box(
-                    modifier = Modifier
-                        .size(112.dp)
-                        .shadow(24.dp, RoundedCornerShape(32.dp), spotColor = MusicProVioletGlow)
-                        .background(MusicProSurface, RoundedCornerShape(32.dp))
-                        .border(
-                            width = 1.5.dp,
-                            brush = Brush.linearGradient(
-                                listOf(MusicProVioletPrimary, MusicProCyanNeon)
-                            ),
-                            shape = RoundedCornerShape(32.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.musicpro_logo_cutout),
-                        contentDescription = "Logo MusicPro",
-                        modifier = Modifier.size(76.dp)
-                    )
-                }
+                Image(
+                    painter = painterResource(id = R.drawable.musicpro_logo_transparent),
+                    contentDescription = "Logo MusicPro",
+                    modifier = Modifier.size(128.dp)
+                )
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // App Name with Neon Gradient Appearance
+            // App Name with high-contrast typography
             Text(
                 text = "MusicPro",
-                fontSize = 32.sp,
+                fontSize = 34.sp,
                 fontWeight = FontWeight.Bold,
                 color = MusicProTextPrimary,
                 letterSpacing = (-0.5).sp
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Offline Status Badge
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(7.dp)
-                        .shadow(6.dp, CircleShape, spotColor = MusicProSuccess)
-                        .background(MusicProSuccess, CircleShape)
-                )
-
-                Spacer(modifier = Modifier.width(6.dp))
-
-                Text(
-                    text = "100% HORS LIGNE",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MusicProSuccess,
-                    letterSpacing = 1.5.sp
-                )
-            }
-
-            Spacer(modifier = Modifier.height(36.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // Shimmer loading bar
             Box(
                 modifier = Modifier
-                    .width(120.dp)
+                    .width(130.dp)
                     .height(3.dp)
                     .background(Color(0x26FFFFFF), RoundedCornerShape(2.dp)),
                 contentAlignment = Alignment.Center
@@ -236,27 +195,11 @@ fun SplashScreen(
                 Box(
                     modifier = Modifier
                         .offset(x = shimmerOffset.dp)
-                        .width(48.dp)
+                        .width(50.dp)
                         .height(3.dp)
                         .background(MusicProPrimaryGradient, RoundedCornerShape(2.dp))
                 )
             }
-        }
-
-        // Bottom version text
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "VERSION 1.0.0 • OFFLINE FIRST",
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Medium,
-                color = MusicProTextMuted.copy(alpha = 0.6f),
-                letterSpacing = 1.2.sp
-            )
         }
     }
 }
