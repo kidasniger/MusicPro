@@ -65,12 +65,13 @@ jobs:
           KEYSTORE_PATH: ${{ github.workspace }}/release-upload-key.jks
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          GRADLE_OPTS: "-Djava.awt.headless=true -Xmx4g"
         run: |
           if [ -f "./gradlew" ]; then
             chmod +x ./gradlew
-            ./gradlew assembleRelease --no-daemon
+            ./gradlew assembleRelease --no-daemon -Djava.awt.headless=true
           else
-            gradle assembleRelease --no-daemon
+            gradle assembleRelease --no-daemon -Djava.awt.headless=true
           fi
 
       - name: Rename APK

@@ -129,6 +129,10 @@ fun SettingsScreen(
     val isClearingCache by settingsViewModel.isClearingCache.collectAsStateWithLifecycle()
     val cacheClearMessage by settingsViewModel.cacheClearMessage.collectAsStateWithLifecycle()
 
+    // États de mise à jour de l'application
+    val updateCheckState by settingsViewModel.updateCheckState.collectAsStateWithLifecycle()
+    val downloadState by settingsViewModel.downloadState.collectAsStateWithLifecycle()
+
     // États de la clé API Groq
     var apiKeyInput by remember { mutableStateOf(apiKeyStore.getApiKey()) }
     var isPasswordVisible by remember { mutableStateOf(false) }
@@ -244,12 +248,25 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Section 4 : À propos de MusicPro
-            AboutCard()
+            // Section 4 : Mises à jour de l'application (GitHub Releases)
+            AppUpdateCard(
+                currentVersion = settingsViewModel.currentVersionName,
+                updateCheckState = updateCheckState,
+                downloadState = downloadState,
+                onCheckForUpdates = { settingsViewModel.checkForUpdates() },
+                onDownloadAndInstall = { downloadUrl ->
+                    settingsViewModel.downloadAndInstallUpdate(downloadUrl)
+                }
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Section 5 : Permissions Système
+            // Section 5 : À propos de MusicPro
+            AboutCard(currentVersion = settingsViewModel.currentVersionName)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Section 6 : Permissions Système
             PermissionsCard(onNavigateToPermissions = onNavigateToPermissions)
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -1073,10 +1090,10 @@ private fun CacheManagementCard(
 }
 
 /**
- * Section 4: À propos de MusicPro
+ * Section 5: À propos de MusicPro
  */
 @Composable
-private fun AboutCard() {
+private fun AboutCard(currentVersion: String = "1.0") {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -1124,7 +1141,7 @@ private fun AboutCard() {
                             border = BorderStroke(1.dp, MusicProCyanNeon.copy(alpha = 0.5f))
                         ) {
                             Text(
-                                text = "v1.2.0",
+                                text = "v$currentVersion",
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MusicProCyanNeon,

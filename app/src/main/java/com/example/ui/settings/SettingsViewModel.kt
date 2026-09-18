@@ -5,6 +5,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.preferences.AppThemeMode
 import com.example.data.preferences.UserPreferencesRepository
+import com.example.updater.AppUpdateManager
+import com.example.updater.DownloadState
+import com.example.updater.UpdateCheckState
 import com.example.util.CacheManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +21,12 @@ import kotlinx.coroutines.withContext
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val preferencesRepository = UserPreferencesRepository(application)
+    val appUpdateManager = AppUpdateManager(application, preferencesRepository)
+
+    val updateCheckState: StateFlow<UpdateCheckState> = appUpdateManager.updateCheckState
+    val downloadState: StateFlow<DownloadState> = appUpdateManager.downloadState
+
+    val currentVersionName: String = appUpdateManager.getCurrentVersionName()
 
     val themeMode: StateFlow<AppThemeMode> = preferencesRepository.themeMode
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppThemeMode.DARK)
@@ -75,5 +84,21 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun dismissCacheMessage() {
         _cacheClearMessage.value = null
+    }
+
+    fun checkForUpdates() {
+        viewModelScope.launch {
+            appUpdateManager.checkForUpdates()
+        }
+    }
+
+    fun downloadAndInstallUpdate(downloadUrl: String) {
+        viewModelScope.launch {
+            appUpdateManager.downloadAndInstallApk(downloadUrl)
+        }
+    }
+
+    fun resetUpdateState() {
+        appUpdateManager.resetState()
     }
 }
