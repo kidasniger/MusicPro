@@ -121,7 +121,6 @@ fun LibraryScreen(
     onTrackClick: (AudioTrackEntity) -> Unit,
     onToggleFavorite: (Long) -> Unit,
     onRefreshScan: () -> Unit,
-    onLoadDemoTracks: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "rotation")
@@ -268,7 +267,6 @@ fun LibraryScreen(
         if (tracks.isEmpty() && !isScanning && selectedTab != LibraryTab.PLAYLISTS) {
             EmptyAudioStateView(
                 onRefreshScan = onRefreshScan,
-                onLoadDemoTracks = onLoadDemoTracks,
                 modifier = Modifier.fillMaxSize()
             )
         } else {

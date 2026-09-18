@@ -15,6 +15,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.example.data.local.AudioTrackEntity
+import androidx.core.content.ContextCompat
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.CoroutineScope
@@ -40,6 +41,8 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
 
     private var currentPlaylist: List<AudioTrackEntity> = emptyList()
     private var positionTickerJob: Job? = null
+    private var pendingTrackToPlay: AudioTrackEntity? = null
+    private var pendingPlaylistToPlay: List<AudioTrackEntity> = emptyList()
 
     // StateFlows exposés pour l'UI Compose
     private val _isConnected = MutableStateFlow(false)
@@ -106,10 +109,18 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
                 _isConnected.value = true
                 setupControllerListener(controller)
                 updateStateFromController(controller)
+
+                val pendingTrack = pendingTrackToPlay
+                if (pendingTrack != null) {
+                    val pendingList = if (pendingPlaylistToPlay.isNotEmpty()) pendingPlaylistToPlay else listOf(pendingTrack)
+                    pendingTrackToPlay = null
+                    pendingPlaylistToPlay = emptyList()
+                    playTrack(pendingTrack, pendingList)
+                }
             } catch (e: Exception) {
                 _errorMessage.value = "Impossible de se connecter au service audio: ${e.message}"
             }
-        }, MoreExecutors.directExecutor())
+        }, ContextCompat.getMainExecutor(appContext))
     }
 
     private fun setupControllerListener(controller: MediaController) {
@@ -203,8 +214,12 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
     }
 
     fun playTrack(track: AudioTrackEntity, playlist: List<AudioTrackEntity> = listOf(track)) {
-        val controller = mediaController ?: run {
-            _errorMessage.value = "Le contrôleur audio est en cours d'initialisation..."
+        val controller = mediaController
+        if (controller == null) {
+            pendingTrackToPlay = track
+            pendingPlaylistToPlay = playlist
+            _currentTrack.value = track
+            _isPlaying.value = true
             return
         }
 
@@ -330,7 +345,17 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
     }
 
     private fun AudioTrackEntity.toMediaItem(): MediaItem {
-        val trackUri = resolvePlayableUri(this)
+        val uri = when {
+            contentUri.isNotBlank() -> Uri.parse(contentUri)
+            path.isNotBlank() -> {
+                if (path.startsWith("content://") || path.startsWith("http://") || path.startsWith("https://") || path.startsWith("file://")) {
+                    Uri.parse(path)
+                } else {
+                    Uri.fromFile(File(path))
+                }
+            }
+            else -> Uri.parse("content://media/external/audio/media/$id")
+        }
 
         val metadata = MediaMetadata.Builder()
             .setTitle(title)
@@ -346,63 +371,8 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
 
         return MediaItem.Builder()
             .setMediaId(id.toString())
-            .setUri(trackUri)
+            .setUri(uri)
             .setMediaMetadata(metadata)
             .build()
-    }
-
-    private fun resolvePlayableUri(track: AudioTrackEntity): Uri {
-        // 1. Détection des pistes de démonstration (ID 1000..1020 ou URI synthétique MediaStore)
-        val isDemoTrack = (track.id in 1000L..1020L) ||
-                track.contentUri.startsWith("content://media/external/audio/media/100") ||
-                track.path.contains("/Music/Pop/") ||
-                track.path.contains("/Music/Dance/") ||
-                track.path.contains("/Music/Electro/") ||
-                track.path.contains("/Music/Rock/")
-
-        if (isDemoTrack) {
-            val demoFile = DemoAudioGenerator.getOrCreateDemoAudioFile(appContext, track.id)
-            return Uri.fromFile(demoFile)
-        }
-
-        // 2. Vérification de la validité de l'URI content:// via ContentResolver
-        if (track.contentUri.isNotBlank()) {
-            val uri = Uri.parse(track.contentUri)
-            if (track.contentUri.startsWith("content://")) {
-                var isAccessible = false
-                try {
-                    appContext.contentResolver.openAssetFileDescriptor(uri, "r")?.use {
-                        isAccessible = true
-                    }
-                } catch (e: Exception) {
-                    isAccessible = false
-                }
-                if (isAccessible) {
-                    return uri
-                }
-            } else if (track.contentUri.startsWith("file://")) {
-                val f = File(uri.path ?: "")
-                if (f.exists() && f.canRead()) {
-                    return uri
-                }
-            } else if (track.contentUri.startsWith("http://") || track.contentUri.startsWith("https://")) {
-                return uri
-            }
-        }
-
-        // 3. Vérification du chemin direct dans le système de fichiers
-        if (track.path.isNotBlank()) {
-            if (track.path.startsWith("content://") || track.path.startsWith("http://") || track.path.startsWith("https://")) {
-                return Uri.parse(track.path)
-            }
-            val file = File(track.path)
-            if (file.exists() && file.canRead()) {
-                return Uri.fromFile(file)
-            }
-        }
-
-        // 4. File-safe fallback pour toute piste dont le fichier physique est manquant
-        val fallbackFile = DemoAudioGenerator.getOrCreateDemoAudioFile(appContext, track.id)
-        return Uri.fromFile(fallbackFile)
     }
 }

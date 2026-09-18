@@ -48,6 +48,9 @@ interface AudioTrackDao {
     @Query("DELETE FROM audio_tracks")
     suspend fun clearAllTracks()
 
+    @Query("DELETE FROM audio_tracks WHERE id BETWEEN :startId AND :endId OR contentUri LIKE 'content://media/external/audio/media/100%' OR path LIKE '%demo_track%'")
+    suspend fun deleteLegacyDemoTracks(startId: Long = 1000L, endId: Long = 1020L)
+
     @Query("SELECT COUNT(*) FROM audio_tracks")
     suspend fun getTrackCount(): Int
 }

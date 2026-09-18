@@ -266,12 +266,12 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     init {
-        // Au démarrage, assainir les pistes démo et vérifier le cache Room
+        // Au démarrage, purger les anciennes pistes démo résiduelles et vérifier le cache Room
         viewModelScope.launch {
-            repository.sanitizeCachedTracks()
+            repository.purgeLegacyDemoTracks()
             val count = repository.getTrackCount()
             if (count == 0) {
-                refreshScan(autoFallbackDemoIfEmpty = false)
+                refreshScan()
             } else {
                 _statusMessage.value = "$count morceaux chargés depuis le cache local"
                 if (currentTrack.value == null) {
@@ -295,7 +295,7 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun refreshScan(autoFallbackDemoIfEmpty: Boolean = false) {
+    fun refreshScan() {
         viewModelScope.launch {
             _isScanning.value = true
             _statusMessage.value = "Scan MediaStore en cours..."
@@ -307,31 +307,10 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
                         tracks.value.firstOrNull()?.let { playbackManager.setCurrentTrackOnly(it) }
                     }
                 } else {
-                    if (autoFallbackDemoIfEmpty) {
-                        val demoCount = repository.loadDemoTracks()
-                        _statusMessage.value = "Mode Démo activé ($demoCount morceaux)"
-                    } else {
-                        _statusMessage.value = "Aucun fichier audio trouvé"
-                    }
+                    _statusMessage.value = "Aucun fichier audio trouvé"
                 }
             } catch (e: Exception) {
                 _statusMessage.value = "Erreur lors du scan: ${e.message}"
-            } finally {
-                _isScanning.value = false
-            }
-        }
-    }
-
-    fun loadDemoTracks() {
-        viewModelScope.launch {
-            _isScanning.value = true
-            try {
-                val count = repository.loadDemoTracks()
-                _statusMessage.value = "Catalogue démo chargé ($count morceaux)"
-                // Set first track as current
-                tracks.value.firstOrNull()?.let {
-                    playbackManager.setCurrentTrackOnly(it)
-                }
             } finally {
                 _isScanning.value = false
             }
@@ -408,11 +387,6 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
                 _isLyricsLoading.value = false
             }
         }
-    }
-
-    fun generateDemoLyrics(track: AudioTrackEntity) {
-        val generated = lyricsRepository.generateDemoLyrics(track)
-        _lyricsData.value = generated
     }
 
     fun importLrcText(track: AudioTrackEntity, lrcText: String) {

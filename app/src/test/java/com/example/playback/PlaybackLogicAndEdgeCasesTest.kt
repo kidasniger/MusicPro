@@ -111,7 +111,7 @@ class PlaybackLogicAndEdgeCasesTest {
 
         // Vérifier l'état initial des pistes si la base de données est vide
         // La gestion d'erreur ne doit pas planter l'application
-        viewModel.refreshScan(autoFallbackDemoIfEmpty = false)
+        viewModel.refreshScan()
         assertNotNull(viewModel.statusMessage.value)
 
         // Tenter de basculer lecture/pause quand aucune piste n'est disponible

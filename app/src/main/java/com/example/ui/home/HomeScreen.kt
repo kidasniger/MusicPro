@@ -289,8 +289,7 @@ fun HomeScreen(
                         onNavigateToSearch = { currentSection = NavigationSection.SEARCH },
                         onTrackClick = { audioViewModel.playTrack(it) },
                         onToggleFavorite = { audioViewModel.toggleFavorite(it) },
-                        onRefreshScan = { audioViewModel.refreshScan() },
-                        onLoadDemoTracks = { audioViewModel.loadDemoTracks() }
+                        onRefreshScan = { audioViewModel.refreshScan() }
                     )
                 }
                 NavigationSection.LIBRARY -> {
@@ -314,8 +313,7 @@ fun HomeScreen(
                         onSelectTab = { audioViewModel.selectTab(it) },
                         onTrackClick = { audioViewModel.playTrack(it) },
                         onToggleFavorite = { audioViewModel.toggleFavorite(it) },
-                        onRefreshScan = { audioViewModel.refreshScan() },
-                        onLoadDemoTracks = { audioViewModel.loadDemoTracks() }
+                        onRefreshScan = { audioViewModel.refreshScan() }
                     )
                 }
                 NavigationSection.SEARCH -> {
@@ -384,7 +382,6 @@ fun HomeScreen(
             onNext = { audioViewModel.playNext() },
             onPrevious = { audioViewModel.playPrevious() },
             onSeekTo = { audioViewModel.seekTo(it) },
-            onGenerateDemoLyrics = { activeTrack?.let { audioViewModel.generateDemoLyrics(it) } },
             onImportLrcText = { text -> activeTrack?.let { audioViewModel.importLrcText(it, text) } },
             onOpenLrclibSearch = { isLrclibSearchOpen = true },
             onStartGroqTranscription = { activeTrack?.let { audioViewModel.startGroqTranscription(it) } },
@@ -546,8 +543,7 @@ private fun HomeExplorerContent(
     onNavigateToSearch: () -> Unit,
     onTrackClick: (AudioTrackEntity) -> Unit,
     onToggleFavorite: (Long) -> Unit,
-    onRefreshScan: () -> Unit,
-    onLoadDemoTracks: () -> Unit
+    onRefreshScan: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -685,7 +681,6 @@ private fun HomeExplorerContent(
             item {
                 EmptyAudioStateView(
                     onRefreshScan = onRefreshScan,
-                    onLoadDemoTracks = onLoadDemoTracks,
                     modifier = Modifier.fillMaxWidth()
                 )
             }

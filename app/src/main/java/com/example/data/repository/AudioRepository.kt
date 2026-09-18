@@ -57,31 +57,14 @@ class AudioRepository(
     }
 
     /**
-     * Charge les pistes d'exemple haute définition dans Room
-     * pour émulateur ou appareil sans fichier local.
+     * Purge définitivement toutes les anciennes pistes de démonstration ou fictives
+     * présentes dans la base de données Room locale.
      */
-    suspend fun loadDemoTracks(): Int = withContext(Dispatchers.IO) {
-        val demoTracks = scanner.getFallbackDemoTracks()
-        audioTrackDao.clearAllTracks()
-        audioTrackDao.insertTracks(demoTracks)
-        demoTracks.size
-    }
-
-    /**
-     * Met à jour automatiquement les pistes de démo déjà stockées en base Room
-     * dont les URIs étaient des chemins virtuels obsolètes, vers de vrais fichiers WAV audibles.
-     */
-    suspend fun sanitizeCachedTracks() = withContext(Dispatchers.IO) {
+    suspend fun purgeLegacyDemoTracks() = withContext(Dispatchers.IO) {
         try {
-            val demoTracks = scanner.getFallbackDemoTracks()
-            demoTracks.forEach { demoTrack ->
-                val existing = audioTrackDao.getTrackById(demoTrack.id)
-                if (existing != null && (existing.contentUri.startsWith("content://media/external/audio/media/100") || !existing.contentUri.startsWith("file://"))) {
-                    audioTrackDao.insertTrack(demoTrack)
-                }
-            }
+            audioTrackDao.deleteLegacyDemoTracks()
         } catch (e: Exception) {
-            android.util.Log.e("AudioRepository", "Erreur assainissement pistes: ${e.message}")
+            android.util.Log.e("AudioRepository", "Erreur lors de la purge des pistes de démo: ${e.message}")
         }
     }
 

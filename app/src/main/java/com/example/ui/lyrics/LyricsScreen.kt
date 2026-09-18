@@ -124,7 +124,6 @@ fun LyricsScreen(
     onNext: () -> Unit,
     onPrevious: () -> Unit,
     onSeekTo: (Long) -> Unit,
-    onGenerateDemoLyrics: () -> Unit,
     onImportLrcText: (String) -> Unit,
     onOpenLrclibSearch: () -> Unit = {},
     onStartGroqTranscription: () -> Unit = {},
@@ -246,7 +245,6 @@ fun LyricsScreen(
                             track = track,
                             onOpenLrclibSearch = onOpenLrclibSearch,
                             onStartGroqTranscription = onStartGroqTranscription,
-                            onGenerateDemoLyrics = onGenerateDemoLyrics,
                             onOpenImportDialog = { showImportDialog = true }
                         )
                     } else {
@@ -721,7 +719,6 @@ private fun EmptyLyricsView(
     track: AudioTrackEntity?,
     onOpenLrclibSearch: () -> Unit,
     onStartGroqTranscription: () -> Unit,
-    onGenerateDemoLyrics: () -> Unit,
     onOpenImportDialog: () -> Unit
 ) {
     Column(
@@ -826,35 +823,7 @@ private fun EmptyLyricsView(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Bouton 3 : Générer les paroles synchronisées de démonstration
-        Button(
-            onClick = onGenerateDemoLyrics,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(44.dp)
-                .border(1.dp, MusicProVioletPrimary.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                .testTag("generate_demo_lyrics_button"),
-            colors = ButtonDefaults.buttonColors(containerColor = MusicProSurfaceElevated),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.AutoAwesome,
-                contentDescription = null,
-                tint = MusicProVioletLight,
-                modifier = Modifier.size(16.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Générer les paroles (Démo hors-ligne)",
-                color = MusicProVioletLight,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium
-            )
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // Bouton 4 : Importer manuellement un texte LRC
+        // Bouton 3 : Importer manuellement un texte LRC
         Button(
             onClick = onOpenImportDialog,
             modifier = Modifier

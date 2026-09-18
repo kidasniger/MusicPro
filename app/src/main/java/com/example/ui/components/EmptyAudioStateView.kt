@@ -51,7 +51,6 @@ import com.example.ui.theme.MusicProVioletPrimary
 @Composable
 fun EmptyAudioStateView(
     onRefreshScan: () -> Unit,
-    onLoadDemoTracks: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -120,7 +119,7 @@ fun EmptyAudioStateView(
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // Action 1: Refresh scan
+        // Action principale: Scanner l'appareil
         Button(
             onClick = onRefreshScan,
             shape = RoundedCornerShape(14.dp),
@@ -141,42 +140,10 @@ fun EmptyAudioStateView(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Rafraîchir le scan MediaStore",
+                    text = "Scanner l'appareil (MediaStore)",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Action 2: Load Demo tracks (useful on emulator without local files)
-        OutlinedButton(
-            onClick = onLoadDemoTracks,
-            shape = RoundedCornerShape(14.dp),
-            border = BorderStroke(1.dp, Color(0x338A2BE2)),
-            colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = MusicProSurfaceVariant.copy(alpha = 0.6f)
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .testTag("empty_load_demo_tracks_button")
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.AutoAwesome,
-                    contentDescription = null,
-                    tint = MusicProCyanLight,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Charger les pistes de démo",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MusicProCyanNeon
                 )
             }
         }
