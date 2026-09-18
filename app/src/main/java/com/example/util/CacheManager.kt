@@ -51,6 +51,10 @@ object CacheManager {
         val children = dir.listFiles() ?: return true
         var success = true
         for (child in children) {
+            // Ne pas supprimer le dossier des mises à jour téléchargées si l'utilisateur vide le cache
+            if (child.isDirectory && child.name == "updates") {
+                continue
+            }
             val deleted = if (child.isDirectory) {
                 deleteDir(child)
             } else {

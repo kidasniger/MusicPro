@@ -17,7 +17,8 @@ data class AudioTrackEntity(
     val mimeType: String? = null,
     val size: Long = 0L,
     val hasSyncedLyrics: Boolean = false,
-    val dateAdded: Long = 0L
+    val dateAdded: Long = 0L,
+    val lastPlayed: Long = 0L
 ) {
     fun formatDuration(): String {
         val totalSeconds = (duration / 1000).coerceAtLeast(0)

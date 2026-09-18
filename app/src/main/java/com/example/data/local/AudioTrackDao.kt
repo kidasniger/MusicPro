@@ -12,6 +12,12 @@ interface AudioTrackDao {
     @Query("SELECT * FROM audio_tracks ORDER BY title ASC")
     fun getAllTracks(): Flow<List<AudioTrackEntity>>
 
+    @Query("SELECT * FROM audio_tracks WHERE lastPlayed > 0 ORDER BY lastPlayed DESC LIMIT :limit")
+    fun getRecentTracks(limit: Int = 20): Flow<List<AudioTrackEntity>>
+
+    @Query("UPDATE audio_tracks SET lastPlayed = :timestamp WHERE id = :trackId")
+    suspend fun updateLastPlayed(trackId: Long, timestamp: Long)
+
     @Query("SELECT * FROM audio_tracks WHERE id = :id LIMIT 1")
     suspend fun getTrackById(id: Long): AudioTrackEntity?
 

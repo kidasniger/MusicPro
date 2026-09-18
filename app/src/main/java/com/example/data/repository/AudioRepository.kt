@@ -16,6 +16,14 @@ class AudioRepository(
 
     val allTracks: Flow<List<AudioTrackEntity>> = audioTrackDao.getAllTracks()
 
+    fun getRecentTracks(limit: Int = 20): Flow<List<AudioTrackEntity>> {
+        return audioTrackDao.getRecentTracks(limit)
+    }
+
+    suspend fun updateLastPlayed(trackId: Long, timestamp: Long = System.currentTimeMillis()) = withContext(Dispatchers.IO) {
+        audioTrackDao.updateLastPlayed(trackId, timestamp)
+    }
+
     fun searchTracks(query: String): Flow<List<AudioTrackEntity>> {
         return audioTrackDao.searchTracks(query.trim())
     }

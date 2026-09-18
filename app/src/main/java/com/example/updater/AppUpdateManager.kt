@@ -46,20 +46,27 @@ class AppUpdateManager(
     val downloadState: StateFlow<DownloadState> = _downloadState.asStateFlow()
 
     init {
-        // Nettoyage automatique des anciens APK téléchargés si l'app est déjà à jour
-        cleanupObsoleteApks()
+        // Nettoyage uniquement des fichiers corrompus ou trop anciens (> 24h), en préservant l'APK téléchargé
+        cleanupObsoleteApks(force = false)
     }
 
     /**
-     * Supprime les APK temporaires du cache si l'application installée est déjà à jour.
+     * Supprime les APK temporaires du cache.
+     * Si force = false, ne supprime que les fichiers non valides ou datant de plus de 24 heures.
+     * Si force = true, supprime tous les APK temporaires (par exemple lorsque l'application a été mise à jour avec succès).
      */
-    fun cleanupObsoleteApks() {
+    fun cleanupObsoleteApks(force: Boolean = false) {
         try {
             val updatesDir = File(context.cacheDir, "updates")
             if (updatesDir.exists() && updatesDir.isDirectory) {
+                val now = System.currentTimeMillis()
+                val oneDayAgo = now - 24 * 60 * 60 * 1000L
+
                 updatesDir.listFiles()?.forEach { file ->
                     if (file.name.endsWith(".apk", ignoreCase = true)) {
-                        file.delete()
+                        if (force || file.length() == 0L || file.lastModified() < oneDayAgo) {
+                            file.delete()
+                        }
                     }
                 }
             }
@@ -199,7 +206,7 @@ class AppUpdateManager(
                 )
             } else {
                 // Si l'application est déjà à jour, s'assurer que les anciens APK temporaires sont supprimés
-                cleanupObsoleteApks()
+                cleanupObsoleteApks(force = true)
                 UpdateCheckState.UpToDate(currentVersion)
             }
 

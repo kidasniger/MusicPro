@@ -8,6 +8,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,9 +36,9 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
@@ -121,29 +122,31 @@ fun SplashScreen(
             .testTag("splash_screen"),
         contentAlignment = Alignment.Center
     ) {
-        // Neon ambient glow in the background
-        Box(
-            modifier = Modifier
-                .size(320.dp)
-                .blur(80.dp)
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(
-                            MusicProVioletPrimary.copy(alpha = 0.45f),
-                            MusicProCyanVibrant.copy(alpha = 0.25f),
-                            Color.Transparent
-                        )
+        // Neon ambient glow rendered via Canvas to avoid edge clipping
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val centerOffset = Offset(size.width / 2f, size.height / 2f)
+            val glowRadius = size.minDimension * 0.55f * pulseScale
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        MusicProVioletPrimary.copy(alpha = 0.40f),
+                        MusicProCyanVibrant.copy(alpha = 0.20f),
+                        Color.Transparent
                     ),
-                    shape = CircleShape
-                )
-        )
+                    center = centerOffset,
+                    radius = glowRadius
+                ),
+                center = centerOffset,
+                radius = glowRadius
+            )
+        }
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.padding(horizontal = 24.dp)
         ) {
-            // Elegant & modern animated Logo (No nested black box, direct glowing transparent icon)
+            // Animated Logo with smooth radial glow and crisp clean icon
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
@@ -151,21 +154,27 @@ fun SplashScreen(
                     .alpha(alpha.value)
                     .testTag("splash_logo")
             ) {
-                // Radial soft glow behind the logo
-                Box(
-                    modifier = Modifier
-                        .size(140.dp)
-                        .blur(36.dp)
-                        .background(
-                            Brush.linearGradient(
-                                listOf(MusicProVioletPrimary, MusicProCyanNeon)
+                // Soft radial glow behind the logo
+                Canvas(modifier = Modifier.size(160.dp)) {
+                    val centerOffset = Offset(size.width / 2f, size.height / 2f)
+                    val glowRadius = size.width / 2f
+                    drawCircle(
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                MusicProCyanNeon.copy(alpha = 0.45f),
+                                MusicProVioletPrimary.copy(alpha = 0.30f),
+                                Color.Transparent
                             ),
-                            shape = CircleShape
-                        )
-                )
+                            center = centerOffset,
+                            radius = glowRadius
+                        ),
+                        center = centerOffset,
+                        radius = glowRadius
+                    )
+                }
 
                 Image(
-                    painter = painterResource(id = R.drawable.musicpro_logo_transparent),
+                    painter = painterResource(id = R.drawable.musicpro_logo_clean),
                     contentDescription = "Logo MusicPro",
                     modifier = Modifier.size(128.dp)
                 )

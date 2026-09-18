@@ -149,6 +149,7 @@ fun HomeScreen(
     }
 
     val tracks by audioViewModel.tracks.collectAsStateWithLifecycle()
+    val recentTracks by audioViewModel.recentTracks.collectAsStateWithLifecycle()
     val albums by audioViewModel.albumSummaries.collectAsStateWithLifecycle()
     val artists by audioViewModel.artistSummaries.collectAsStateWithLifecycle()
     val folders by audioViewModel.folderSummaries.collectAsStateWithLifecycle()
@@ -266,6 +267,7 @@ fun HomeScreen(
                 NavigationSection.HOME -> {
                     HomeExplorerContent(
                         tracks = tracks,
+                        recentTracks = recentTracks,
                         albumsCount = albums.size,
                         artistsCount = artists.size,
                         foldersCount = folders.size,
@@ -507,7 +509,6 @@ fun HomeScreen(
             downloadState = downloadState,
             onDismiss = {
                 isUpdateDialogDismissed = true
-                settingsViewModel.resetUpdateState()
             },
             onDownloadAndInstall = { downloadUrl ->
                 settingsViewModel.downloadAndInstallUpdate(downloadUrl)
@@ -523,6 +524,7 @@ fun HomeScreen(
 @Composable
 private fun HomeExplorerContent(
     tracks: List<AudioTrackEntity>,
+    recentTracks: List<AudioTrackEntity>,
     albumsCount: Int,
     artistsCount: Int,
     foldersCount: Int,
@@ -739,6 +741,9 @@ private fun HomeExplorerContent(
                 )
             }
         } else {
+            val displayedRecentTracks = if (recentTracks.isNotEmpty()) recentTracks else tracks.take(10)
+            val sectionTitle = if (recentTracks.isNotEmpty()) "Récemment écoutés" else "Morceaux récents"
+
             // Section Récents / Bibliothèque
             item {
                 Row(
@@ -749,7 +754,7 @@ private fun HomeExplorerContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Morceaux récents",
+                        text = sectionTitle,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = MusicProTextPrimary
@@ -767,12 +772,12 @@ private fun HomeExplorerContent(
             }
 
             // Liste des morceaux
-            items(tracks.take(10), key = { it.id }) { track ->
+            items(displayedRecentTracks, key = { it.id }) { track ->
                 val isCurrent = currentPlayingTrack?.id == track.id
                 val isFav = favorites.contains(track.id)
 
                 TrackRowItem(
-                    index = tracks.indexOf(track) + 1,
+                    index = displayedRecentTracks.indexOf(track) + 1,
                     track = track,
                     isCurrent = isCurrent,
                     isPlaying = isPlaying && isCurrent,

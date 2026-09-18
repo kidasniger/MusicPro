@@ -116,6 +116,14 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
             initialValue = emptyList()
         )
 
+    // Morceaux récemment écoutés (triés par date d'écoute décroissante)
+    val recentTracks: StateFlow<List<AudioTrackEntity>> = repository.getRecentTracks(20)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     private val _isScanning = MutableStateFlow(false)
     val isScanning: StateFlow<Boolean> = _isScanning.asStateFlow()
 
@@ -268,11 +276,14 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
 
-        // Chargement automatique des paroles à chaque changement de piste
+        // Chargement automatique des paroles et mise à jour de la date d'écoute à chaque changement de piste
         viewModelScope.launch {
             currentTrack.collect { track ->
                 if (track != null) {
                     loadLyricsForTrack(track)
+                    if (playbackManager.isPlaying.value) {
+                        repository.updateLastPlayed(track.id)
+                    }
                 } else {
                     _lyricsData.value = LyricsData()
                 }
@@ -347,6 +358,9 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     fun playTrack(track: AudioTrackEntity, playlist: List<AudioTrackEntity> = tracks.value) {
         val activePlaylist = if (playlist.isNotEmpty()) playlist else listOf(track)
         playbackManager.playTrack(track, activePlaylist)
+        viewModelScope.launch {
+            repository.updateLastPlayed(track.id)
+        }
     }
 
     fun togglePlayPause() {
