@@ -10,6 +10,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import com.example.data.preferences.AppThemeMode
 
 /**
  * Palette de couleurs sombre Material 3 calquée fidèlement sur la charte MusicPro.
@@ -98,6 +99,25 @@ fun MusicProTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = MusicProTypography,
+        content = content
+    )
+}
+
+@Composable
+fun MusicProTheme(
+    themeMode: AppThemeMode,
+    dynamicColor: Boolean = false,
+    content: @Composable () -> Unit
+) {
+    val isSystemDark = isSystemInDarkTheme()
+    val isDark = when (themeMode) {
+        AppThemeMode.DARK -> true
+        AppThemeMode.LIGHT -> false
+        AppThemeMode.SYSTEM -> isSystemDark
+    }
+    MusicProTheme(
+        darkTheme = isDark,
+        dynamicColor = dynamicColor,
         content = content
     )
 }

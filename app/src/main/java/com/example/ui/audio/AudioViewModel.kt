@@ -4,7 +4,9 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.local.AudioTrackEntity
+import com.example.data.local.PlaylistSummary
 import com.example.data.repository.AudioRepository
+import com.example.data.repository.PlaylistRepository
 import com.example.data.security.GroqApiKeyStore
 import com.example.groq.GroqTranscriptionManager
 import com.example.groq.GroqTranscriptionResult
@@ -18,6 +20,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.File
@@ -32,6 +36,7 @@ sealed class LrclibSearchUiState {
 
 enum class LibraryTab(val label: String) {
     TRACKS("Morceaux"),
+    PLAYLISTS("Playlists"),
     ALBUMS("Albums"),
     ARTISTS("Artistes"),
     FOLDERS("Dossiers")
@@ -67,6 +72,41 @@ data class FolderSummary(
 class AudioViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = AudioRepository.getInstance(application)
+    private val playlistRepository = PlaylistRepository.getInstance(application)
+
+    // Playlists gérées via Room Database
+    val playlists: StateFlow<List<PlaylistSummary>> = playlistRepository.getPlaylistSummaries()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    private val _selectedPlaylistId = MutableStateFlow<Long?>(null)
+    val selectedPlaylistId: StateFlow<Long?> = _selectedPlaylistId.asStateFlow()
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val selectedPlaylistTracks: StateFlow<List<AudioTrackEntity>> = _selectedPlaylistId
+        .flatMapLatest { id ->
+            if (id != null) {
+                playlistRepository.getTracksForPlaylist(id)
+            } else {
+                flowOf(emptyList())
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    val selectedPlaylist: StateFlow<PlaylistSummary?> = combine(playlists, _selectedPlaylistId) { list, id ->
+        list.firstOrNull { it.id == id }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = null
+    )
 
     // Tracks observed from Room Database
     val tracks: StateFlow<List<AudioTrackEntity>> = repository.allTracks
@@ -512,5 +552,78 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
 
     fun clearGroqError() {
         _groqErrorMessage.value = null
+    }
+
+    // ==========================================
+    // GESTION DES PLAYLISTS ROOM
+    // ==========================================
+
+    fun selectPlaylist(playlistId: Long?) {
+        _selectedPlaylistId.value = playlistId
+    }
+
+    fun createPlaylist(name: String, description: String = "", initialTrackIds: List<Long> = emptyList()) {
+        viewModelScope.launch {
+            val newId = playlistRepository.createPlaylist(name, description)
+            if (initialTrackIds.isNotEmpty()) {
+                playlistRepository.addTracksToPlaylist(newId, initialTrackIds)
+            }
+            _statusMessage.value = "Playlist \"$name\" créée"
+        }
+    }
+
+    fun updatePlaylistName(playlistId: Long, newName: String, newDesc: String? = null) {
+        viewModelScope.launch {
+            playlistRepository.updatePlaylistName(playlistId, newName, newDesc)
+            _statusMessage.value = "Playlist renommée"
+        }
+    }
+
+    fun deletePlaylist(playlistId: Long) {
+        viewModelScope.launch {
+            playlistRepository.deletePlaylist(playlistId)
+            if (_selectedPlaylistId.value == playlistId) {
+                _selectedPlaylistId.value = null
+            }
+            _statusMessage.value = "Playlist supprimée"
+        }
+    }
+
+    fun addTracksToPlaylist(playlistId: Long, trackIds: List<Long>) {
+        viewModelScope.launch {
+            playlistRepository.addTracksToPlaylist(playlistId, trackIds)
+            _statusMessage.value = "${trackIds.size} morceau(x) ajouté(s)"
+        }
+    }
+
+    fun removeTrackFromPlaylist(playlistId: Long, trackId: Long) {
+        viewModelScope.launch {
+            playlistRepository.removeTrackFromPlaylist(playlistId, trackId)
+            _statusMessage.value = "Morceau retiré de la playlist"
+        }
+    }
+
+    fun reorderPlaylistTracks(playlistId: Long, orderedTrackIds: List<Long>) {
+        viewModelScope.launch {
+            playlistRepository.reorderTracks(playlistId, orderedTrackIds)
+        }
+    }
+
+    fun playPlaylist(playlistTracks: List<AudioTrackEntity>, startIndex: Int = 0, shuffle: Boolean = false) {
+        if (playlistTracks.isEmpty()) return
+        val queue = if (shuffle) playlistTracks.shuffled() else playlistTracks
+        val targetIndex = if (shuffle) 0 else startIndex.coerceIn(0, queue.size - 1)
+        playTrack(queue[targetIndex], queue)
+    }
+
+    fun playPlaylistDirectly(playlistId: Long, shuffle: Boolean = false) {
+        viewModelScope.launch {
+            val plTracks = playlistRepository.getTracksOnce(playlistId)
+            if (plTracks.isNotEmpty()) {
+                playPlaylist(plTracks, startIndex = 0, shuffle = shuffle)
+            } else {
+                _statusMessage.value = "La playlist est vide"
+            }
+        }
     }
 }

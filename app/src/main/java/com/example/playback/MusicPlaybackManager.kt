@@ -114,10 +114,12 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
                 } else {
                     stopPositionTicker()
                 }
+                com.example.widget.MusicWidgetUpdater.update(appContext, _currentTrack.value, isPlaying)
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 updateCurrentTrackFromMediaItem(mediaItem)
+                com.example.widget.MusicWidgetUpdater.update(appContext, _currentTrack.value, _isPlaying.value)
             }
 
             override fun onPlaybackStateChanged(playbackState: Int) {
@@ -284,9 +286,9 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
     }
 
     fun setPlaybackSpeed(speed: Float) {
+        _playbackSpeed.value = speed
         val controller = mediaController ?: return
         controller.playbackParameters = PlaybackParameters(speed)
-        _playbackSpeed.value = speed
     }
 
     fun setCurrentTrackOnly(track: AudioTrackEntity) {

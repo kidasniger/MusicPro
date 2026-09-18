@@ -76,12 +76,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.R
 import com.example.data.local.AudioTrackEntity
+import com.example.data.local.PlaylistSummary
 import com.example.permissions.PermissionUtils
 import com.example.ui.audio.AudioViewModel
 import com.example.ui.audio.LibraryTab
 import com.example.ui.components.EmptyAudioStateView
 import com.example.ui.library.LibraryScreen
 import com.example.ui.library.TrackRowItem
+import com.example.ui.playlist.AddTracksToPlaylistDialog
+import com.example.ui.playlist.AddToPlaylistChooserDialog
+import com.example.ui.playlist.PlaylistDetailScreen
 import com.example.ui.lyrics.GroqPreviewDialog
 import com.example.ui.lyrics.LrclibSearchScreen
 import com.example.ui.lyrics.LyricsScreen
@@ -155,6 +159,12 @@ fun HomeScreen(
     val groqErrorMessage by audioViewModel.groqErrorMessage.collectAsStateWithLifecycle()
     val groqTranscriptionResult by audioViewModel.groqTranscriptionResult.collectAsStateWithLifecycle()
 
+    val playlists by audioViewModel.playlists.collectAsStateWithLifecycle()
+    val selectedPlaylist by audioViewModel.selectedPlaylist.collectAsStateWithLifecycle()
+    val selectedPlaylistTracks by audioViewModel.selectedPlaylistTracks.collectAsStateWithLifecycle()
+    var isAddTracksToPlaylistOpen by remember { mutableStateOf(false) }
+    var trackForAddToPlaylistChooser by remember { mutableStateOf<AudioTrackEntity?>(null) }
+
     val activeTrack = currentTrack ?: tracks.firstOrNull()
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -224,6 +234,12 @@ fun HomeScreen(
                         currentPlayingTrack = currentTrack,
                         isPlaying = isPlaying,
                         favorites = favorites,
+                        playlists = playlists,
+                        onPlaylistClick = { pl -> audioViewModel.selectPlaylist(pl.id) },
+                        onPlayPlaylistDirectly = { pl -> audioViewModel.playPlaylistDirectly(pl.id) },
+                        onCreatePlaylist = { name, desc -> audioViewModel.createPlaylist(name, desc) },
+                        onRenamePlaylist = { id, name, desc -> audioViewModel.updatePlaylistName(id, name, desc) },
+                        onDeletePlaylist = { id -> audioViewModel.deletePlaylist(id) },
                         onSelectTab = { audioViewModel.selectTab(it) },
                         onTrackClick = { audioViewModel.playTrack(it) },
                         onToggleFavorite = { audioViewModel.toggleFavorite(it) },
@@ -350,6 +366,75 @@ fun HomeScreen(
                 }
             },
             onClearFeedback = { audioViewModel.clearSaveFeedback() }
+        )
+    }
+
+    // Modal plein écran Détail de playlist
+    AnimatedVisibility(
+        visible = selectedPlaylist != null,
+        enter = fadeIn(),
+        exit = fadeOut()
+    ) {
+        selectedPlaylist?.let { pl ->
+            PlaylistDetailScreen(
+                playlist = pl,
+                tracks = selectedPlaylistTracks,
+                currentPlayingTrack = currentTrack,
+                isPlaying = isPlaying,
+                onBack = { audioViewModel.selectPlaylist(null) },
+                onPlayAll = { startIndex, shuffle ->
+                    audioViewModel.playPlaylist(selectedPlaylistTracks, startIndex, shuffle)
+                },
+                onTrackClick = { track, queue ->
+                    audioViewModel.playTrack(track, queue)
+                },
+                onRemoveTrack = { trackId ->
+                    audioViewModel.removeTrackFromPlaylist(pl.id, trackId)
+                },
+                onReorderTracks = { orderedTrackIds ->
+                    audioViewModel.reorderPlaylistTracks(pl.id, orderedTrackIds)
+                },
+                onDeletePlaylist = {
+                    audioViewModel.deletePlaylist(pl.id)
+                },
+                onRenamePlaylist = { newName, newDesc ->
+                    audioViewModel.updatePlaylistName(pl.id, newName, newDesc)
+                },
+                onOpenAddTracks = {
+                    isAddTracksToPlaylistOpen = true
+                }
+            )
+        }
+    }
+
+    // Dialogue d'ajout de morceaux à la playlist active
+    if (isAddTracksToPlaylistOpen && selectedPlaylist != null) {
+        AddTracksToPlaylistDialog(
+            allTracks = tracks,
+            existingTrackIds = selectedPlaylistTracks.map { it.id }.toSet(),
+            playlistName = selectedPlaylist!!.name,
+            onDismiss = { isAddTracksToPlaylistOpen = false },
+            onAddTracks = { trackIds ->
+                audioViewModel.addTracksToPlaylist(selectedPlaylist!!.id, trackIds)
+                isAddTracksToPlaylistOpen = false
+            }
+        )
+    }
+
+    // Dialogue pour ajouter un morceau spécifique à une playlist
+    trackForAddToPlaylistChooser?.let { trk ->
+        AddToPlaylistChooserDialog(
+            track = trk,
+            playlists = playlists,
+            onDismiss = { trackForAddToPlaylistChooser = null },
+            onSelectPlaylist = { plId ->
+                audioViewModel.addTracksToPlaylist(plId, listOf(trk.id))
+                trackForAddToPlaylistChooser = null
+            },
+            onCreateAndAdd = { name, desc ->
+                audioViewModel.createPlaylist(name, desc, initialTrackIds = listOf(trk.id))
+                trackForAddToPlaylistChooser = null
+            }
         )
     }
 }

@@ -22,21 +22,26 @@ import com.example.permissions.PermissionViewModel
 import com.example.playback.MusicPlaybackService
 import com.example.ui.navigation.MusicProNavGraph
 import com.example.ui.onboarding.OnboardingViewModel
-import com.example.ui.theme.MusicProBackground
+import com.example.ui.settings.SettingsViewModel
 import com.example.ui.theme.MusicProTheme
 import com.example.ui.theme.MyApplicationTheme
+import androidx.compose.material3.MaterialTheme
 
 class MainActivity : ComponentActivity() {
 
   private val permissionViewModel: PermissionViewModel by viewModels()
   private val onboardingViewModel: OnboardingViewModel by viewModels()
+  private val settingsViewModel: SettingsViewModel by viewModels()
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
 
     setContent {
-      MusicProTheme(darkTheme = true) {
+      val currentThemeMode by settingsViewModel.themeMode.collectAsStateWithLifecycle()
+      val isDynamicColor by settingsViewModel.isDynamicColor.collectAsStateWithLifecycle()
+
+      MusicProTheme(themeMode = currentThemeMode, dynamicColor = isDynamicColor) {
         val context = LocalContext.current
         val lifecycleOwner = LocalLifecycleOwner.current
         val uiState by permissionViewModel.uiState.collectAsStateWithLifecycle()
@@ -57,7 +62,7 @@ class MainActivity : ComponentActivity() {
 
         Surface(
           modifier = Modifier.fillMaxSize(),
-          color = MusicProBackground
+          color = MaterialTheme.colorScheme.background
         ) {
           val openNowPlaying = intent?.action == MusicPlaybackService.ACTION_SHOW_NOW_PLAYING
           MusicProNavGraph(

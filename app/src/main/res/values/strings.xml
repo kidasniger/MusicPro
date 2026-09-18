@@ -2,4 +2,6 @@
     <string name="app_name">MusicPro</string>
     <string name="notification_channel_name">Lecture MusicPro</string>
     <string name="notification_channel_desc">Contrôles de lecture et notification multimédia</string>
+    <string name="widget_name">MusicPro - Lecteur</string>
+    <string name="widget_description">Affiche le morceau en cours et les commandes de lecture</string>
 </resources>

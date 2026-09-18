@@ -76,6 +76,21 @@ class MusicPlaybackService : MediaSessionService() {
             .setSessionActivity(pendingIntent)
             .build()
 
+        // Synchronisation du Widget Glance sur les événements de lecture
+        exoPlayer.addListener(object : androidx.media3.common.Player.Listener {
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                notifyWidgetUpdate(exoPlayer, isPlaying)
+            }
+
+            override fun onMediaItemTransition(mediaItem: androidx.media3.common.MediaItem?, reason: Int) {
+                notifyWidgetUpdate(exoPlayer, exoPlayer.isPlaying)
+            }
+
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                notifyWidgetUpdate(exoPlayer, exoPlayer.isPlaying)
+            }
+        })
+
         // 5. Notification Media système avec canal dédié et id
         val notificationProvider = DefaultMediaNotificationProvider.Builder(this)
             .setChannelId(NOTIFICATION_CHANNEL_ID)
@@ -84,6 +99,26 @@ class MusicPlaybackService : MediaSessionService() {
             .build()
 
         setMediaNotificationProvider(notificationProvider)
+    }
+
+    private fun notifyWidgetUpdate(player: ExoPlayer, isPlaying: Boolean) {
+        val currentItem = player.currentMediaItem
+        val metadata = currentItem?.mediaMetadata
+        val title = metadata?.title?.toString() ?: "Aucune lecture"
+        val artist = metadata?.artist?.toString() ?: "MusicPro"
+        val album = metadata?.albumTitle?.toString() ?: ""
+        val artUri = metadata?.artworkUri?.toString()
+        val trackId = currentItem?.mediaId?.toLongOrNull() ?: -1L
+
+        com.example.widget.MusicWidgetUpdater.update(
+            context = applicationContext,
+            title = title,
+            artist = artist,
+            album = album,
+            albumArtUri = artUri,
+            trackId = trackId,
+            isPlaying = isPlaying
+        )
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {

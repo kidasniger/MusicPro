@@ -30,6 +30,7 @@ data class AudioTrackEntity(
         return when {
             mimeType?.contains("flac", ignoreCase = true) == true || path.endsWith(".flac", ignoreCase = true) -> "FLAC"
             mimeType?.contains("wav", ignoreCase = true) == true || path.endsWith(".wav", ignoreCase = true) -> "WAV"
+            mimeType?.contains("ogg", ignoreCase = true) == true || path.endsWith(".ogg", ignoreCase = true) -> "OGG"
             mimeType?.contains("aac", ignoreCase = true) == true || path.endsWith(".aac", ignoreCase = true) -> "AAC"
             mimeType?.contains("m4a", ignoreCase = true) == true || path.endsWith(".m4a", ignoreCase = true) -> "M4A"
             else -> "MP3"

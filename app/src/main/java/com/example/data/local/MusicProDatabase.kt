@@ -6,13 +6,18 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [AudioTrackEntity::class],
-    version = 1,
+    entities = [
+        AudioTrackEntity::class,
+        PlaylistEntity::class,
+        PlaylistTrackCrossRef::class
+    ],
+    version = 2,
     exportSchema = false
 )
 abstract class MusicProDatabase : RoomDatabase() {
 
     abstract fun audioTrackDao(): AudioTrackDao
+    abstract fun playlistDao(): PlaylistDao
 
     companion object {
         @Volatile

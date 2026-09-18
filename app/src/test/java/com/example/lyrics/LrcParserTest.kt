@@ -70,4 +70,83 @@ class LrcParserTest {
         assertEquals(3, data.findActiveLineIndex(40_000L))
         assertEquals(3, data.findActiveLineIndex(100_000L))
     }
+
+    @Test
+    fun testParseEmptyAndBlankContent() {
+        val emptyLyrics = LrcParser.parse("")
+        assertTrue(emptyLyrics.lines.isEmpty())
+        assertEquals(null, emptyLyrics.title)
+        assertEquals(null, emptyLyrics.artist)
+        assertEquals(0L, emptyLyrics.offsetMs)
+
+        val blankLyrics = LrcParser.parse("   \n\n  \t  \n")
+        assertTrue(blankLyrics.lines.isEmpty())
+    }
+
+    @Test
+    fun testParseMalformedLinesAndComments() {
+        val malformed = """
+            # Ceci est un commentaire
+            // Un autre commentaire non-standard
+            [by:LrcMaker v2]
+            [re:MusicPro]
+            Pas de timestamp ici du tout
+            [invalide:format]
+            [00:04.5]Ligne avec 1 seul chiffre décimal
+            [00:08]Ligne sans décimales
+            [99:59.99]Dernière ligne très lointaine
+        """.trimIndent()
+
+        val lyrics = LrcParser.parse(malformed)
+        // Seules les 3 lignes horodatées valides doivent être extraites
+        assertEquals(3, lyrics.lines.size)
+
+        // [00:04.5] -> 4s + 500ms = 4500ms
+        assertEquals(4_500L, lyrics.lines[0].timeMs)
+        assertEquals("Ligne avec 1 seul chiffre décimal", lyrics.lines[0].text)
+
+        // [00:08] -> 8000ms
+        assertEquals(8_000L, lyrics.lines[1].timeMs)
+        assertEquals("Ligne sans décimales", lyrics.lines[1].text)
+
+        // [99:59.99] -> 99*60*1000 + 59*1000 + 990 = 5940000 + 59000 + 990 = 5999990ms
+        assertEquals(5_999_990L, lyrics.lines[2].timeMs)
+    }
+
+    @Test
+    fun testParseNegativeOffsetAndSorting() {
+        // Test timestamps hors ordre : le parseur doit les trier chronologiquement
+        val disordered = """
+            [offset:-500]
+            [00:30.00]Deuxième moment
+            [00:10.00]Premier moment
+            [00:50.00]Troisième moment
+        """.trimIndent()
+
+        val lyrics = LrcParser.parse(disordered)
+        assertEquals(-500L, lyrics.offsetMs)
+        assertEquals(3, lyrics.lines.size)
+
+        // Doit être trié par ordre croissant de timeMs
+        assertEquals(10_000L, lyrics.lines[0].timeMs)
+        assertEquals("Premier moment", lyrics.lines[0].text)
+        assertEquals(30_000L, lyrics.lines[1].timeMs)
+        assertEquals("Deuxième moment", lyrics.lines[1].text)
+        assertEquals(50_000L, lyrics.lines[2].timeMs)
+        assertEquals("Troisième moment", lyrics.lines[2].text)
+    }
+
+    @Test
+    fun testParseColonFractionSeparators() {
+        // Certains fichiers LRC utilisent le format [mm:ss:xx] au lieu de [mm:ss.xx]
+        val colonFraction = """
+            [01:15:50]Format avec deux-points
+        """.trimIndent()
+
+        val lyrics = LrcParser.parse(colonFraction)
+        assertEquals(1, lyrics.lines.size)
+        // 1 min (60000) + 15 sec (15000) + 50 (500ms) = 75500ms
+        assertEquals(75_500L, lyrics.lines[0].timeMs)
+        assertEquals("Format avec deux-points", lyrics.lines[0].text)
+    }
 }

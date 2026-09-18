@@ -73,11 +73,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.local.AudioTrackEntity
+import com.example.data.local.PlaylistSummary
 import com.example.ui.audio.AlbumSummary
 import com.example.ui.audio.ArtistSummary
 import com.example.ui.audio.FolderSummary
 import com.example.ui.audio.LibraryTab
 import com.example.ui.components.EmptyAudioStateView
+import com.example.ui.playlist.PlaylistsScreen
 import com.example.ui.theme.MusicProBackground
 import com.example.ui.theme.MusicProCardBackground
 import com.example.ui.theme.MusicProCyanLight
@@ -109,6 +111,12 @@ fun LibraryScreen(
     currentPlayingTrack: AudioTrackEntity?,
     isPlaying: Boolean,
     favorites: Set<Long>,
+    playlists: List<PlaylistSummary> = emptyList(),
+    onPlaylistClick: (PlaylistSummary) -> Unit = {},
+    onPlayPlaylistDirectly: (PlaylistSummary) -> Unit = {},
+    onCreatePlaylist: (String, String) -> Unit = { _, _ -> },
+    onRenamePlaylist: (Long, String, String) -> Unit = { _, _, _ -> },
+    onDeletePlaylist: (Long) -> Unit = {},
     onSelectTab: (LibraryTab) -> Unit,
     onTrackClick: (AudioTrackEntity) -> Unit,
     onToggleFavorite: (Long) -> Unit,
@@ -203,17 +211,18 @@ fun LibraryScreen(
             )
         }
 
-        // Onglets de la bibliothèque : Morceaux / Albums / Artistes / Dossiers
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+        // Onglets de la bibliothèque : Morceaux / Playlists / Albums / Artistes / Dossiers
+        androidx.compose.foundation.lazy.LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            LibraryTab.entries.forEach { tab ->
+            items(LibraryTab.entries.size) { index ->
+                val tab = LibraryTab.entries[index]
                 val isSelected = tab == selectedTab
                 val countLabel = when (tab) {
                     LibraryTab.TRACKS -> "(${tracks.size})"
+                    LibraryTab.PLAYLISTS -> "(${playlists.size})"
                     LibraryTab.ALBUMS -> "(${albums.size})"
                     LibraryTab.ARTISTS -> "(${artists.size})"
                     LibraryTab.FOLDERS -> "(${folders.size})"
@@ -221,7 +230,6 @@ fun LibraryScreen(
 
                 Box(
                     modifier = Modifier
-                        .weight(1f)
                         .height(38.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(
@@ -239,16 +247,16 @@ fun LibraryScreen(
                             selectedFolder = null
                             onSelectTab(tab)
                         }
+                        .padding(horizontal = 14.dp)
                         .testTag("library_tab_${tab.name.lowercase()}"),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = tab.label,
+                        text = "${tab.label} $countLabel",
                         fontSize = 12.sp,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                         color = if (isSelected) Color.White else MusicProTextSecondary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        maxLines = 1
                     )
                 }
             }
@@ -257,7 +265,7 @@ fun LibraryScreen(
         Spacer(modifier = Modifier.height(4.dp))
 
         // Contenu principal selon l'onglet
-        if (tracks.isEmpty() && !isScanning) {
+        if (tracks.isEmpty() && !isScanning && selectedTab != LibraryTab.PLAYLISTS) {
             EmptyAudioStateView(
                 onRefreshScan = onRefreshScan,
                 onLoadDemoTracks = onLoadDemoTracks,
@@ -273,6 +281,16 @@ fun LibraryScreen(
                         favorites = favorites,
                         onTrackClick = onTrackClick,
                         onToggleFavorite = onToggleFavorite
+                    )
+                }
+                LibraryTab.PLAYLISTS -> {
+                    PlaylistsScreen(
+                        playlists = playlists,
+                        onPlaylistClick = onPlaylistClick,
+                        onPlayPlaylistDirectly = onPlayPlaylistDirectly,
+                        onCreatePlaylist = onCreatePlaylist,
+                        onRenamePlaylist = onRenamePlaylist,
+                        onDeletePlaylist = onDeletePlaylist
                     )
                 }
                 LibraryTab.ALBUMS -> {
