@@ -154,15 +154,15 @@ fun SplashScreen(
                     .alpha(alpha.value)
                     .testTag("splash_logo")
             ) {
-                // Soft radial glow behind the logo
-                Canvas(modifier = Modifier.size(160.dp)) {
+                // Soft radial glow behind the logo with vibrant neon diffusion
+                Canvas(modifier = Modifier.size(190.dp)) {
                     val centerOffset = Offset(size.width / 2f, size.height / 2f)
                     val glowRadius = size.width / 2f
                     drawCircle(
                         brush = Brush.radialGradient(
                             colors = listOf(
-                                MusicProCyanNeon.copy(alpha = 0.45f),
-                                MusicProVioletPrimary.copy(alpha = 0.30f),
+                                MusicProCyanNeon.copy(alpha = 0.65f),
+                                MusicProVioletPrimary.copy(alpha = 0.45f),
                                 Color.Transparent
                             ),
                             center = centerOffset,
@@ -174,9 +174,9 @@ fun SplashScreen(
                 }
 
                 Image(
-                    painter = painterResource(id = R.drawable.musicpro_logo_clean),
+                    painter = painterResource(id = R.drawable.musicpro_logo_boosted),
                     contentDescription = "Logo MusicPro",
-                    modifier = Modifier.size(128.dp)
+                    modifier = Modifier.size(142.dp)
                 )
             }
 

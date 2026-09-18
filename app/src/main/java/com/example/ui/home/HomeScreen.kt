@@ -575,36 +575,33 @@ private fun HomeExplorerContent(
                     Spacer(modifier = Modifier.width(12.dp))
 
                     Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "MusicPro",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MusicProTextPrimary
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Surface(
-                                shape = RoundedCornerShape(4.dp),
-                                color = Color(0x3310B981)
-                            ) {
-                                Text(
-                                    text = "HORS LIGNE",
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MusicProSuccess,
-                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
-                                )
-                            }
-                        }
                         Text(
-                            text = "Lecteur Audio Haute Définition",
-                            fontSize = 11.sp,
-                            color = MusicProTextMuted
+                            text = "MusicPro",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MusicProTextPrimary
                         )
                     }
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = onRefreshScan,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(MusicProSurfaceElevated)
+                            .testTag("home_refresh_scan_action")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Scanner les morceaux",
+                            tint = MusicProCyanNeon,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
                     IconButton(
                         onClick = onOpenOnboarding,
                         modifier = Modifier
@@ -672,62 +669,6 @@ private fun HomeExplorerContent(
                     modifier = Modifier.weight(1f),
                     onClick = onNavigateToLibrary
                 )
-            }
-        }
-
-        // État des permissions
-        item {
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MusicProSurface),
-                border = BorderStroke(1.dp, Color(0x3310B981)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp)
-                    .testTag("permissions_active_status_card")
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = null,
-                        tint = MusicProSuccess,
-                        modifier = Modifier.size(22.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Base Room locale synchronisée",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MusicProTextPrimary
-                        )
-                        Text(
-                            text = if (tracks.isEmpty()) "Aucun morceau encore indexé" else "${tracks.size} pistes prêtes à être jouées sans connexion",
-                            fontSize = 11.sp,
-                            color = MusicProTextSecondary
-                        )
-                    }
-                    IconButton(
-                        onClick = onRefreshScan,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Color(0x2600D4FF))
-                            .size(36.dp)
-                            .testTag("home_refresh_scan_action")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Scanner",
-                            tint = MusicProCyanNeon,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
             }
         }
 
