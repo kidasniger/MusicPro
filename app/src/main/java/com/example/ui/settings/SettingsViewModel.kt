@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.preferences.AppThemeMode
 import com.example.data.preferences.UserPreferencesRepository
+import com.example.data.repository.AudioRepository
 import com.example.updater.AppUpdateManager
 import com.example.updater.DownloadState
 import com.example.updater.UpdateCheckState
@@ -21,6 +22,7 @@ import kotlinx.coroutines.withContext
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val preferencesRepository = UserPreferencesRepository(application)
+    private val audioRepository = AudioRepository.getInstance(application)
     val appUpdateManager = AppUpdateManager(application, preferencesRepository)
 
     val updateCheckState: StateFlow<UpdateCheckState> = appUpdateManager.updateCheckState
@@ -39,6 +41,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     private val _isClearingCache = MutableStateFlow(false)
     val isClearingCache: StateFlow<Boolean> = _isClearingCache.asStateFlow()
+
+    private val _isCleaningLibrary = MutableStateFlow(false)
+    val isCleaningLibrary: StateFlow<Boolean> = _isCleaningLibrary.asStateFlow()
 
     private val _cacheClearMessage = MutableStateFlow<String?>(null)
     val cacheClearMessage: StateFlow<String?> = _cacheClearMessage.asStateFlow()
@@ -78,6 +83,24 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 "Cache effacé avec succès !"
             } else {
                 "Erreur lors de l'effacement du cache."
+            }
+        }
+    }
+
+    /**
+     * Rescanne le stockage, supprime tous les fichiers fantômes ou supprimés
+     * et synchronise la base de données Room locale pour libérer la mémoire.
+     */
+    fun cleanAndRescanLibrary() {
+        viewModelScope.launch {
+            _isCleaningLibrary.value = true
+            try {
+                val validCount = audioRepository.refreshMediaStoreScan()
+                _cacheClearMessage.value = "✓ Bibliothèque nettoyée : $validCount morceau(x) actif(s) sur le téléphone"
+            } catch (e: Exception) {
+                _cacheClearMessage.value = "Erreur nettoyage bibliothèque : ${e.message}"
+            } finally {
+                _isCleaningLibrary.value = false
             }
         }
     }

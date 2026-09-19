@@ -46,6 +46,7 @@ class AudioRepository(
 
     /**
      * Rescanne le MediaStore et met à jour le cache Room local.
+     * Les fichiers supprimés du téléphone sont automatiquement retirés de la base de données.
      * Préserve le statut hasSyncedLyrics des morceaux déjà indexés.
      */
     suspend fun refreshMediaStoreScan(): Int = withContext(Dispatchers.IO) {
@@ -55,24 +56,19 @@ class AudioRepository(
             emptyMap()
         }
         val scannedTracks = scanner.scanAudioFiles()
-        if (scannedTracks.isNotEmpty()) {
-            val mergedTracks = scannedTracks.map { scanned ->
-                val prev = existingTracks[scanned.id]
-                if (prev != null && prev.hasSyncedLyrics) {
-                    scanned.copy(hasSyncedLyrics = true)
-                } else {
-                    scanned
-                }
+        val mergedTracks = scannedTracks.map { scanned ->
+            val prev = existingTracks[scanned.id]
+            if (prev != null && prev.hasSyncedLyrics) {
+                scanned.copy(hasSyncedLyrics = true)
+            } else {
+                scanned
             }
-            audioTrackDao.clearAllTracks()
-            audioTrackDao.insertTracks(mergedTracks)
-            mergedTracks.size
-        } else {
-            if (existingTracks.isEmpty()) {
-                audioTrackDao.clearAllTracks()
-            }
-            existingTracks.size
         }
+        audioTrackDao.clearAllTracks()
+        if (mergedTracks.isNotEmpty()) {
+            audioTrackDao.insertTracks(mergedTracks)
+        }
+        mergedTracks.size
     }
 
     suspend fun updateLyricsStatus(trackId: Long, hasLyrics: Boolean) = withContext(Dispatchers.IO) {

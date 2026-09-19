@@ -7,6 +7,12 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
@@ -32,6 +38,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.rotate
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
@@ -595,6 +602,17 @@ private fun HomeExplorerContent(
 ) {
     val context = LocalContext.current
 
+    val infiniteTransition = rememberInfiniteTransition(label = "scan_spin")
+    val spinAngle by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "spin_angle"
+    )
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 24.dp)
@@ -639,6 +657,7 @@ private fun HomeExplorerContent(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(
                         onClick = onRefreshScan,
+                        enabled = !isScanning,
                         modifier = Modifier
                             .clip(CircleShape)
                             .background(MusicProSurfaceElevated)
@@ -647,8 +666,10 @@ private fun HomeExplorerContent(
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Scanner les morceaux",
-                            tint = MusicProCyanNeon,
-                            modifier = Modifier.size(20.dp)
+                            tint = if (isScanning) MusicProVioletLight else MusicProCyanNeon,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .rotate(if (isScanning) spinAngle else 0f)
                         )
                     }
 

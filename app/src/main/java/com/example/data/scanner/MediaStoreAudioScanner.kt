@@ -113,6 +113,25 @@ class MediaStoreAudioScanner(private val context: Context) {
                         "Musique"
                     }
 
+                    // Vérifier si le fichier physique existe réellement sur le stockage
+                    // Empêche l'affichage de morceaux "fantômes" qui ont été supprimés
+                    val directFile = if (path.isNotBlank()) File(path) else null
+                    val existsOnDisk = directFile?.exists() ?: false
+
+                    if (!existsOnDisk) {
+                        // Si le fichier physique n'existe pas sur le disque, on vérifie si l'URI MediaStore est encore ouvrable
+                        val contentAccessible = try {
+                            val openUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+                            context.contentResolver.openAssetFileDescriptor(openUri, "r")?.use { true } ?: false
+                        } catch (e: Exception) {
+                            false
+                        }
+                        if (!contentAccessible) {
+                            // Fichier supprimé du téléphone mais encore référencé par le cache MediaStore d'Android : on l'ignore
+                            continue
+                        }
+                    }
+
                     // Check for existing synced .lrc file next to audio file
                     val hasSyncedLyrics = try {
                         if (path.isNotBlank()) {

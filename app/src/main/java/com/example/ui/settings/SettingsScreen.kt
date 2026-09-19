@@ -131,6 +131,7 @@ fun SettingsScreen(
     val isDynamicColor by settingsViewModel.isDynamicColor.collectAsStateWithLifecycle()
     val cacheSize by settingsViewModel.cacheSize.collectAsStateWithLifecycle()
     val isClearingCache by settingsViewModel.isClearingCache.collectAsStateWithLifecycle()
+    val isCleaningLibrary by settingsViewModel.isCleaningLibrary.collectAsStateWithLifecycle()
     val cacheClearMessage by settingsViewModel.cacheClearMessage.collectAsStateWithLifecycle()
 
     // États de mise à jour de l'application
@@ -253,8 +254,10 @@ fun SettingsScreen(
             CacheManagementCard(
                 cacheSize = cacheSize,
                 isClearing = isClearingCache,
+                isCleaningLibrary = isCleaningLibrary,
                 feedbackMessage = cacheClearMessage,
                 onRequestClear = { showClearCacheDialog = true },
+                onCleanLibrary = { settingsViewModel.cleanAndRescanLibrary() },
                 onRefresh = { settingsViewModel.refreshCacheSize() },
                 onDismissFeedback = { settingsViewModel.dismissCacheMessage() }
             )
@@ -936,8 +939,10 @@ private fun GroqApiKeyCard(
 private fun CacheManagementCard(
     cacheSize: String,
     isClearing: Boolean,
+    isCleaningLibrary: Boolean,
     feedbackMessage: String?,
     onRequestClear: () -> Unit,
+    onCleanLibrary: () -> Unit,
     onRefresh: () -> Unit,
     onDismissFeedback: () -> Unit
 ) {
@@ -975,13 +980,13 @@ private fun CacheManagementCard(
                     Spacer(modifier = Modifier.width(10.dp))
                     Column {
                         Text(
-                            text = "Stockage & Cache",
+                            text = "Stockage & Base locale",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = MusicProTextPrimary
                         )
                         Text(
-                            text = "Vignettes et fichiers temporaires",
+                            text = "Vignettes, cache et synchronisation",
                             fontSize = 11.sp,
                             color = MusicProTextMuted
                         )
@@ -1003,7 +1008,7 @@ private fun CacheManagementCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Cartouche affichant la taille calculée
+            // Cartouche affichant la taille calculée du cache temporaire
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -1019,7 +1024,7 @@ private fun CacheManagementCard(
                 ) {
                     Column {
                         Text(
-                            text = "Espace cache occupé",
+                            text = "Cache temporaire",
                             fontSize = 11.sp,
                             color = MusicProTextMuted
                         )
@@ -1033,7 +1038,7 @@ private fun CacheManagementCard(
 
                     OutlinedButton(
                         onClick = onRequestClear,
-                        enabled = !isClearing,
+                        enabled = !isClearing && !isCleaningLibrary,
                         shape = RoundedCornerShape(10.dp),
                         border = BorderStroke(1.dp, MusicProError.copy(alpha = 0.7f)),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MusicProError),
@@ -1056,6 +1061,70 @@ private fun CacheManagementCard(
                                 text = "Vider",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Cartouche de nettoyage des fichiers fantômes / supprimés
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                color = MusicProBackground.copy(alpha = 0.7f),
+                border = BorderStroke(1.dp, MusicProSurfaceElevated)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Nettoyer les fichiers supprimés",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MusicProTextPrimary
+                        )
+                        Text(
+                            text = "Retire les morceaux fantômes et libère la mémoire",
+                            fontSize = 11.sp,
+                            color = MusicProTextMuted
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Button(
+                        onClick = onCleanLibrary,
+                        enabled = !isCleaningLibrary && !isClearing,
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MusicProVioletPrimary),
+                        modifier = Modifier.testTag("clean_library_button")
+                    ) {
+                        if (isCleaningLibrary) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(14.dp),
+                                color = Color.White,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.AutoAwesome,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Purger",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
                             )
                         }
                     }
