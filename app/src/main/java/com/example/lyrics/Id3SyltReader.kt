@@ -1,78 +1,269 @@
 package com.example.lyrics
 
+import android.content.Context
+import android.net.Uri
 import android.util.Log
+import com.example.data.local.AudioTrackEntity
 import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.audio.mp3.MP3File
+import org.jaudiotagger.tag.FieldKey
 import org.jaudiotagger.tag.id3.AbstractID3v2Frame
 import org.jaudiotagger.tag.id3.AbstractID3v2Tag
 import org.jaudiotagger.tag.id3.framebody.FrameBodySYLT
+import org.jaudiotagger.tag.id3.framebody.FrameBodyTXXX
 import org.jaudiotagger.tag.id3.framebody.FrameBodyUSLT
-import java.io.ByteArrayInputStream
-import java.io.DataInputStream
 import java.io.File
-import java.nio.charset.Charset
+import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
 
 object Id3SyltReader {
 
     private const val TAG = "Id3SyltReader"
 
-    /**
-     * Tente d'extraire les paroles synchronisées pour un fichier audio donné.
-     * Priorité :
-     * 1. Fichier .lrc compagnon dans le même dossier
-     * 2. Tag ID3 SYLT (Synchronised Lyrics) via jaudiotagger
-     * 3. Tag ID3 USLT contenant du format LRC ou texte brut
-     */
-    fun extractLyrics(file: File): LyricsData? {
-        if (!file.exists()) return null
+    private fun logD(tag: String, msg: String) {
+        try { android.util.Log.d(tag, msg) } catch (_: Throwable) {}
+    }
+    private fun logW(tag: String, msg: String) {
+        try { android.util.Log.w(tag, msg) } catch (_: Throwable) { System.err.println("[$tag] $msg") }
+    }
 
-        // 1. Vérification d'un fichier .lrc compagnon
-        val companionLrc = File(file.parentFile, "${file.nameWithoutExtension}.lrc")
-        if (companionLrc.exists() && companionLrc.isFile) {
+    /**
+     * Tente d'extraire les paroles synchronisées pour une piste audio :
+     * 1. Fichier .lrc compagnon dans le dossier d'origine
+     * 2. Fichier .lrc dans le cache/dossier privé de l'application
+     * 3. Analyse approfondie des métadonnées du fichier audio (MP3, FLAC, M4A, OGG, etc.)
+     */
+    fun extractLyrics(context: Context, track: AudioTrackEntity): LyricsData? {
+        val path = track.path
+
+        // 1. Vérification d'un fichier .lrc compagnon dans le même dossier
+        if (!path.isNullOrBlank()) {
             try {
-                val data = LrcParser.parse(companionLrc.readText())
-                if (data.lines.isNotEmpty()) {
-                    return data.copy(source = LyricsSource.LRC_FILE)
+                val audioFile = File(path)
+                val companionLrc = File(audioFile.parentFile, "${audioFile.nameWithoutExtension}.lrc")
+                if (companionLrc.exists() && companionLrc.isFile) {
+                    val content = companionLrc.readText(StandardCharsets.UTF_8)
+                    val parsed = LrcParser.parse(content)
+                    if (parsed.lines.isNotEmpty()) {
+                        return parsed.copy(
+                            title = track.title,
+                            artist = track.artist,
+                            album = track.album,
+                            source = LyricsSource.LRC_FILE
+                        )
+                    }
                 }
             } catch (e: Exception) {
-                Log.w(TAG, "Erreur lecture .lrc compagnon: ${e.message}")
+                logD(TAG, "Vérification .lrc local: ${e.message}")
             }
         }
 
-        // 2. Lecture via jaudiotagger
+        // 2. Vérification dans le stockage privé de l'application
         try {
-            val audioFile = AudioFileIO.read(file)
-            val tag = audioFile.tag
+            val appLyricsDirs = listOfNotNull(
+                context.getExternalFilesDir("lyrics"),
+                File(context.filesDir, "lyrics"),
+                context.filesDir
+            )
+            val candidateNames = listOf(
+                "${track.id}.lrc",
+                "track_${track.id}.lrc",
+                "${track.title}_${track.id}.lrc",
+                "${File(path ?: "").nameWithoutExtension}.lrc"
+            )
 
-            if (tag is AbstractID3v2Tag) {
-                // Recherche du frame SYLT (Synchronised Lyrics / Text)
-                val syltData = parseSyltFrame(tag)
-                if (syltData != null && syltData.lines.isNotEmpty()) {
-                    return syltData
+            for (dir in appLyricsDirs) {
+                if (dir.exists()) {
+                    for (name in candidateNames) {
+                        val cachedFile = File(dir, name)
+                        if (cachedFile.exists() && cachedFile.length() > 0) {
+                            val content = cachedFile.readText(StandardCharsets.UTF_8)
+                            val parsed = LrcParser.parse(content)
+                            if (parsed.lines.isNotEmpty()) {
+                                return parsed.copy(
+                                    title = track.title,
+                                    artist = track.artist,
+                                    album = track.album,
+                                    source = LyricsSource.LRC_FILE
+                                )
+                            }
+                        }
+                    }
                 }
+            }
+        } catch (e: Exception) {
+            logD(TAG, "Vérification cache privé lyrics: ${e.message}")
+        }
 
-                // Recherche du frame USLT (Unsynchronised Lyrics)
-                val usltData = parseUsltFrame(tag)
-                if (usltData != null && usltData.lines.isNotEmpty()) {
-                    return usltData
+        // 3. Extraction depuis les métadonnées internes du fichier audio (MP3, FLAC, M4A, OGG...)
+        var targetFile: File? = null
+        var isTempFile = false
+
+        try {
+            if (!path.isNullOrBlank()) {
+                val directFile = File(path)
+                if (directFile.exists() && directFile.canRead()) {
+                    targetFile = directFile
                 }
-            } else if (audioFile is MP3File && audioFile.hasID3v2Tag()) {
-                val id3Tag = audioFile.iD3v2Tag
-                val syltData = parseSyltFrame(id3Tag)
-                if (syltData != null && syltData.lines.isNotEmpty()) {
-                    return syltData
+            }
+
+            // Si l'accès direct par chemin est bloqué par Android Scoped Storage,
+            // on copie le flux audio vers un fichier temporaire dans le cache de l'app
+            if (targetFile == null && !track.contentUri.isNullOrBlank()) {
+                val uri = Uri.parse(track.contentUri)
+                val ext = if (!path.isNullOrBlank()) File(path).extension.ifBlank { "mp3" } else "mp3"
+                val temp = File(context.cacheDir, "tag_reader_${track.id}.$ext")
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                    FileOutputStream(temp).use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                if (temp.exists() && temp.length() > 0) {
+                    targetFile = temp
+                    isTempFile = true
+                }
+            }
+
+            if (targetFile != null && targetFile.exists()) {
+                val data = extractFromAudioFile(targetFile, track)
+                if (data != null && data.lines.isNotEmpty()) {
+                    return data
                 }
             }
         } catch (e: Throwable) {
-            Log.w(TAG, "jaudiotagger parsing warning for ${file.name}: ${e.message}")
+            logW(TAG, "Erreur lecture des métadonnées audio: ${e.message}")
+        } finally {
+            if (isTempFile && targetFile != null) {
+                try {
+                    targetFile.delete()
+                } catch (_: Exception) {}
+            }
         }
 
         return null
     }
 
     /**
-     * Décode le FrameBodySYLT de l'ID3v2 selon la spécification ID3.
+     * Analyse en profondeur les tags audio avec jaudiotagger pour tous les conteneurs (MP3, FLAC, M4A, OGG).
+     */
+    private fun extractFromAudioFile(file: File, track: AudioTrackEntity): LyricsData? {
+        try {
+            val audioFile = AudioFileIO.read(file)
+            val tag = audioFile.tag
+
+            // 1. Tag ID3v2 SYLT (Synchronised Lyrics binaire millisecondes)
+            if (tag is AbstractID3v2Tag) {
+                val syltData = parseSyltFrame(tag)
+                if (syltData != null && syltData.lines.isNotEmpty()) {
+                    return syltData.copy(
+                        title = track.title,
+                        artist = track.artist,
+                        album = track.album
+                    )
+                }
+            } else if (audioFile is MP3File && audioFile.hasID3v2Tag()) {
+                val syltData = parseSyltFrame(audioFile.iD3v2Tag)
+                if (syltData != null && syltData.lines.isNotEmpty()) {
+                    return syltData.copy(
+                        title = track.title,
+                        artist = track.artist,
+                        album = track.album
+                    )
+                }
+            }
+
+            // 2. Tag ID3v2 USLT (Unsynchronised Lyrics avec format LRC ou texte)
+            if (tag is AbstractID3v2Tag) {
+                val usltData = parseUsltFrame(tag)
+                if (usltData != null && usltData.lines.isNotEmpty()) {
+                    return usltData.copy(
+                        title = track.title,
+                        artist = track.artist,
+                        album = track.album
+                    )
+                }
+
+                // Recherche dans les tags TXXX personnalisés (ex: TXXX:LYRICS, TXXX:SYNCED LYRICS)
+                val txxxData = parseTxxxLyrics(tag)
+                if (txxxData != null && txxxData.lines.isNotEmpty()) {
+                    return txxxData.copy(
+                        title = track.title,
+                        artist = track.artist,
+                        album = track.album
+                    )
+                }
+            }
+
+            // 3. Tag Universel jaudiotagger (FLAC, M4A/AAC, OGG, WMA, MP3)
+            if (tag != null) {
+                val universalLyrics = try {
+                    tag.getFirst(FieldKey.LYRICS)
+                } catch (_: Exception) {
+                    null
+                }
+
+                if (!universalLyrics.isNullOrBlank()) {
+                    return parseLyricsString(universalLyrics, LyricsSource.ID3_USLT).copy(
+                        title = track.title,
+                        artist = track.artist,
+                        album = track.album
+                    )
+                }
+
+                // Recherche spécifique Vorbis Comment (FLAC / OGG)
+                val vorbisKeys = listOf("LYRICS", "SYNCEDLYRICS", "UNSYNCEDLYRICS")
+                for (key in vorbisKeys) {
+                    val raw = try {
+                        val fields = tag.getFields(key)
+                        fields.firstOrNull()?.toString()
+                    } catch (_: Exception) {
+                        null
+                    }
+                    if (!raw.isNullOrBlank()) {
+                        return parseLyricsString(raw, LyricsSource.ID3_USLT).copy(
+                            title = track.title,
+                            artist = track.artist,
+                            album = track.album
+                        )
+                    }
+                }
+            }
+        } catch (e: Throwable) {
+            logD(TAG, "extractFromAudioFile note: ${e.message}")
+        }
+        return null
+    }
+
+    /**
+     * Parse une chaîne de paroles, qu'elle soit au format LRC avec timestamps [mm:ss.xx]
+     * ou sous forme de texte brut sans timestamps.
+     */
+    private fun parseLyricsString(text: String, source: LyricsSource): LyricsData {
+        val trimmed = text.trim()
+        val hasTimestamps = trimmed.contains(Regex("\\[\\d{1,2}:\\d{2}"))
+        if (hasTimestamps) {
+            val parsed = LrcParser.parse(trimmed)
+            if (parsed.lines.isNotEmpty()) {
+                return parsed.copy(source = source)
+            }
+        }
+
+        // Texte brut sans timestamps
+        val lines = trimmed.lines()
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .mapIndexed { index, line ->
+                LyricLine(timeMs = index * 3000L, text = line)
+            }
+
+        return LyricsData(
+            lines = lines,
+            source = source
+        )
+    }
+
+    /**
+     * Décode le FrameBodySYLT de l'ID3v2.
      */
     private fun parseSyltFrame(tag: AbstractID3v2Tag): LyricsData? {
         try {
@@ -93,7 +284,50 @@ object Id3SyltReader {
                 )
             }
         } catch (e: Exception) {
-            Log.w(TAG, "Erreur décodage SYLT: ${e.message}")
+            logW(TAG, "Erreur décodage SYLT: ${e.message}")
+        }
+        return null
+    }
+
+    /**
+     * Décode le FrameBodyUSLT de l'ID3v2.
+     */
+    private fun parseUsltFrame(tag: AbstractID3v2Tag): LyricsData? {
+        try {
+            if (!tag.hasFrame("USLT")) return null
+            val frame = tag.getFrame("USLT") as? AbstractID3v2Frame ?: return null
+            val body = frame.body as? FrameBodyUSLT ?: return null
+            val lyricText = body.lyric ?: return null
+
+            if (lyricText.isBlank()) return null
+            return parseLyricsString(lyricText, LyricsSource.ID3_USLT)
+        } catch (e: Exception) {
+            logW(TAG, "Erreur USLT: ${e.message}")
+        }
+        return null
+    }
+
+    /**
+     * Recherche de paroles dans les champs personnalisés TXXX (ex: TXXX:LYRICS, TXXX:SYNCED LYRICS).
+     */
+    private fun parseTxxxLyrics(tag: AbstractID3v2Tag): LyricsData? {
+        try {
+            val iterator = tag.iterator()
+            while (iterator.hasNext()) {
+                val obj = iterator.next()
+                if (obj is AbstractID3v2Frame && obj.identifier == "TXXX") {
+                    val body = obj.body as? FrameBodyTXXX ?: continue
+                    val desc = body.description?.uppercase() ?: ""
+                    if (desc.contains("LYRICS") || desc.contains("SYNCED")) {
+                        val text = body.text ?: continue
+                        if (text.isNotBlank()) {
+                            return parseLyricsString(text, LyricsSource.ID3_USLT)
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            logD(TAG, "TXXX lyrics check: ${e.message}")
         }
         return null
     }
@@ -108,7 +342,6 @@ object Id3SyltReader {
             val len = bytes.size
 
             while (i < len) {
-                // Recherche de la fin de chaîne (0x00)
                 val start = i
                 while (i < len && bytes[i] != 0.toByte()) {
                     i++
@@ -120,12 +353,10 @@ object Id3SyltReader {
                     ""
                 }
 
-                // Sauter l'octet nul terminateur
                 if (i < len && bytes[i] == 0.toByte()) {
                     i++
                 }
 
-                // Lecture du timestamp 4-octets big-endian
                 if (i + 4 <= len) {
                     val b0 = bytes[i].toLong() and 0xFF
                     val b1 = bytes[i + 1].toLong() and 0xFF
@@ -135,7 +366,6 @@ object Id3SyltReader {
                     i += 4
 
                     val timeMs = if (timeStampFormat == 1) {
-                        // MPEG frames -> conversion approximative (~26ms par frame à 44.1kHz)
                         (rawTimestamp * 26.12).toLong()
                     } else {
                         rawTimestamp
@@ -149,45 +379,8 @@ object Id3SyltReader {
                 }
             }
         } catch (e: Exception) {
-            Log.w(TAG, "Erreur parseSyltBytes: ${e.message}")
+            logW(TAG, "Erreur parseSyltBytes: ${e.message}")
         }
         return result.sortedBy { it.timeMs }
-    }
-
-    /**
-     * Décode le FrameBodyUSLT de l'ID3v2 (paroles non-synchronisées ou format LRC imbriqué).
-     */
-    private fun parseUsltFrame(tag: AbstractID3v2Tag): LyricsData? {
-        try {
-            if (!tag.hasFrame("USLT")) return null
-            val frame = tag.getFrame("USLT") as? AbstractID3v2Frame ?: return null
-            val body = frame.body as? FrameBodyUSLT ?: return null
-            val lyricText = body.lyric ?: return null
-
-            if (lyricText.isBlank()) return null
-
-            // Si le texte contient des balises de temps [00:, on utilise le parser LRC
-            if (lyricText.contains("[0") || lyricText.contains("[1") || lyricText.contains("[2")) {
-                val parsed = LrcParser.parse(lyricText)
-                if (parsed.lines.isNotEmpty()) {
-                    return parsed.copy(source = LyricsSource.ID3_USLT)
-                }
-            }
-
-            // Sinon texte brut sans timestamps
-            val lines = lyricText.lines()
-                .filter { it.isNotBlank() }
-                .mapIndexed { index, line ->
-                    LyricLine(timeMs = index * 3000L, text = line.trim())
-                }
-
-            return LyricsData(
-                lines = lines,
-                source = LyricsSource.ID3_USLT
-            )
-        } catch (e: Exception) {
-            Log.w(TAG, "Erreur USLT: ${e.message}")
-        }
-        return null
     }
 }

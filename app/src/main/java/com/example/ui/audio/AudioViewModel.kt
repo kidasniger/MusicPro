@@ -266,16 +266,23 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     init {
-        // Au démarrage, purger les anciennes pistes démo résiduelles et vérifier le cache Room
+        // Au démarrage, purger les anciennes pistes démo résiduelles et charger immédiatement le cache Room
         viewModelScope.launch {
             repository.purgeLegacyDemoTracks()
             val count = repository.getTrackCount()
-            if (count == 0) {
-                refreshScan()
-            } else {
-                _statusMessage.value = "$count morceaux chargés depuis le cache local"
+            if (count > 0) {
+                _statusMessage.value = "$count morceaux chargés depuis la bibliothèque locale"
                 if (currentTrack.value == null) {
                     tracks.value.firstOrNull()?.let { playbackManager.setCurrentTrackOnly(it) }
+                }
+            } else {
+                // Scan initial discret si la base locale est vide
+                val scanned = repository.refreshMediaStoreScan()
+                if (scanned > 0) {
+                    _statusMessage.value = "$scanned morceaux trouvés"
+                    if (currentTrack.value == null) {
+                        tracks.value.firstOrNull()?.let { playbackManager.setCurrentTrackOnly(it) }
+                    }
                 }
             }
         }
@@ -302,15 +309,15 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val count = repository.refreshMediaStoreScan()
                 if (count > 0) {
-                    _statusMessage.value = "$count morceau(x) trouvé(s) et mis en cache Room"
+                    _statusMessage.value = "$count morceau(x) trouvé(s) et synchronisé(s)"
                     if (currentTrack.value == null) {
                         tracks.value.firstOrNull()?.let { playbackManager.setCurrentTrackOnly(it) }
                     }
                 } else {
-                    _statusMessage.value = "Aucun fichier audio trouvé"
+                    _statusMessage.value = "Aucun nouveau fichier audio détecté"
                 }
             } catch (e: Exception) {
-                _statusMessage.value = "Erreur lors du scan: ${e.message}"
+                _statusMessage.value = "Scan terminé avec avertissement : ${e.message}"
             } finally {
                 _isScanning.value = false
             }
@@ -382,7 +389,11 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             _isLyricsLoading.value = true
             try {
-                _lyricsData.value = lyricsRepository.getLyricsForTrack(track)
+                val data = lyricsRepository.getLyricsForTrack(track)
+                _lyricsData.value = data
+                if (data.lines.isNotEmpty() && data.isSynchronized && !track.hasSyncedLyrics) {
+                    repository.updateLyricsStatus(track.id, true)
+                }
             } finally {
                 _isLyricsLoading.value = false
             }
@@ -392,6 +403,11 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     fun importLrcText(track: AudioTrackEntity, lrcText: String) {
         val imported = lyricsRepository.importLrcText(track.id, lrcText)
         _lyricsData.value = imported
+        if (imported.lines.isNotEmpty() && imported.isSynchronized) {
+            viewModelScope.launch {
+                repository.updateLyricsStatus(track.id, true)
+            }
+        }
     }
 
     /**
@@ -420,8 +436,8 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * Enregistre le résultat de paroles sélectionné en tag ID3 SYLT (si MP3 supporté)
-     * ou en fichier .lrc compagnon, et applique immédiatement les paroles à la lecture en cours.
+     * Enregistre le résultat de paroles sélectionné dans les tags du fichier ou en .lrc,
+     * et applique immédiatement les paroles à la lecture en cours.
      */
     fun applyLrclibResult(
         track: AudioTrackEntity,
@@ -432,15 +448,21 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
             val (saveResult, appliedData) = lyricsRepository.applyAndSaveLyrics(track, result)
             _lyricsData.value = appliedData
             when (saveResult) {
-                is LyricsSaveResult.Id3SyltSuccess -> {
-                    _saveFeedbackMessage.value = "✓ Paroles écrites en tag ID3 SYLT (${saveResult.linesCount} lignes)"
+                is LyricsSaveResult.TagWriteSuccess -> {
+                    _saveFeedbackMessage.value = "✓ Paroles intégrées dans le fichier audio (${saveResult.tagType})"
+                    repository.updateLyricsStatus(track.id, true)
                 }
                 is LyricsSaveResult.LrcFileSuccess -> {
                     val fName = File(saveResult.lrcPath).name
                     _saveFeedbackMessage.value = "✓ Fichier $fName sauvegardé à côté du morceau"
+                    repository.updateLyricsStatus(track.id, true)
+                }
+                is LyricsSaveResult.AppCacheSuccess -> {
+                    _saveFeedbackMessage.value = "✓ Paroles enregistrées dans le cache de l'application"
+                    repository.updateLyricsStatus(track.id, true)
                 }
                 is LyricsSaveResult.Error -> {
-                    _saveFeedbackMessage.value = "Paroles appliquées en mémoire (${saveResult.message})"
+                    _saveFeedbackMessage.value = "Paroles appliquées (${saveResult.message})"
                 }
             }
             onComplete?.invoke(saveResult)
@@ -523,15 +545,21 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
             _groqTranscriptionResult.value = null // Ferme le dialogue d'aperçu
 
             when (saveResult) {
-                is LyricsSaveResult.Id3SyltSuccess -> {
-                    _saveFeedbackMessage.value = "✓ Paroles IA écrites en tag ID3 SYLT (${saveResult.linesCount} lignes)"
+                is LyricsSaveResult.TagWriteSuccess -> {
+                    _saveFeedbackMessage.value = "✓ Paroles IA intégrées dans le fichier audio (${saveResult.tagType})"
+                    repository.updateLyricsStatus(track.id, true)
                 }
                 is LyricsSaveResult.LrcFileSuccess -> {
                     val fName = File(saveResult.lrcPath).name
                     _saveFeedbackMessage.value = "✓ Paroles IA enregistrées dans $fName"
+                    repository.updateLyricsStatus(track.id, true)
+                }
+                is LyricsSaveResult.AppCacheSuccess -> {
+                    _saveFeedbackMessage.value = "✓ Paroles IA sauvegardées dans le cache de l'application"
+                    repository.updateLyricsStatus(track.id, true)
                 }
                 is LyricsSaveResult.Error -> {
-                    _saveFeedbackMessage.value = "Paroles IA appliquées en mémoire (${saveResult.message})"
+                    _saveFeedbackMessage.value = "Paroles IA appliquées (${saveResult.message})"
                 }
             }
             onComplete?.invoke(saveResult)

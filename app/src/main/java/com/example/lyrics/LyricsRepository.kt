@@ -23,19 +23,14 @@ class LyricsRepository private constructor(private val context: Context) {
         // 1. En cache mémoire
         cache[track.id]?.let { return@withContext it }
 
-        // 2. Tenter l'extraction via fichier local et jaudiotagger / .lrc compagnon
-        if (!track.path.isNullOrBlank()) {
-            val file = File(track.path)
-            if (file.exists()) {
-                val extracted = Id3SyltReader.extractLyrics(file)
-                if (extracted != null && extracted.lines.isNotEmpty()) {
-                    cache[track.id] = extracted
-                    return@withContext extracted
-                }
-            }
+        // 2. Tenter l'extraction via fichier local, jaudiotagger (MP3, FLAC, M4A, OGG) ou .lrc compagnon/privé
+        val extracted = Id3SyltReader.extractLyrics(context, track)
+        if (extracted != null && extracted.lines.isNotEmpty()) {
+            cache[track.id] = extracted
+            return@withContext extracted
         }
 
-        // 3. Aucun résultat local (l'utilisateur peut rechercher en ligne ou transcrire avec Whisper)
+        // 3. Aucun résultat local
         val empty = LyricsData(source = LyricsSource.NONE)
         cache[track.id] = empty
         empty
@@ -50,7 +45,6 @@ class LyricsRepository private constructor(private val context: Context) {
 
     /**
      * Recherche des paroles en ligne sur l'API lrclib.net.
-     * Gère les erreurs réseau (pas de connexion, timeout, erreur HTTP) avec des messages explicites.
      */
     suspend fun searchLyricsOnline(
         trackTitle: String?,
@@ -97,10 +91,11 @@ class LyricsRepository private constructor(private val context: Context) {
     }
 
     /**
-     * Enregistre le résultat sélectionné :
-     * - En tag ID3 SYLT si le fichier audio le supporte (ex: MP3).
-     * - Sinon dans un fichier .lrc compagnon dans le même dossier.
-     * Met à jour le cache et retourne le résultat de sauvegarde ainsi que les LyricsData appliquées.
+     * Enregistre le résultat sélectionné (Lrclib) :
+     * - Dans les métadonnées internes du fichier (USLT/SYLT pour MP3, LYRICS pour FLAC, ©lyr pour M4A)
+     * - En fichier .lrc compagnon si accessible
+     * - Dans le cache privé de l'application
+     * Met à jour le cache mémoire et retourne le résultat de sauvegarde ainsi que les LyricsData.
      */
     suspend fun applyAndSaveLyrics(
         track: AudioTrackEntity,
@@ -114,10 +109,10 @@ class LyricsRepository private constructor(private val context: Context) {
 
         val appliedData = if (!result.syncedLyrics.isNullOrBlank()) {
             val parsed = LrcParser.parse(result.syncedLyrics)
-            val source = if (saveResult is LyricsSaveResult.Id3SyltSuccess) {
-                LyricsSource.ID3_SYLT
-            } else {
-                LyricsSource.LRC_FILE
+            val source = when (saveResult) {
+                is LyricsSaveResult.TagWriteSuccess -> LyricsSource.ID3_SYLT
+                is LyricsSaveResult.LrcFileSuccess -> LyricsSource.LRC_FILE
+                else -> LyricsSource.LRCLIB_NET
             }
             parsed.copy(
                 title = result.displayTitle,
@@ -143,10 +138,10 @@ class LyricsRepository private constructor(private val context: Context) {
     }
 
     /**
-     * Enregistre un texte LRC (provenant de Groq Whisper ou d'une saisie) :
-     * - En tag ID3 SYLT si MP3 supporté
-     * - Sinon dans un fichier .lrc compagnon dans le même dossier
-     * Met à jour le cache et retourne le résultat de sauvegarde ainsi que les LyricsData.
+     * Enregistre un texte LRC (provenant de Groq Whisper ou d'une saisie manuelle) :
+     * - Dans les tags du fichier (USLT/SYLT, FLAC, M4A)
+     * - En fichier .lrc compagnon si possible
+     * - Dans le cache privé
      */
     suspend fun applyAndSaveLrcText(
         track: AudioTrackEntity,
@@ -160,10 +155,10 @@ class LyricsRepository private constructor(private val context: Context) {
         )
 
         val parsed = LrcParser.parse(lrcText)
-        val source = if (saveResult is LyricsSaveResult.Id3SyltSuccess) {
-            LyricsSource.ID3_SYLT
-        } else {
-            LyricsSource.LRC_FILE
+        val source = when (saveResult) {
+            is LyricsSaveResult.TagWriteSuccess -> LyricsSource.ID3_SYLT
+            is LyricsSaveResult.LrcFileSuccess -> LyricsSource.LRC_FILE
+            else -> LyricsSource.GROQ_WHISPER
         }
 
         val appliedData = parsed.copy(

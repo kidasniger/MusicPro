@@ -42,8 +42,9 @@ data class LyricsData(
 
 enum class LyricsSource(val label: String) {
     ID3_SYLT("Tag ID3 SYLT (Synchronisé)"),
-    ID3_USLT("Tag ID3 USLT"),
-    LRC_FILE("Fichier externe .LRC"),
-    EMBEDDED_DEMO("Paroles de Démo Pro"),
+    ID3_USLT("Tag ID3 USLT / Métadonnées"),
+    LRC_FILE("Fichier .LRC"),
+    LRCLIB_NET("En ligne (lrclib.net)"),
+    GROQ_WHISPER("Transcription IA (Whisper)"),
     NONE("Aucune parole")
 }
