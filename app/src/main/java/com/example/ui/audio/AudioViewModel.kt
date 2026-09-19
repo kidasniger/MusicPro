@@ -474,7 +474,13 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
         result: LrclibSearchResult,
         onComplete: ((LyricsSaveResult) -> Unit)? = null
     ) {
+        val isCurrentPlaying = playbackManager.currentTrack.value?.id == track.id && playbackManager.isPlaying.value
+        val savedPos = if (isCurrentPlaying) playbackManager.currentPositionMs.value else 0L
+
         viewModelScope.launch {
+            if (isCurrentPlaying) {
+                playbackManager.pause()
+            }
             val (saveResult, appliedData) = lyricsRepository.applyAndSaveLyrics(track, result)
             _lyricsData.value = appliedData
             when (saveResult) {
@@ -494,6 +500,9 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
                 is LyricsSaveResult.Error -> {
                     _saveFeedbackMessage.value = "Paroles appliquées (${saveResult.message})"
                 }
+            }
+            if (isCurrentPlaying) {
+                playbackManager.reloadCurrentTrack(positionMs = savedPos, autoResume = true)
             }
             onComplete?.invoke(saveResult)
         }
@@ -569,7 +578,13 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
         result: GroqTranscriptionResult,
         onComplete: ((LyricsSaveResult) -> Unit)? = null
     ) {
+        val isCurrentPlaying = playbackManager.currentTrack.value?.id == track.id && playbackManager.isPlaying.value
+        val savedPos = if (isCurrentPlaying) playbackManager.currentPositionMs.value else 0L
+
         viewModelScope.launch {
+            if (isCurrentPlaying) {
+                playbackManager.pause()
+            }
             val (saveResult, appliedData) = lyricsRepository.applyAndSaveLrcText(track, result.fullLrcContent)
             _lyricsData.value = appliedData
             _groqTranscriptionResult.value = null // Ferme le dialogue d'aperçu
@@ -591,6 +606,9 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
                 is LyricsSaveResult.Error -> {
                     _saveFeedbackMessage.value = "Paroles IA appliquées (${saveResult.message})"
                 }
+            }
+            if (isCurrentPlaying) {
+                playbackManager.reloadCurrentTrack(positionMs = savedPos, autoResume = true)
             }
             onComplete?.invoke(saveResult)
         }
@@ -720,7 +738,13 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
      * Écrit les paroles affichées dans les balises ID3 SYLT/USLT du fichier audio physique.
      */
     fun embedLyricsInTrack(track: AudioTrackEntity, lyricsData: LyricsData) {
+        val isCurrentPlaying = playbackManager.currentTrack.value?.id == track.id && playbackManager.isPlaying.value
+        val savedPos = if (isCurrentPlaying) playbackManager.currentPositionMs.value else 0L
+
         viewModelScope.launch {
+            if (isCurrentPlaying) {
+                playbackManager.pause()
+            }
             val lrcText = LrcParser.toLrcString(lyricsData)
             val (saveResult, appliedData) = lyricsRepository.applyAndSaveLrcText(track, lrcText)
             _lyricsData.value = appliedData
@@ -741,11 +765,20 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
                     _saveFeedbackMessage.value = "Erreur d'intégration : ${saveResult.message}"
                 }
             }
+            if (isCurrentPlaying) {
+                playbackManager.reloadCurrentTrack(positionMs = savedPos, autoResume = true)
+            }
         }
     }
 
     fun applyManualLrcResult(track: AudioTrackEntity, lrcText: String) {
+        val isCurrentPlaying = playbackManager.currentTrack.value?.id == track.id && playbackManager.isPlaying.value
+        val savedPos = if (isCurrentPlaying) playbackManager.currentPositionMs.value else 0L
+
         viewModelScope.launch {
+            if (isCurrentPlaying) {
+                playbackManager.pause()
+            }
             val (saveResult, appliedData) = lyricsRepository.applyAndSaveLrcText(track, lrcText)
             _lyricsData.value = appliedData
             when (saveResult) {
@@ -764,6 +797,9 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
                 is LyricsSaveResult.Error -> {
                     _saveFeedbackMessage.value = "Paroles appliquées (${saveResult.message})"
                 }
+            }
+            if (isCurrentPlaying) {
+                playbackManager.reloadCurrentTrack(positionMs = savedPos, autoResume = true)
             }
         }
     }

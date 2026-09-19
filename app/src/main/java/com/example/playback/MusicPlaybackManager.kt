@@ -72,6 +72,8 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
+    private var hasRetriedFallback = false
+
     fun clearErrorMessage() {
         _errorMessage.value = null
     }
@@ -143,6 +145,7 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
             override fun onPlaybackStateChanged(playbackState: Int) {
                 when (playbackState) {
                     Player.STATE_READY -> {
+                        hasRetriedFallback = false
                         _durationMs.value = mediaController?.duration?.coerceAtLeast(0L) ?: 0L
                     }
                     Player.STATE_ENDED -> {
@@ -167,6 +170,33 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
 
             override fun onPlayerError(error: PlaybackException) {
                 Log.e(TAG, "ExoPlayer playback error: ${error.errorCodeName} - ${error.message}", error)
+                val track = _currentTrack.value
+                val position = _currentPositionMs.value
+
+                // Tentative de récupération automatique si le fichier physique existe
+                if (track != null && !hasRetriedFallback && track.path.isNotBlank()) {
+                    val directFile = File(track.path)
+                    if (directFile.exists() && directFile.canRead()) {
+                        Log.i(TAG, "Tentative de récupération automatique sur fichier direct pour ${track.title}")
+                        hasRetriedFallback = true
+                        try {
+                            val controller = mediaController
+                            if (controller != null) {
+                                val directMediaItem = track.toMediaItem(preferDirectFile = true)
+                                controller.setMediaItem(directMediaItem, position.coerceAtLeast(0L))
+                                controller.prepare()
+                                controller.play()
+                                _isPlaying.value = true
+                                startPositionTicker()
+                                return
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Échec récupération automatique: ${e.message}", e)
+                        }
+                    }
+                }
+
+                hasRetriedFallback = false
                 _errorMessage.value = "Erreur de lecture: fichier introuvable ou source audio inaccessible"
                 _isPlaying.value = false
                 stopPositionTicker()
@@ -239,16 +269,49 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
         startPositionTicker()
     }
 
+    fun pause() {
+        val controller = mediaController ?: return
+        controller.pause()
+        _isPlaying.value = false
+        stopPositionTicker()
+    }
+
+    fun play() {
+        val controller = mediaController ?: return
+        if (controller.mediaItemCount == 0 && _currentTrack.value != null) {
+            _currentTrack.value?.let { playTrack(it) }
+        } else {
+            controller.play()
+            _isPlaying.value = true
+            startPositionTicker()
+        }
+    }
+
+    fun reloadCurrentTrack(positionMs: Long = _currentPositionMs.value, autoResume: Boolean = true) {
+        val track = _currentTrack.value ?: return
+        val controller = mediaController ?: return
+        val playlist = currentPlaylist.ifEmpty { listOf(track) }
+        val targetIndex = playlist.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
+        val mediaItems = playlist.map { it.toMediaItem() }
+
+        controller.setMediaItems(mediaItems, targetIndex, positionMs.coerceAtLeast(0L))
+        controller.prepare()
+        if (autoResume) {
+            controller.play()
+            _isPlaying.value = true
+            startPositionTicker()
+        } else {
+            controller.pause()
+            _isPlaying.value = false
+        }
+    }
+
     fun togglePlayPause() {
         val controller = mediaController ?: return
         if (controller.isPlaying) {
-            controller.pause()
+            pause()
         } else {
-            if (controller.mediaItemCount == 0 && _currentTrack.value != null) {
-                _currentTrack.value?.let { playTrack(it) }
-            } else {
-                controller.play()
-            }
+            play()
         }
     }
 
@@ -344,8 +407,11 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
         positionTickerJob = null
     }
 
-    private fun AudioTrackEntity.toMediaItem(): MediaItem {
+    private fun AudioTrackEntity.toMediaItem(preferDirectFile: Boolean = false): MediaItem {
         val uri = when {
+            preferDirectFile && path.isNotBlank() && !path.startsWith("content://") && !path.startsWith("http") -> {
+                Uri.fromFile(File(path))
+            }
             contentUri.isNotBlank() -> Uri.parse(contentUri)
             path.isNotBlank() -> {
                 if (path.startsWith("content://") || path.startsWith("http://") || path.startsWith("https://") || path.startsWith("file://")) {

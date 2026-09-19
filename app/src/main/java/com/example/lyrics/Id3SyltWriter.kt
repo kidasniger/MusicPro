@@ -248,9 +248,15 @@ object Id3SyltWriter {
                 return LyricsSaveResult.Error("Impossible de lire les données du morceau pour l'édition des tags.")
             }
 
+            val originalSize = tempFile.length()
             val tagResult = tryWriteAudioTags(tempFile, lrcContent, lines)
             if (tagResult !is LyricsSaveResult.TagWriteSuccess) {
                 return tagResult
+            }
+
+            // Vérification anti-corruption : le fichier temporaire doit faire au moins 80% de la taille d'origine
+            if (!tempFile.exists() || tempFile.length() < (originalSize * 0.7).toLong().coerceAtLeast(1024L)) {
+                return LyricsSaveResult.Error("Le fichier modifié est incomplet, écriture annulée pour préserver l'original.")
             }
 
             var writeBackSuccess = false
