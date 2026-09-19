@@ -11,12 +11,15 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,6 +44,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -56,6 +60,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -84,7 +90,9 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -110,6 +118,7 @@ import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPastel
 import com.example.ui.theme.MusicProVioletPrimary
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -143,6 +152,32 @@ fun LyricsScreen(
     var showImportDialog by remember { mutableStateOf(false) }
     var manualLrcInput by remember { mutableStateOf("") }
 
+    // Mode plein écran immersif : masquage automatique des contrôles après 4s d'inactivité
+    var areControlsVisible by remember { mutableStateOf(true) }
+    var lastInteractionTime by remember { mutableStateOf(System.currentTimeMillis()) }
+
+    val registerInteraction = {
+        lastInteractionTime = System.currentTimeMillis()
+        if (!areControlsVisible) {
+            areControlsVisible = true
+        }
+    }
+
+    // Masquage automatique après 4 secondes d'inactivité pendant la lecture
+    LaunchedEffect(lastInteractionTime, isPlaying, areControlsVisible, lyricsData.lines.size) {
+        if (isPlaying && areControlsVisible && lyricsData.lines.isNotEmpty()) {
+            delay(4000)
+            areControlsVisible = false
+        }
+    }
+
+    // Détection de défilement manuel pour réveiller les contrôles
+    LaunchedEffect(listState.isScrollInProgress) {
+        if (listState.isScrollInProgress) {
+            registerInteraction()
+        }
+    }
+
     // Interception de la touche retour pour fermer la boîte de dialogue ou l'écran des paroles
     BackHandler {
         if (showImportDialog) {
@@ -173,7 +208,18 @@ fun LyricsScreen(
         modifier = modifier.fillMaxSize(),
         color = MusicProBackground
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = {
+                        areControlsVisible = !areControlsVisible
+                        lastInteractionTime = System.currentTimeMillis()
+                    }
+                )
+        ) {
             // 1. Fond immersif avec pochette floutée et dégradé sombre
             if (!track?.albumArtUri.isNullOrBlank()) {
                 AsyncImage(
@@ -182,20 +228,20 @@ fun LyricsScreen(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
-                        .blur(50.dp)
-                        .alpha(0.18f)
+                        .blur(60.dp)
+                        .alpha(0.20f)
                 )
             }
 
-            // Dégradé sombre pour préserver la lisibilité néon
+            // Dégradé sombre pour préserver la lisibilité néon et l'immersion
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
                             listOf(
-                                MusicProBackground.copy(alpha = 0.85f),
-                                MusicProBackground.copy(alpha = 0.95f),
+                                MusicProBackground.copy(alpha = 0.82f),
+                                MusicProBackground.copy(alpha = 0.94f),
                                 MusicProBackground
                             )
                         )
@@ -209,53 +255,34 @@ fun LyricsScreen(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                // Top Bar
-                LyricsTopBar(
-                    track = track,
-                    lyricsSource = lyricsData.source,
-                    hasLyrics = lyricsData.lines.isNotEmpty(),
-                    onBack = onBack,
-                    onOpenLrclibSearch = onOpenLrclibSearch,
-                    onStartGroqTranscription = onStartGroqTranscription,
-                    onOpenImportDialog = { showImportDialog = true },
-                    onEmbedInAudioFile = onEmbedLyricsInAudioFile
-                )
-
-                // Suggestion d'intégration des paroles directement dans le fichier audio
-                if (lyricsData.lines.isNotEmpty() && lyricsData.source != LyricsSource.ID3_SYLT) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 2.dp),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Surface(
-                            onClick = onEmbedLyricsInAudioFile,
-                            shape = RoundedCornerShape(16.dp),
-                            color = MusicProVioletPrimary.copy(alpha = 0.25f),
-                            border = BorderStroke(1.dp, MusicProCyanNeon.copy(alpha = 0.45f)),
-                            modifier = Modifier.testTag("embed_lyrics_chip")
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Save,
-                                    contentDescription = null,
-                                    tint = MusicProCyanNeon,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "Intégrer les paroles au fichier audio",
-                                    color = MusicProCyanNeon,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            }
+                // Top Bar animée (masquable en mode immersif)
+                AnimatedVisibility(
+                    visible = areControlsVisible,
+                    enter = fadeIn(tween(260)) + expandVertically(tween(260)),
+                    exit = fadeOut(tween(260)) + shrinkVertically(tween(260))
+                ) {
+                    LyricsTopBar(
+                        track = track,
+                        lyricsSource = lyricsData.source,
+                        hasLyrics = lyricsData.lines.isNotEmpty(),
+                        onBack = onBack,
+                        onOpenLrclibSearch = {
+                            registerInteraction()
+                            onOpenLrclibSearch()
+                        },
+                        onStartGroqTranscription = {
+                            registerInteraction()
+                            onStartGroqTranscription()
+                        },
+                        onOpenImportDialog = {
+                            registerInteraction()
+                            showImportDialog = true
+                        },
+                        onEmbedInAudioFile = {
+                            registerInteraction()
+                            onEmbedLyricsInAudioFile()
                         }
-                    }
+                    )
                 }
 
                 // Zone centrale : Liste des paroles ou état vide
@@ -293,12 +320,12 @@ fun LyricsScreen(
                         LazyColumn(
                             state = listState,
                             contentPadding = PaddingValues(
-                                top = 120.dp,
-                                bottom = 160.dp,
+                                top = if (areControlsVisible) 80.dp else 120.dp,
+                                bottom = if (areControlsVisible) 140.dp else 100.dp,
                                 start = 24.dp,
                                 end = 24.dp
                             ),
-                            verticalArrangement = Arrangement.spacedBy(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
                             modifier = Modifier
                                 .fillMaxSize()
                                 .testTag("lyrics_lazy_column")
@@ -311,48 +338,113 @@ fun LyricsScreen(
                                     line = line,
                                     isActive = isActive,
                                     isPast = isPast,
-                                    onClick = { onSeekTo(line.timeMs) }
+                                    onClick = {
+                                        registerInteraction()
+                                        onSeekTo(line.timeMs)
+                                    }
                                 )
                             }
                         }
 
-                        // Gradient fading en haut et en bas pour un effet de défilement infini élégant
+                        // Gradient fading doux en haut et en bas pour un défilement infini et naturel
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(60.dp)
+                                .height(90.dp)
                                 .align(Alignment.TopCenter)
                                 .background(
                                     Brush.verticalGradient(
-                                        listOf(MusicProBackground, Color.Transparent)
+                                        listOf(
+                                            MusicProBackground,
+                                            MusicProBackground.copy(alpha = 0.75f),
+                                            Color.Transparent
+                                        )
                                     )
                                 )
                         )
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(80.dp)
+                                .height(110.dp)
                                 .align(Alignment.BottomCenter)
                                 .background(
                                     Brush.verticalGradient(
-                                        listOf(Color.Transparent, MusicProBackground)
+                                        listOf(
+                                            Color.Transparent,
+                                            MusicProBackground.copy(alpha = 0.75f),
+                                            MusicProBackground
+                                        )
                                     )
                                 )
                         )
                     }
                 }
 
-                // Mini barre de contrôle en bas pour piloter la lecture sans quitter les paroles
-                LyricsBottomControlBar(
-                    track = track,
-                    currentPositionMs = currentPositionMs,
-                    durationMs = if (durationMs > 0) durationMs else (track?.duration ?: 0L),
-                    isPlaying = isPlaying,
-                    onPlayPause = onPlayPause,
-                    onNext = onNext,
-                    onPrevious = onPrevious,
-                    onSeekTo = onSeekTo
-                )
+                // Mini barre de contrôle en bas (masquable en mode immersif)
+                AnimatedVisibility(
+                    visible = areControlsVisible,
+                    enter = fadeIn(tween(260)) + expandVertically(tween(260)),
+                    exit = fadeOut(tween(260)) + shrinkVertically(tween(260))
+                ) {
+                    LyricsBottomControlBar(
+                        track = track,
+                        currentPositionMs = currentPositionMs,
+                        durationMs = if (durationMs > 0) durationMs else (track?.duration ?: 0L),
+                        isPlaying = isPlaying,
+                        onPlayPause = {
+                            registerInteraction()
+                            onPlayPause()
+                        },
+                        onNext = {
+                            registerInteraction()
+                            onNext()
+                        },
+                        onPrevious = {
+                            registerInteraction()
+                            onPrevious()
+                        },
+                        onSeekTo = {
+                            registerInteraction()
+                            onSeekTo(it)
+                        }
+                    )
+                }
+            }
+
+            // Indicateur flottant discret lorsque les contrôles sont masqués
+            AnimatedVisibility(
+                visible = !areControlsVisible,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 20.dp)
+            ) {
+                Surface(
+                    onClick = { registerInteraction() },
+                    shape = RoundedCornerShape(20.dp),
+                    color = MusicProSurfaceElevated.copy(alpha = 0.85f),
+                    border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.4f)),
+                    modifier = Modifier.shadow(8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = null,
+                            tint = MusicProCyanNeon,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Afficher les contrôles",
+                            color = MusicProTextSecondary,
+                            fontSize = 11.sp
+                        )
+                    }
+                }
             }
         }
     }
@@ -573,17 +665,19 @@ private fun LyricsTopBar(
     onOpenImportDialog: () -> Unit,
     onEmbedInAudioFile: () -> Unit
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
+        // Bouton retour épuré
         IconButton(
             onClick = onBack,
             modifier = Modifier
-                .size(42.dp)
+                .size(40.dp)
                 .clip(CircleShape)
                 .background(MusicProSurfaceElevated)
                 .testTag("lyrics_back_button")
@@ -592,11 +686,17 @@ private fun LyricsTopBar(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Retour",
                 tint = MusicProCyanNeon,
-                modifier = Modifier.size(22.dp)
+                modifier = Modifier.size(20.dp)
             )
         }
 
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        // Centre : Titre et Artiste avec badge de source sans chevauchement
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(
                 text = track?.title ?: "Paroles",
                 fontSize = 15.sp,
@@ -606,49 +706,48 @@ private fun LyricsTopBar(
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.height(2.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                if (!track?.artist.isNullOrBlank()) {
+                    Text(
+                        text = track.artist,
+                        fontSize = 11.sp,
+                        color = MusicProTextSecondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = " • ",
+                        fontSize = 11.sp,
+                        color = MusicProTextMuted
+                    )
+                }
                 Box(
                     modifier = Modifier
                         .size(6.dp)
                         .clip(CircleShape)
                         .background(if (lyricsSource != LyricsSource.NONE) MusicProCyanNeon else MusicProTextMuted)
                 )
-                Spacer(modifier = Modifier.width(6.dp))
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = lyricsSource.label,
-                    fontSize = 11.sp,
+                    fontSize = 10.sp,
                     color = MusicProCyanNeon,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1
                 )
             }
         }
 
+        // Boutons d'action regroupés et non superposés
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // Bouton intégration dans le fichier physique (tags ID3 SYLT / MediaStore write request)
-            if (hasLyrics && lyricsSource != LyricsSource.ID3_SYLT) {
-                IconButton(
-                    onClick = onEmbedInAudioFile,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(MusicProCyanNeon.copy(alpha = 0.2f))
-                        .testTag("lyrics_embed_button")
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Save,
-                        contentDescription = "Intégrer les paroles au fichier audio",
-                        tint = MusicProCyanNeon,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(6.dp))
-            }
-
             // Bouton Transcription Groq Whisper IA
             IconButton(
                 onClick = onStartGroqTranscription,
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(38.dp)
                     .clip(CircleShape)
                     .background(MusicProVioletPrimary.copy(alpha = 0.25f))
                     .testTag("lyrics_whisper_button")
@@ -657,7 +756,7 @@ private fun LyricsTopBar(
                     imageVector = Icons.Default.AutoAwesome,
                     contentDescription = "Transcrire avec Groq Whisper (IA)",
                     tint = MusicProCyanNeon,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(19.dp)
                 )
             }
 
@@ -667,7 +766,7 @@ private fun LyricsTopBar(
             IconButton(
                 onClick = onOpenLrclibSearch,
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(38.dp)
                     .clip(CircleShape)
                     .background(MusicProSurfaceElevated)
                     .testTag("lyrics_lrclib_search_button")
@@ -676,27 +775,82 @@ private fun LyricsTopBar(
                     imageVector = Icons.Default.Search,
                     contentDescription = "Rechercher sur lrclib.net",
                     tint = MusicProCyanNeon,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(19.dp)
                 )
             }
 
             Spacer(modifier = Modifier.width(6.dp))
 
-            // Bouton import manuel LRC
-            IconButton(
-                onClick = onOpenImportDialog,
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(MusicProSurfaceElevated)
-                    .testTag("lyrics_import_button")
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ContentPaste,
-                    contentDescription = "Importer LRC",
-                    tint = MusicProVioletLight,
-                    modifier = Modifier.size(18.dp)
-                )
+            // Menu contextuel discret "Plus d'options" (Sauvegarde ID3 & Import manuel)
+            Box {
+                IconButton(
+                    onClick = { showMenu = true },
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(CircleShape)
+                        .background(MusicProSurfaceElevated)
+                        .testTag("lyrics_more_options_button")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "Plus d'options",
+                        tint = MusicProTextPrimary,
+                        modifier = Modifier.size(19.dp)
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false },
+                    modifier = Modifier.background(MusicProSurfaceElevated)
+                ) {
+                    if (hasLyrics && lyricsSource != LyricsSource.ID3_SYLT) {
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = "Intégrer au fichier audio (ID3)",
+                                    color = MusicProCyanNeon,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Save,
+                                    contentDescription = null,
+                                    tint = MusicProCyanNeon,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            },
+                            onClick = {
+                                showMenu = false
+                                onEmbedInAudioFile()
+                            }
+                        )
+                    }
+
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = "Coller / Importer un texte LRC",
+                                color = MusicProTextPrimary,
+                                fontSize = 13.sp
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.ContentPaste,
+                                contentDescription = null,
+                                tint = MusicProVioletLight,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        },
+                        onClick = {
+                            showMenu = false
+                            onOpenImportDialog()
+                        }
+                    )
+                }
             }
         }
     }
@@ -709,71 +863,60 @@ private fun LyricLineItem(
     isPast: Boolean,
     onClick: () -> Unit
 ) {
-    // Animation douce de transition de taille et couleur
+    val haptic = LocalHapticFeedback.current
+
+    // Transitions fluides de typographie et couleur (Style moderne & épuré)
     val textColor by animateColorAsState(
         targetValue = when {
-            isActive -> MusicProCyanNeon
-            isPast -> MusicProTextSecondary.copy(alpha = 0.7f)
-            else -> MusicProTextMuted.copy(alpha = 0.38f)
+            isActive -> Color.White
+            isPast -> Color.White.copy(alpha = 0.48f)
+            else -> Color.White.copy(alpha = 0.24f)
         },
-        animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
         label = "lyric_color"
     )
 
     val fontSize by animateFloatAsState(
         targetValue = if (isActive) 23f else 17f,
-        animationSpec = tween(durationMillis = 250),
+        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
         label = "lyric_size"
     )
 
     val scale by animateFloatAsState(
-        targetValue = if (isActive) 1.03f else 1.0f,
-        animationSpec = tween(durationMillis = 250),
+        targetValue = if (isActive) 1.02f else 1.0f,
+        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
         label = "lyric_scale"
+    )
+
+    val verticalPadding by animateFloatAsState(
+        targetValue = if (isActive) 10f else 6f,
+        animationSpec = tween(durationMillis = 250),
+        label = "lyric_padding"
     )
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
-            .then(
-                if (isActive) {
-                    Modifier
-                        .background(MusicProVioletPrimary.copy(alpha = 0.15f))
-                        .border(
-                            1.dp,
-                            MusicProCyanNeon.copy(alpha = 0.45f),
-                            RoundedCornerShape(12.dp)
-                        )
-                        .padding(horizontal = 14.dp, vertical = 10.dp)
-                } else {
-                    Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onClick()
                 }
             )
+            .padding(horizontal = 8.dp, vertical = verticalPadding.dp)
             .scale(scale),
         contentAlignment = Alignment.CenterStart
     ) {
-        Column {
-            Text(
-                text = line.text.ifBlank { "♪ ♪ ♪" },
-                fontSize = fontSize.sp,
-                fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium,
-                color = textColor,
-                lineHeight = (fontSize * 1.35f).sp
-            )
-
-            // Affichage discret du timestamp si la ligne est active
-            if (isActive && line.timeMs > 0) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = formatTimestamp(line.timeMs),
-                    fontSize = 11.sp,
-                    color = MusicProVioletPastel.copy(alpha = 0.8f),
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-        }
+        Text(
+            text = line.text.ifBlank { "♪ ♪ ♪" },
+            fontSize = fontSize.sp,
+            fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.SemiBold,
+            color = textColor,
+            lineHeight = (fontSize * 1.38f).sp
+        )
     }
 }
 
