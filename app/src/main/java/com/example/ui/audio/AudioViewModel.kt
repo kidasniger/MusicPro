@@ -1,6 +1,15 @@
 package com.example.ui.audio
 
+import android.Manifest
 import android.app.Application
+import android.content.ContentUris
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
+import android.util.Log
+import androidx.activity.result.IntentSenderRequest
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.local.AudioTrackEntity
@@ -10,14 +19,18 @@ import com.example.data.repository.PlaylistRepository
 import com.example.data.security.GroqApiKeyStore
 import com.example.groq.GroqTranscriptionManager
 import com.example.groq.GroqTranscriptionResult
+import com.example.lyrics.LrcParser
 import com.example.lyrics.LyricsData
 import com.example.lyrics.LyricsRepository
 import com.example.lyrics.LyricsSaveResult
 import com.example.lyrics.remote.LrclibSearchResult
 import com.example.playback.MusicPlaybackManager
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -25,6 +38,13 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.File
+
+sealed class PendingLyricsWrite {
+    data class Lrclib(val track: AudioTrackEntity, val result: LrclibSearchResult) : PendingLyricsWrite()
+    data class Groq(val track: AudioTrackEntity, val result: GroqTranscriptionResult) : PendingLyricsWrite()
+    data class ManualLrc(val track: AudioTrackEntity, val lrcText: String) : PendingLyricsWrite()
+    data class EmbedCurrent(val track: AudioTrackEntity, val lyricsData: LyricsData) : PendingLyricsWrite()
+}
 
 sealed class LrclibSearchUiState {
     data object Idle : LrclibSearchUiState()
@@ -170,6 +190,16 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _saveFeedbackMessage = MutableStateFlow<String?>(null)
     val saveFeedbackMessage: StateFlow<String?> = _saveFeedbackMessage.asStateFlow()
+
+    // Gestion des permissions d'écriture Scoped Storage / MediaStore (style Musicolet)
+    private val _pendingLyricsWrite = MutableStateFlow<PendingLyricsWrite?>(null)
+    val pendingLyricsWrite: StateFlow<PendingLyricsWrite?> = _pendingLyricsWrite.asStateFlow()
+
+    private val _intentSenderRequest = MutableSharedFlow<IntentSenderRequest>(extraBufferCapacity = 1)
+    val intentSenderRequest: SharedFlow<IntentSenderRequest> = _intentSenderRequest.asSharedFlow()
+
+    private val _legacyWritePermissionRequest = MutableSharedFlow<Boolean>(extraBufferCapacity = 1)
+    val legacyWritePermissionRequest: SharedFlow<Boolean> = _legacyWritePermissionRequest.asSharedFlow()
 
     // Transcription IA Groq Whisper large-v3
     private val groqApiKeyStore = GroqApiKeyStore.getInstance(application)
@@ -572,6 +602,170 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
 
     fun clearGroqError() {
         _groqErrorMessage.value = null
+    }
+
+    /**
+     * Vérifie si l'écriture directe dans le fichier audio nécessite une autorisation explicite du système.
+     * Sur Android 11+ (API 30+), MediaStore.createWriteRequest ouvre la boîte de dialogue système (comme Musicolet).
+     * Sur Android <= 10 (API 29), la permission WRITE_EXTERNAL_STORAGE est demandée si absente.
+     */
+    fun needsWritePermission(track: AudioTrackEntity): Boolean {
+        if (track.path.isBlank()) return false
+        val file = File(track.path)
+        if (file.exists() && file.canWrite()) {
+            return false
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return true
+        }
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
+            return ContextCompat.checkSelfPermission(
+                getApplication(),
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) != PackageManager.PERMISSION_GRANTED
+        }
+        return false
+    }
+
+    /**
+     * Déclenche la demande d'autorisation d'écriture système pour la piste audio donnée.
+     */
+    fun triggerWritePermissionRequest(track: AudioTrackEntity) {
+        val context = getApplication<Application>()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            try {
+                val uri = if (track.contentUri.isNotBlank()) {
+                    Uri.parse(track.contentUri)
+                } else {
+                    ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, track.id)
+                }
+                val pendingIntent = MediaStore.createWriteRequest(context.contentResolver, listOf(uri))
+                val request = IntentSenderRequest.Builder(pendingIntent.intentSender).build()
+                _intentSenderRequest.tryEmit(request)
+            } catch (e: Exception) {
+                Log.e("AudioViewModel", "Erreur createWriteRequest: ${e.message}", e)
+                onWritePermissionResult(granted = false)
+            }
+        } else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
+            _legacyWritePermissionRequest.tryEmit(true)
+        } else {
+            onWritePermissionResult(granted = true)
+        }
+    }
+
+    /**
+     * Callback invoqué lorsque l'utilisateur répond à la boîte de dialogue système d'autorisation.
+     */
+    fun onWritePermissionResult(granted: Boolean) {
+        val pending = _pendingLyricsWrite.value ?: return
+        _pendingLyricsWrite.value = null
+
+        if (!granted) {
+            _saveFeedbackMessage.value = "Autorisation refusée : paroles enregistrées dans le cache privé de l'app."
+        }
+
+        when (pending) {
+            is PendingLyricsWrite.Lrclib -> {
+                applyLrclibResult(pending.track, pending.result)
+            }
+            is PendingLyricsWrite.Groq -> {
+                applyGroqResult(pending.track, pending.result)
+            }
+            is PendingLyricsWrite.ManualLrc -> {
+                applyManualLrcResult(pending.track, pending.lrcText)
+            }
+            is PendingLyricsWrite.EmbedCurrent -> {
+                embedLyricsInTrack(pending.track, pending.lyricsData)
+            }
+        }
+    }
+
+    /**
+     * Demande d'application et sauvegarde des paroles lrclib.net avec demande d'autorisation système.
+     */
+    fun requestApplyLrclib(track: AudioTrackEntity, result: LrclibSearchResult) {
+        if (needsWritePermission(track)) {
+            _pendingLyricsWrite.value = PendingLyricsWrite.Lrclib(track, result)
+            triggerWritePermissionRequest(track)
+        } else {
+            applyLrclibResult(track, result)
+        }
+    }
+
+    /**
+     * Demande d'intégration des paroles Groq Whisper avec demande d'autorisation système.
+     */
+    fun requestApplyGroq(track: AudioTrackEntity, result: GroqTranscriptionResult) {
+        if (needsWritePermission(track)) {
+            _pendingLyricsWrite.value = PendingLyricsWrite.Groq(track, result)
+            triggerWritePermissionRequest(track)
+        } else {
+            applyGroqResult(track, result)
+        }
+    }
+
+    /**
+     * Demande d'intégration des paroles actuellement affichées dans les tags du fichier audio physique.
+     */
+    fun requestEmbedCurrentLyrics(track: AudioTrackEntity, lyricsData: LyricsData) {
+        if (needsWritePermission(track)) {
+            _pendingLyricsWrite.value = PendingLyricsWrite.EmbedCurrent(track, lyricsData)
+            triggerWritePermissionRequest(track)
+        } else {
+            embedLyricsInTrack(track, lyricsData)
+        }
+    }
+
+    /**
+     * Écrit les paroles affichées dans les balises ID3 SYLT/USLT du fichier audio physique.
+     */
+    fun embedLyricsInTrack(track: AudioTrackEntity, lyricsData: LyricsData) {
+        viewModelScope.launch {
+            val lrcText = LrcParser.toLrcString(lyricsData)
+            val (saveResult, appliedData) = lyricsRepository.applyAndSaveLrcText(track, lrcText)
+            _lyricsData.value = appliedData
+            when (saveResult) {
+                is LyricsSaveResult.TagWriteSuccess -> {
+                    _saveFeedbackMessage.value = "✓ Paroles intégrées avec succès dans le fichier audio (${saveResult.tagType})"
+                    repository.updateLyricsStatus(track.id, true)
+                }
+                is LyricsSaveResult.LrcFileSuccess -> {
+                    _saveFeedbackMessage.value = "✓ Paroles enregistrées dans le fichier .lrc compagnon"
+                    repository.updateLyricsStatus(track.id, true)
+                }
+                is LyricsSaveResult.AppCacheSuccess -> {
+                    _saveFeedbackMessage.value = "✓ Paroles enregistrées dans le cache de l'application"
+                    repository.updateLyricsStatus(track.id, true)
+                }
+                is LyricsSaveResult.Error -> {
+                    _saveFeedbackMessage.value = "Erreur d'intégration : ${saveResult.message}"
+                }
+            }
+        }
+    }
+
+    fun applyManualLrcResult(track: AudioTrackEntity, lrcText: String) {
+        viewModelScope.launch {
+            val (saveResult, appliedData) = lyricsRepository.applyAndSaveLrcText(track, lrcText)
+            _lyricsData.value = appliedData
+            when (saveResult) {
+                is LyricsSaveResult.TagWriteSuccess -> {
+                    _saveFeedbackMessage.value = "✓ Paroles intégrées dans le fichier audio (${saveResult.tagType})"
+                    repository.updateLyricsStatus(track.id, true)
+                }
+                is LyricsSaveResult.LrcFileSuccess -> {
+                    _saveFeedbackMessage.value = "✓ Paroles enregistrées en fichier .lrc"
+                    repository.updateLyricsStatus(track.id, true)
+                }
+                is LyricsSaveResult.AppCacheSuccess -> {
+                    _saveFeedbackMessage.value = "✓ Paroles sauvegardées dans le cache de l'application"
+                    repository.updateLyricsStatus(track.id, true)
+                }
+                is LyricsSaveResult.Error -> {
+                    _saveFeedbackMessage.value = "Paroles appliquées (${saveResult.message})"
+                }
+            }
+        }
     }
 
     // ==========================================

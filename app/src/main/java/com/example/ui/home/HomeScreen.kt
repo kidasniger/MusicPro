@@ -1,8 +1,11 @@
 package com.example.ui.home
 
 import android.app.Activity
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -183,6 +186,47 @@ fun HomeScreen(
     val selectedPlaylistTracks by audioViewModel.selectedPlaylistTracks.collectAsStateWithLifecycle()
     var isAddTracksToPlaylistOpen by remember { mutableStateOf(false) }
     var trackForAddToPlaylistChooser by remember { mutableStateOf<AudioTrackEntity?>(null) }
+
+    val saveFeedbackMessage by audioViewModel.saveFeedbackMessage.collectAsStateWithLifecycle()
+
+    // Gestion de l'autorisation d'écriture Scoped Storage (style Musicolet, Android 11+)
+    val writePermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        val granted = result.resultCode == Activity.RESULT_OK
+        audioViewModel.onWritePermissionResult(granted)
+    }
+
+    // Gestion de l'autorisation d'écriture classique (Android 10 et inférieur)
+    val legacyPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        audioViewModel.onWritePermissionResult(granted)
+    }
+
+    // Écoute des requêtes d'autorisation système émises par le ViewModel
+    LaunchedEffect(Unit) {
+        audioViewModel.intentSenderRequest.collect { request ->
+            try {
+                writePermissionLauncher.launch(request)
+            } catch (e: Exception) {
+                Log.e("HomeScreen", "Erreur lancement IntentSenderRequest: ${e.message}", e)
+                audioViewModel.onWritePermissionResult(false)
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        audioViewModel.legacyWritePermissionRequest.collect {
+            legacyPermissionLauncher.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        }
+    }
+
+    LaunchedEffect(saveFeedbackMessage) {
+        saveFeedbackMessage?.let { msg ->
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     LaunchedEffect(playbackErrorMessage) {
         playbackErrorMessage?.let { msg ->
@@ -383,6 +427,11 @@ fun HomeScreen(
             onPrevious = { audioViewModel.playPrevious() },
             onSeekTo = { audioViewModel.seekTo(it) },
             onImportLrcText = { text -> activeTrack?.let { audioViewModel.importLrcText(it, text) } },
+            onEmbedLyricsInAudioFile = {
+                activeTrack?.let { track ->
+                    audioViewModel.requestEmbedCurrentLyrics(track, lyricsData)
+                }
+            },
             onOpenLrclibSearch = { isLrclibSearchOpen = true },
             onStartGroqTranscription = { activeTrack?.let { audioViewModel.startGroqTranscription(it) } },
             isGroqTranscribing = isGroqTranscribing,
@@ -402,7 +451,7 @@ fun HomeScreen(
             },
             onIntegrate = { res ->
                 activeTrack?.let { track ->
-                    audioViewModel.applyGroqResult(track, res)
+                    audioViewModel.requestApplyGroq(track, res)
                 }
             }
         )
@@ -415,12 +464,11 @@ fun HomeScreen(
         exit = fadeOut()
     ) {
         val searchState by audioViewModel.lrclibSearchState.collectAsStateWithLifecycle()
-        val saveFeedback by audioViewModel.saveFeedbackMessage.collectAsStateWithLifecycle()
 
         LrclibSearchScreen(
             track = activeTrack,
             searchState = searchState,
-            saveFeedback = saveFeedback,
+            saveFeedback = saveFeedbackMessage,
             onBack = {
                 isLrclibSearchOpen = false
                 audioViewModel.resetLrclibSearch()
@@ -430,7 +478,7 @@ fun HomeScreen(
             },
             onSelectAndSave = { result ->
                 activeTrack?.let { track ->
-                    audioViewModel.applyLrclibResult(track, result)
+                    audioViewModel.requestApplyLrclib(track, result)
                 }
             },
             onClearFeedback = { audioViewModel.clearSaveFeedback() }

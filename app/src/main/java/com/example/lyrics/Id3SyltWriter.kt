@@ -1,5 +1,8 @@
 package com.example.lyrics
 
+import android.content.Context
+import android.media.MediaScannerConnection
+import android.net.Uri
 import android.util.Log
 import com.example.lyrics.remote.LrclibSearchResult
 import org.jaudiotagger.audio.AudioFileIO
@@ -43,13 +46,17 @@ object Id3SyltWriter {
      * 3. Conserve une copie dans le cache de l'application pour garantir la disponibilité.
      */
     fun saveLyrics(
+        context: Context? = null,
         audioPath: String?,
+        contentUri: Uri? = null,
         result: LrclibSearchResult,
         fallbackDirectory: File? = null
     ): LyricsSaveResult {
         val lrcContent = result.syncedLyrics ?: result.plainLyrics ?: ""
         return saveLrcText(
+            context = context,
             audioPath = audioPath,
+            contentUri = contentUri,
             lrcContent = lrcContent,
             fallbackDirectory = fallbackDirectory,
             customFallbackFileName = "lyrics_${result.id ?: System.currentTimeMillis()}"
@@ -57,10 +64,27 @@ object Id3SyltWriter {
     }
 
     /**
+     * Surcharge de compatibilité sans context/uri.
+     */
+    fun saveLyrics(
+        audioPath: String?,
+        result: LrclibSearchResult,
+        fallbackDirectory: File? = null
+    ): LyricsSaveResult = saveLyrics(
+        context = null,
+        audioPath = audioPath,
+        contentUri = null,
+        result = result,
+        fallbackDirectory = fallbackDirectory
+    )
+
+    /**
      * Enregistre un texte au format LRC (Whisper Groq, import manuel ou Lrclib).
      */
     fun saveLrcText(
+        context: Context? = null,
         audioPath: String?,
+        contentUri: Uri? = null,
         lrcContent: String,
         fallbackDirectory: File? = null,
         customFallbackFileName: String? = null
@@ -94,21 +118,52 @@ object Id3SyltWriter {
 
         val audioFile = File(audioPath)
 
-        // 2. Tenter d'écrire physiquement dans les métadonnées internes du fichier audio
+        // 2. Tenter d'écrire physiquement et directement dans les métadonnées du fichier si accessible en écriture
         if (audioFile.exists() && audioFile.canWrite()) {
             val tagResult = tryWriteAudioTags(audioFile, lrcContent, parsedData.lines)
             if (tagResult is LyricsSaveResult.TagWriteSuccess) {
-                // Tenter aussi d'écrire le fichier .lrc compagnon à côté si possible
                 try {
                     val companion = File(audioFile.parentFile, "${audioFile.nameWithoutExtension}.lrc")
                     companion.writeText(lrcContent, StandardCharsets.UTF_8)
                 } catch (_: Exception) {}
 
+                context?.let { ctx ->
+                    try {
+                        MediaScannerConnection.scanFile(ctx, arrayOf(audioFile.absolutePath), null, null)
+                    } catch (_: Exception) {}
+                }
                 return tagResult
             }
         }
 
-        // 3. Si l'écriture dans le fichier est bloquée par Android Scoped Storage,
+        // 3. Si l'accès direct n'est pas possible (Scoped Storage Android 11+) mais qu'une autorisation
+        // MediaStore a été accordée (ContentResolver / OutputStream), utiliser le flux via cache temporaire
+        if (context != null && (contentUri != null || audioFile.exists())) {
+            val scopedResult = writeAudioTagsWithScopedStorage(
+                context = context,
+                audioFile = audioFile,
+                contentUri = contentUri,
+                lrcContent = lrcContent,
+                lines = parsedData.lines
+            )
+            if (scopedResult is LyricsSaveResult.TagWriteSuccess) {
+                try {
+                    val parentDir = audioFile.parentFile
+                    if (parentDir != null && parentDir.canWrite()) {
+                        val companion = File(parentDir, "${audioFile.nameWithoutExtension}.lrc")
+                        companion.writeText(lrcContent, StandardCharsets.UTF_8)
+                    }
+                } catch (_: Exception) {}
+
+                try {
+                    MediaScannerConnection.scanFile(context, arrayOf(audioFile.absolutePath), null, null)
+                } catch (_: Exception) {}
+
+                return scopedResult
+            }
+        }
+
+        // 4. Si l'écriture dans le fichier est bloquée par Android Scoped Storage,
         // tenter d'écrire le fichier .lrc compagnon dans le dossier du fichier audio
         val parentDir = audioFile.parentFile
         if (parentDir != null && parentDir.canWrite()) {
@@ -123,13 +178,120 @@ object Id3SyltWriter {
             }
         }
 
-        // 4. Fallback vers le dossier privé
+        // 5. Fallback vers le dossier privé
         return writeLrcCompanion(
             directory = fallbackDirectory,
             fileName = customFallbackFileName ?: audioFile.nameWithoutExtension.ifBlank { "lyrics" },
             content = lrcContent,
             linesCount = parsedData.lines.size
         )
+    }
+
+    /**
+     * Surcharge de compatibilité sans context/uri.
+     */
+    fun saveLrcText(
+        audioPath: String?,
+        lrcContent: String,
+        fallbackDirectory: File? = null,
+        customFallbackFileName: String? = null
+    ): LyricsSaveResult = saveLrcText(
+        context = null,
+        audioPath = audioPath,
+        contentUri = null,
+        lrcContent = lrcContent,
+        fallbackDirectory = fallbackDirectory,
+        customFallbackFileName = customFallbackFileName
+    )
+
+    /**
+     * Gère l'écriture de tags audio sur Android Scoped Storage (Android 11+) :
+     * 1. Copie temporairement les données audio dans le cache privé de l'app.
+     * 2. Modifie les balises ID3 USLT/SYLT sur ce fichier temporaire avec jaudiotagger.
+     * 3. Réécrit le fichier balisé vers la cible via ContentResolver (autorisé par createWriteRequest) ou FUSE.
+     */
+    private fun writeAudioTagsWithScopedStorage(
+        context: Context,
+        audioFile: File,
+        contentUri: Uri?,
+        lrcContent: String,
+        lines: List<LyricLine>
+    ): LyricsSaveResult {
+        var tempFile: File? = null
+        return try {
+            val extension = if (audioFile.name.contains('.')) audioFile.extension else "mp3"
+            tempFile = File(context.cacheDir, "tag_edit_${System.currentTimeMillis()}.$extension")
+
+            var readSuccess = false
+            if (audioFile.exists() && audioFile.canRead()) {
+                try {
+                    audioFile.copyTo(tempFile, overwrite = true)
+                    readSuccess = true
+                } catch (e: Exception) {
+                    logD(TAG, "Échec copie directe vers cache: ${e.message}")
+                }
+            }
+            if (!readSuccess && contentUri != null) {
+                try {
+                    context.contentResolver.openInputStream(contentUri)?.use { input ->
+                        tempFile.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    readSuccess = true
+                } catch (e: Exception) {
+                    logE(TAG, "Échec lecture InputStream MediaStore: ${e.message}", e)
+                }
+            }
+
+            if (!readSuccess || !tempFile.exists() || tempFile.length() == 0L) {
+                return LyricsSaveResult.Error("Impossible de lire les données du morceau pour l'édition des tags.")
+            }
+
+            val tagResult = tryWriteAudioTags(tempFile, lrcContent, lines)
+            if (tagResult !is LyricsSaveResult.TagWriteSuccess) {
+                return tagResult
+            }
+
+            var writeBackSuccess = false
+
+            // Méthode A: écriture directe si FUSE l'autorise après accord MediaStore
+            try {
+                if (audioFile.exists()) {
+                    tempFile.copyTo(audioFile, overwrite = true)
+                    writeBackSuccess = true
+                }
+            } catch (e: Exception) {
+                logD(TAG, "Écriture directe FUSE impossible: ${e.message}, tentative ContentResolver")
+            }
+
+            // Méthode B: écriture via ContentResolver OutputStream
+            if (!writeBackSuccess && contentUri != null) {
+                try {
+                    context.contentResolver.openOutputStream(contentUri, "wt")?.use { output ->
+                        tempFile.inputStream().use { input ->
+                            input.copyTo(output)
+                        }
+                    }
+                    writeBackSuccess = true
+                } catch (e: Exception) {
+                    logE(TAG, "Échec écriture ContentResolver openOutputStream: ${e.message}", e)
+                }
+            }
+
+            if (writeBackSuccess) {
+                LyricsSaveResult.TagWriteSuccess(audioFile.absolutePath, tagResult.tagType, lines.size)
+            } else {
+                LyricsSaveResult.Error("Échec de la réécriture du fichier audio modifié.")
+            }
+        } catch (e: Throwable) {
+            logE(TAG, "Erreur écriture Scoped Storage: ${e.message}", e)
+            LyricsSaveResult.Error(e.message ?: "Erreur Scoped Storage")
+        } finally {
+            try {
+                tempFile?.delete()
+            } catch (_: Exception) {}
+        }
     }
 
     /**

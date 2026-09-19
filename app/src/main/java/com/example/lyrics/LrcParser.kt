@@ -118,4 +118,23 @@ object LrcParser {
             else -> fractionStr.take(3).toLongOrNull() ?: 0L
         }
     }
+
+    /**
+     * Convertit une instance de LyricsData en texte au format standard LRC.
+     */
+    fun toLrcString(lyricsData: LyricsData): String {
+        val sb = StringBuilder()
+        lyricsData.title?.let { if (it.isNotBlank()) sb.append("[ti:").append(it).append("]\n") }
+        lyricsData.artist?.let { if (it.isNotBlank()) sb.append("[ar:").append(it).append("]\n") }
+        lyricsData.album?.let { if (it.isNotBlank()) sb.append("[al:").append(it).append("]\n") }
+
+        for (line in lyricsData.lines) {
+            val totalSec = line.timeMs / 1000
+            val min = totalSec / 60
+            val sec = totalSec % 60
+            val hundredths = (line.timeMs % 1000) / 10
+            sb.append(String.format(java.util.Locale.US, "[%02d:%02d.%02d]%s\n", min, sec, hundredths, line.text))
+        }
+        return sb.toString()
+    }
 }

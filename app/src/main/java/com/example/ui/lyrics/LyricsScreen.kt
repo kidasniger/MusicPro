@@ -44,6 +44,7 @@ import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
@@ -125,6 +126,7 @@ fun LyricsScreen(
     onPrevious: () -> Unit,
     onSeekTo: (Long) -> Unit,
     onImportLrcText: (String) -> Unit,
+    onEmbedLyricsInAudioFile: () -> Unit = {},
     onOpenLrclibSearch: () -> Unit = {},
     onStartGroqTranscription: () -> Unit = {},
     isGroqTranscribing: Boolean = false,
@@ -211,11 +213,50 @@ fun LyricsScreen(
                 LyricsTopBar(
                     track = track,
                     lyricsSource = lyricsData.source,
+                    hasLyrics = lyricsData.lines.isNotEmpty(),
                     onBack = onBack,
                     onOpenLrclibSearch = onOpenLrclibSearch,
                     onStartGroqTranscription = onStartGroqTranscription,
-                    onOpenImportDialog = { showImportDialog = true }
+                    onOpenImportDialog = { showImportDialog = true },
+                    onEmbedInAudioFile = onEmbedLyricsInAudioFile
                 )
+
+                // Suggestion d'intégration des paroles directement dans le fichier audio
+                if (lyricsData.lines.isNotEmpty() && lyricsData.source != LyricsSource.ID3_SYLT) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 2.dp),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Surface(
+                            onClick = onEmbedLyricsInAudioFile,
+                            shape = RoundedCornerShape(16.dp),
+                            color = MusicProVioletPrimary.copy(alpha = 0.25f),
+                            border = BorderStroke(1.dp, MusicProCyanNeon.copy(alpha = 0.45f)),
+                            modifier = Modifier.testTag("embed_lyrics_chip")
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Save,
+                                    contentDescription = null,
+                                    tint = MusicProCyanNeon,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Intégrer les paroles au fichier audio",
+                                    color = MusicProCyanNeon,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+                    }
+                }
 
                 // Zone centrale : Liste des paroles ou état vide
                 Box(
@@ -525,10 +566,12 @@ fun LyricsScreen(
 private fun LyricsTopBar(
     track: AudioTrackEntity?,
     lyricsSource: LyricsSource,
+    hasLyrics: Boolean,
     onBack: () -> Unit,
     onOpenLrclibSearch: () -> Unit,
     onStartGroqTranscription: () -> Unit,
-    onOpenImportDialog: () -> Unit
+    onOpenImportDialog: () -> Unit,
+    onEmbedInAudioFile: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -581,6 +624,26 @@ private fun LyricsTopBar(
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
+            // Bouton intégration dans le fichier physique (tags ID3 SYLT / MediaStore write request)
+            if (hasLyrics && lyricsSource != LyricsSource.ID3_SYLT) {
+                IconButton(
+                    onClick = onEmbedInAudioFile,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MusicProCyanNeon.copy(alpha = 0.2f))
+                        .testTag("lyrics_embed_button")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Save,
+                        contentDescription = "Intégrer les paroles au fichier audio",
+                        tint = MusicProCyanNeon,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(6.dp))
+            }
+
             // Bouton Transcription Groq Whisper IA
             IconButton(
                 onClick = onStartGroqTranscription,

@@ -41,7 +41,15 @@ class GroqApiKeyStore(context: Context) {
      * Récupère la clé API Groq stockée.
      */
     fun getApiKey(): String {
-        return prefs.getString(KEY_GROQ_API_KEY, "")?.trim().orEmpty()
+        val stored = prefs.getString(KEY_GROQ_API_KEY, null)?.trim()
+        if (stored != null) {
+            return stored
+        }
+        val buildConfigKey = com.example.BuildConfig.GROQ_API_KEY.trim()
+        if (buildConfigKey.isNotBlank() && buildConfigKey != "your_groq_api_key_here") {
+            return buildConfigKey
+        }
+        return ""
     }
 
     /**
@@ -55,7 +63,7 @@ class GroqApiKeyStore(context: Context) {
      * Supprime la clé API Groq enregistrée.
      */
     fun clearApiKey() {
-        prefs.edit().remove(KEY_GROQ_API_KEY).apply()
+        prefs.edit().putString(KEY_GROQ_API_KEY, "").apply()
     }
 
     /**

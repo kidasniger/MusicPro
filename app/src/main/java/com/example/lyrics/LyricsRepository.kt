@@ -101,8 +101,11 @@ class LyricsRepository private constructor(private val context: Context) {
         track: AudioTrackEntity,
         result: LrclibSearchResult
     ): Pair<LyricsSaveResult, LyricsData> = withContext(Dispatchers.IO) {
+        val contentUri = if (track.contentUri.isNotBlank()) Uri.parse(track.contentUri) else null
         val saveResult = Id3SyltWriter.saveLyrics(
+            context = context,
             audioPath = track.path,
+            contentUri = contentUri,
             result = result,
             fallbackDirectory = context.getExternalFilesDir("lyrics") ?: context.filesDir
         )
@@ -147,8 +150,11 @@ class LyricsRepository private constructor(private val context: Context) {
         track: AudioTrackEntity,
         lrcText: String
     ): Pair<LyricsSaveResult, LyricsData> = withContext(Dispatchers.IO) {
+        val contentUri = if (track.contentUri.isNotBlank()) Uri.parse(track.contentUri) else null
         val saveResult = Id3SyltWriter.saveLrcText(
+            context = context,
             audioPath = track.path,
+            contentUri = contentUri,
             lrcContent = lrcText,
             fallbackDirectory = context.getExternalFilesDir("lyrics") ?: context.filesDir,
             customFallbackFileName = "${track.title.ifBlank { "track" }}_${track.id}"
