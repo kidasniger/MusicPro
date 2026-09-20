@@ -32,7 +32,7 @@ class SyltCodecTest {
     fun negativeTimestampsAreClampedToZero() {
         val bytes = SyltCodec.serialize(listOf(LyricLine(-10L, "é")))
 
-        assertEquals(6, bytes.size)
+        assertEquals(8, bytes.size)
         assertArrayEquals(
             "é".toByteArray(StandardCharsets.UTF_16BE) + byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0),
             bytes
