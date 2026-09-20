@@ -34,13 +34,6 @@ jobs:
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > release-upload-key.jks
 
-      - name: Setup .env file
-        run: |
-          touch .env
-          if [ -n "${{ secrets.GROQ_API_KEY }}" ]; then
-            echo "GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}" >> .env
-          fi
-
       - name: Extract Version Info
         id: version_info
         run: |

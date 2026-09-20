@@ -211,10 +211,13 @@ fun SettingsScreen(
                 onSaveKey = {
                     keyboardController?.hide()
                     if (apiKeyInput.isNotBlank()) {
-                        apiKeyStore.setApiKey(apiKeyInput)
-                        isConfigured = true
-                        maskedKey = apiKeyStore.getMaskedApiKey()
-                        statusFeedbackMessage = Pair(true, "Clé enregistrée avec succès via EncryptedSharedPreferences (AES-256 GCM) !")
+                        if (apiKeyStore.setApiKey(apiKeyInput)) {
+                            isConfigured = true
+                            maskedKey = apiKeyStore.getMaskedApiKey()
+                            statusFeedbackMessage = Pair(true, "Clé enregistrée avec succès via EncryptedSharedPreferences (AES-256 GCM) !")
+                        } else {
+                            statusFeedbackMessage = Pair(false, "Impossible d'initialiser le stockage chiffré sur cet appareil. La clé n'a pas été enregistrée.")
+                        }
                     } else {
                         statusFeedbackMessage = Pair(false, "Veuillez saisir une clé API valide.")
                     }

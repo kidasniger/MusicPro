@@ -7,19 +7,17 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
 /**
- * Stockage sécurisé de la clé API Groq via EncryptedSharedPreferences (AES-256 GCM).
- * Inclut un mécanisme de repli résilient en cas d'indisponibilité du Keystore matériel.
+ * Stockage local de la clé API Groq uniquement via EncryptedSharedPreferences.
+ *
+ * Aucune clé de build n'est lue et aucun repli vers SharedPreferences standard n'existe.
+ * Cela évite qu'un secret injecté par Gradle puisse être embarqué dans l'APK.
  */
 class GroqApiKeyStore(context: Context) {
 
     private val appContext = context.applicationContext
 
-    private val prefs: SharedPreferences by lazy {
-        initEncryptedSharedPreferences()
-    }
-
-    private fun initEncryptedSharedPreferences(): SharedPreferences {
-        return try {
+    private val prefs: SharedPreferences? by lazy {
+        try {
             val masterKey = MasterKey.Builder(appContext)
                 .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
                 .build()
@@ -32,63 +30,42 @@ class GroqApiKeyStore(context: Context) {
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
         } catch (e: Throwable) {
-            Log.w(TAG, "Échec de l'initialisation de EncryptedSharedPreferences: ${e.message}, repli vers SharedPreferences standard.", e)
-            appContext.getSharedPreferences(FALLBACK_PREFS_FILE, Context.MODE_PRIVATE)
+            Log.e(TAG, "Impossible d'initialiser le stockage Groq chiffré.", e)
+            null
         }
     }
 
-    /**
-     * Récupère la clé API Groq stockée.
-     */
+    /** Récupère la clé API Groq saisie à l'exécution. */
     fun getApiKey(): String {
-        val stored = prefs.getString(KEY_GROQ_API_KEY, null)?.trim()
-        if (stored != null) {
-            return stored
-        }
-        val buildConfigKey = com.example.BuildConfig.GROQ_API_KEY.trim()
-        if (buildConfigKey.isNotBlank() && buildConfigKey != "your_groq_api_key_here") {
-            return buildConfigKey
-        }
-        return ""
+        return prefs?.getString(KEY_GROQ_API_KEY, null)?.trim().orEmpty()
     }
 
-    /**
-     * Enregistre la clé API Groq de manière chiffrée.
-     */
-    fun setApiKey(apiKey: String) {
-        prefs.edit().putString(KEY_GROQ_API_KEY, apiKey.trim()).apply()
+    /** Enregistre la clé uniquement dans EncryptedSharedPreferences. */
+    fun setApiKey(apiKey: String): Boolean {
+        val securePrefs = prefs ?: return false
+        securePrefs.edit().putString(KEY_GROQ_API_KEY, apiKey.trim()).apply()
+        return true
     }
 
-    /**
-     * Supprime la clé API Groq enregistrée.
-     */
+    /** Supprime la clé API Groq enregistrée. */
     fun clearApiKey() {
-        prefs.edit().putString(KEY_GROQ_API_KEY, "").apply()
+        prefs?.edit()?.remove(KEY_GROQ_API_KEY)?.apply()
     }
 
-    /**
-     * Vérifie si une clé API non vide est configurée.
-     */
-    fun hasApiKey(): Boolean {
-        return getApiKey().isNotBlank()
-    }
+    /** Vérifie si une clé API non vide est configurée. */
+    fun hasApiKey(): Boolean = getApiKey().isNotBlank()
 
-    /**
-     * Retourne une version masquée de la clé (ex: "gsk_••••••••••••ab12") pour l'affichage UI.
-     */
+    /** Retourne une version masquée de la clé pour l'affichage UI. */
     fun getMaskedApiKey(): String {
         val key = getApiKey()
         if (key.isBlank()) return ""
         if (key.length <= 8) return "••••••••"
-        val prefix = key.take(4)
-        val suffix = key.takeLast(4)
-        return "$prefix••••••••$suffix"
+        return "${key.take(4)}••••••••${key.takeLast(4)}"
     }
 
     companion object {
         private const val TAG = "GroqApiKeyStore"
         private const val ENCRYPTED_PREFS_FILE = "musicpro_groq_encrypted_prefs"
-        private const val FALLBACK_PREFS_FILE = "musicpro_groq_fallback_prefs"
         private const val KEY_GROQ_API_KEY = "key_groq_whisper_api"
 
         @Volatile
