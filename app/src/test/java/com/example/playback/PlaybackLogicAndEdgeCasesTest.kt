@@ -124,24 +124,15 @@ class PlaybackLogicAndEdgeCasesTest {
     }
 
     @Test
-    fun testEdgeCase_OfflineLyricsSearchNetworkError() = runTest {
+    fun testEdgeCase_LyricsSearchStateResetWithoutNetwork() = runTest {
         val viewModel = AudioViewModel(application)
 
-        // Recherche en ligne avec des paramètres qui génèrent une absence de réseau ou timeout
-        viewModel.searchOnlineLyrics(
-            title = "Unknown Offline Track 404",
-            artist = "No Network Artist",
-            durationSec = 180
-        )
+        // Ce test reste déterministe : aucune requête réseau n'est déclenchée par la CI.
+        assertEquals(LrclibSearchUiState.Idle, viewModel.lrclibSearchState.value)
 
-        // Vérification de l'état initial avant / après déclenchement
-        assertNotNull(viewModel.lrclibSearchState.value)
-
-        // Reset de l'état de recherche
         viewModel.resetLrclibSearch()
         assertEquals(LrclibSearchUiState.Idle, viewModel.lrclibSearchState.value)
     }
-
     @Test
     fun testEdgeCase_GroqTranscriptionWithoutApiKey() = runTest {
         val viewModel = AudioViewModel(application)
