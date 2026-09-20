@@ -113,25 +113,25 @@ class GroqTranscriptionController(
                 playbackManager.pause()
             }
             val (saveResult, appliedData) = lyricsRepository.applyAndSaveLrcText(track, result.fullLrcContent)
-            onLyricsData = appliedData
+            onLyricsData(appliedData)
             _groqTranscriptionResult.value = null // Ferme le dialogue d'aperçu
 
             when (saveResult) {
                 is LyricsSaveResult.TagWriteSuccess -> {
-                    onSaveFeedbackMessage = "✓ Paroles IA intégrées dans le fichier audio (${saveResult.tagType})"
+                    onSaveFeedbackMessage("✓ Paroles IA intégrées dans le fichier audio (${saveResult.tagType})")
                     audioRepository.updateLyricsStatus(track.id, true)
                 }
                 is LyricsSaveResult.LrcFileSuccess -> {
                     val fName = File(saveResult.lrcPath).name
-                    onSaveFeedbackMessage = "✓ Paroles IA enregistrées dans $fName"
+                    onSaveFeedbackMessage("✓ Paroles IA enregistrées dans $fName")
                     audioRepository.updateLyricsStatus(track.id, true)
                 }
                 is LyricsSaveResult.AppCacheSuccess -> {
-                    onSaveFeedbackMessage = "✓ Paroles IA sauvegardées dans le cache de l'application"
+                    onSaveFeedbackMessage("✓ Paroles IA sauvegardées dans le cache de l'application")
                     audioRepository.updateLyricsStatus(track.id, true)
                 }
                 is LyricsSaveResult.Error -> {
-                    onSaveFeedbackMessage = "Paroles IA appliquées (${saveResult.message})"
+                    onSaveFeedbackMessage("Paroles IA appliquées (${saveResult.message})")
                 }
             }
             if (isCurrentPlaying) {
