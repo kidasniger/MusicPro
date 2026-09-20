@@ -40,6 +40,8 @@ class GroqTranscriptionController(
     private val _groqErrorMessage = MutableStateFlow<String?>(null)
     val groqErrorMessage: StateFlow<String?> = _groqErrorMessage.asStateFlow()
 
+    fun hasGroqApiKey(): Boolean = groqApiKeyStore.hasApiKey()
+
 
     /**
      * Lance la transcription audio par IA via Groq Whisper large-v3.
