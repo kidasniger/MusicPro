@@ -14,7 +14,6 @@ import org.jaudiotagger.tag.id3.ID3v23Tag
 import org.jaudiotagger.tag.id3.ID3v24Frame
 import org.jaudiotagger.tag.id3.ID3v24Tag
 import org.jaudiotagger.tag.id3.framebody.FrameBodySYLT
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 import java.nio.charset.StandardCharsets
@@ -427,7 +426,7 @@ object Id3SyltWriter {
                         val syltBytes = serializeSyltBytes(lines)
                         val frame = if (id3Tag is ID3v24Tag) {
                             ID3v24Frame("SYLT").apply {
-                                body = FrameBodySYLT(0, "eng", 2, 1, "", syltBytes)
+                                body = FrameBodySYLT(SyltCodec.TEXT_ENCODING_UTF16, "eng", 2, 1, "", syltBytes)
                             }
                         } else {
                             ID3v23Frame("SYLT").apply {
@@ -469,20 +468,8 @@ object Id3SyltWriter {
     /**
      * Encode les lignes de paroles au format binaire ID3 SYLT.
      */
-    private fun serializeSyltBytes(lines: List<LyricLine>): ByteArray {
-        val stream = ByteArrayOutputStream()
-        for (line in lines) {
-            val textBytes = line.text.toByteArray(StandardCharsets.ISO_8859_1)
-            stream.write(textBytes)
-            stream.write(0) // 0x00 null terminator
-            val ms = line.timeMs.coerceAtLeast(0L)
-            stream.write(((ms ushr 24) and 0xFF).toInt())
-            stream.write(((ms ushr 16) and 0xFF).toInt())
-            stream.write(((ms ushr 8) and 0xFF).toInt())
-            stream.write((ms and 0xFF).toInt())
-        }
-        return stream.toByteArray()
-    }
+    private fun serializeSyltBytes(lines: List<LyricLine>): ByteArray =
+        SyltCodec.serialize(lines)
 
     /**
      * Sauvegarde un fichier .lrc compagnon dans le dossier indiqué.
