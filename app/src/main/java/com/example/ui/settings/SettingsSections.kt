@@ -115,7 +115,7 @@ import com.example.ui.theme.MusicProWarning
 import kotlinx.coroutines.launch
 
 @Composable
-private fun SettingsTopBar(onBack: () -> Unit) {
+fun SettingsTopBar(onBack: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -163,7 +163,7 @@ private fun SettingsTopBar(onBack: () -> Unit) {
  * Section 1: Gestion du Thème de l'application
  */
 @Composable
-private fun ThemeSelectionCard(
+fun ThemeSelectionCard(
     currentTheme: AppThemeMode,
     onThemeSelected: (AppThemeMode) -> Unit,
     isDynamicColor: Boolean,
@@ -302,7 +302,7 @@ private fun ThemeSelectionCard(
 }
 
 @Composable
-private fun ThemeOptionItem(
+fun ThemeOptionItem(
     title: String,
     subtitle: String,
     isSelected: Boolean,
@@ -374,7 +374,7 @@ private fun ThemeOptionItem(
  * Section 2: Configuration Clé API Groq
  */
 @Composable
-private fun GroqApiKeyCard(
+fun GroqApiKeyCard(
     apiKeyInput: String,
     isConfigured: Boolean,
     maskedKey: String,
@@ -715,7 +715,7 @@ private fun GroqApiKeyCard(
  * Section 3: Stockage & Cache local
  */
 @Composable
-private fun CacheManagementCard(
+fun CacheManagementCard(
     cacheSize: String,
     isClearing: Boolean,
     isCleaningLibrary: Boolean,
@@ -957,7 +957,7 @@ private fun CacheManagementCard(
  * Section 5: À propos de MusicPro
  */
 @Composable
-private fun AboutCard(currentVersion: String = "1.0") {
+fun AboutCard(currentVersion: String = "1.0") {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -1063,7 +1063,7 @@ private fun AboutCard(currentVersion: String = "1.0") {
 }
 
 @Composable
-private fun TechBadgeRow(title: String, value: String) {
+fun TechBadgeRow(title: String, value: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -1093,7 +1093,7 @@ private fun TechBadgeRow(title: String, value: String) {
  * Section 5: Permissions système
  */
 @Composable
-private fun PermissionsCard(onNavigateToPermissions: () -> Unit) {
+fun PermissionsCard(onNavigateToPermissions: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
