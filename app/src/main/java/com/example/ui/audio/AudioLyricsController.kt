@@ -10,7 +10,6 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.result.IntentSenderRequest
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewModelScope
 import com.example.data.local.AudioTrackEntity
 import com.example.data.repository.AudioRepository
 import com.example.data.security.GroqApiKeyStore
@@ -26,7 +25,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -101,7 +99,7 @@ class AudioLyricsController(
             }
         }
     }.stateIn(
-        scope = viewModelScope,
+        scope = scope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
@@ -120,7 +118,7 @@ class AudioLyricsController(
                 )
             }.sortedBy { it.name }
     }.stateIn(
-        scope = viewModelScope,
+        scope = scope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
@@ -136,7 +134,7 @@ class AudioLyricsController(
                 )
             }.sortedBy { it.name }
     }.stateIn(
-        scope = viewModelScope,
+        scope = scope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
@@ -152,7 +150,7 @@ class AudioLyricsController(
                 )
             }.sortedBy { it.name }
     }.stateIn(
-        scope = viewModelScope,
+        scope = scope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
@@ -161,7 +159,7 @@ class AudioLyricsController(
         // Au démarrage, on lit d'abord Room. Un scan MediaStore n'est effectué
         // automatiquement que si la bibliothèque locale est réellement vide.
         // Aucun nettoyage destructif n'est lancé à chaque ouverture de l'application.
-        viewModelScope.launch {
+        scope.launch {
             val count = audioRepository.getTrackCount()
             if (count > 0) {
                 _statusMessage.value = "$count morceaux chargés depuis la bibliothèque locale"
@@ -181,7 +179,7 @@ class AudioLyricsController(
         }
 
         // Chargement automatique des paroles et mise à jour de la date d'écoute à chaque changement de piste
-        viewModelScope.launch {
+        scope.launch {
             currentTrack.collect { track ->
                 if (track != null) {
                     loadLyricsForTrack(track)
@@ -196,7 +194,7 @@ class AudioLyricsController(
     }
 
     fun refreshScan() {
-        viewModelScope.launch {
+        scope.launch {
             _isScanning.value = true
             _statusMessage.value = "Scan MediaStore en cours..."
             try {
@@ -241,7 +239,7 @@ class AudioLyricsController(
     fun playTrack(track: AudioTrackEntity, playlist: List<AudioTrackEntity> = tracks.value) {
         val activePlaylist = if (playlist.isNotEmpty()) playlist else listOf(track)
         playbackManager.playTrack(track, activePlaylist)
-        viewModelScope.launch {
+        scope.launch {
             audioRepository.updateLastPlayed(track.id)
         }
     }
@@ -279,7 +277,7 @@ class AudioLyricsController(
     }
 
     fun loadLyricsForTrack(track: AudioTrackEntity) {
-        viewModelScope.launch {
+        scope.launch {
             _isLyricsLoading.value = true
             try {
                 val data = lyricsRepository.getLyricsForTrack(track)
@@ -297,7 +295,7 @@ class AudioLyricsController(
         val imported = lyricsRepository.importLrcText(track.id, lrcText)
         _lyricsData.value = imported
         if (imported.lines.isNotEmpty() && imported.isSynchronized) {
-            viewModelScope.launch {
+            scope.launch {
                 audioRepository.updateLyricsStatus(track.id, true)
             }
         }
@@ -308,7 +306,7 @@ class AudioLyricsController(
      * Gère les états d'erreur réseau, timeout et aucun résultat.
      */
     fun searchOnlineLyrics(title: String, artist: String, durationSec: Int?) {
-        viewModelScope.launch {
+        scope.launch {
             _lrclibSearchState.value = LrclibSearchUiState.Loading
             val result = lyricsRepository.searchLyricsOnline(title, artist, durationSec)
             result.fold(
@@ -340,7 +338,7 @@ class AudioLyricsController(
         val isCurrentPlaying = playbackManager.currentTrack.value?.id == track.id && playbackManager.isPlaying.value
         val savedPos = if (isCurrentPlaying) playbackManager.currentPositionMs.value else 0L
 
-        viewModelScope.launch {
+        scope.launch {
             if (isCurrentPlaying) {
                 playbackManager.pause()
             }
@@ -401,7 +399,7 @@ class AudioLyricsController(
             return
         }
 
-        viewModelScope.launch {
+        scope.launch {
             _isGroqTranscribing.value = true
             _groqErrorMessage.value = null
             _groqTranscriptionResult.value = null
@@ -444,7 +442,7 @@ class AudioLyricsController(
         val isCurrentPlaying = playbackManager.currentTrack.value?.id == track.id && playbackManager.isPlaying.value
         val savedPos = if (isCurrentPlaying) playbackManager.currentPositionMs.value else 0L
 
-        viewModelScope.launch {
+        scope.launch {
             if (isCurrentPlaying) {
                 playbackManager.pause()
             }
@@ -604,7 +602,7 @@ class AudioLyricsController(
         val isCurrentPlaying = playbackManager.currentTrack.value?.id == track.id && playbackManager.isPlaying.value
         val savedPos = if (isCurrentPlaying) playbackManager.currentPositionMs.value else 0L
 
-        viewModelScope.launch {
+        scope.launch {
             if (isCurrentPlaying) {
                 playbackManager.pause()
             }
@@ -638,7 +636,7 @@ class AudioLyricsController(
         val isCurrentPlaying = playbackManager.currentTrack.value?.id == track.id && playbackManager.isPlaying.value
         val savedPos = if (isCurrentPlaying) playbackManager.currentPositionMs.value else 0L
 
-        viewModelScope.launch {
+        scope.launch {
             if (isCurrentPlaying) {
                 playbackManager.pause()
             }
