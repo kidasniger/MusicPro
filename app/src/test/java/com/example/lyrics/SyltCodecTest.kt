@@ -37,7 +37,7 @@ class SyltCodecTest {
         assertArrayEquals(
             byteArrayOf(0xFE.toByte(), 0xFF.toByte()) +
                 "é".toByteArray(StandardCharsets.UTF_16BE) +
-                byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0),
+                byteArrayOf(0, 0, 0, 0, 0, 0),
             bytes
         )
     }
