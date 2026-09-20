@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Process
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -83,12 +84,12 @@ class MusicPlaybackService : MediaSessionService() {
                 ): MediaSession.ConnectionResult {
                     val isLegacyController =
                         controller.packageName == MediaSession.ControllerInfo.LEGACY_CONTROLLER_PACKAGE_NAME
-                    val isOwnVerifiedController =
-                        controller.packageName == packageName && controller.isPackageNameVerified
+                    val isOwnController =
+                        controller.packageName == packageName && controller.uid == Process.myUid()
                     val isNotificationController = session.isMediaNotificationController(controller)
 
                     if (!controller.isTrusted &&
-                        !isOwnVerifiedController &&
+                        !isOwnController &&
                         !isLegacyController &&
                         !isNotificationController
                     ) {
@@ -99,7 +100,7 @@ class MusicPlaybackService : MediaSessionService() {
                         return MediaSession.ConnectionResult.reject()
                     }
 
-                    return AcceptedResultBuilder(session, controller).build()
+                    return AcceptedResultBuilder(session).build()
                 }
             })
             .build()
@@ -158,13 +159,13 @@ class MusicPlaybackService : MediaSessionService() {
         val session = mediaSession ?: return null
         val isLegacyController =
             controllerInfo.packageName == MediaSession.ControllerInfo.LEGACY_CONTROLLER_PACKAGE_NAME
-        val isOwnVerifiedController =
-            controllerInfo.packageName == packageName && controllerInfo.isPackageNameVerified
+        val isOwnController =
+            controllerInfo.packageName == packageName && controllerInfo.uid == Process.myUid()
         val isNotificationController = session.isMediaNotificationController(controllerInfo)
 
         return if (
             controllerInfo.isTrusted ||
-            isOwnVerifiedController ||
+            isOwnController ||
             isLegacyController ||
             isNotificationController
         ) {
