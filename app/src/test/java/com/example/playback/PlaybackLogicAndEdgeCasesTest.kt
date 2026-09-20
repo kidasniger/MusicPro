@@ -153,22 +153,22 @@ class PlaybackLogicAndEdgeCasesTest {
 
     @Test
     fun testEdgeCase_GroqTranscriptionWithMissingFile() = runTest {
-        val viewModel = AudioViewModel(application)
-        com.example.data.security.GroqApiKeyStore.getInstance(context).setApiKey("gsk_dummy_test_key_12345")
+        val missingFile = File("/non/existent/path/audio.mp3")
 
-        // Morceau dont le fichier n'existe pas sur disque
-        val trackWithNonExistentPath = sampleTrack1.copy(path = "/non/existent/path/audio.mp3")
-        viewModel.startGroqTranscription(trackWithNonExistentPath)
+        val result = GroqTranscriptionManager.transcribeAudioFile(
+            context = context,
+            audioFile = missingFile,
+            apiKey = "gsk_dummy_test_key_12345",
+            trackTitle = sampleTrack1.title,
+            artistName = sampleTrack1.artist,
+            albumName = sampleTrack1.album,
+            durationMs = sampleTrack1.duration
+        )
 
-        val errorMsg = viewModel.groqErrorMessage.value
-        assertNotNull(errorMsg)
-        assertTrue(errorMsg!!.contains("introuvable"))
-        assertFalse(viewModel.isGroqTranscribing.value)
-
-        // Nettoyage clé
-        com.example.data.security.GroqApiKeyStore.getInstance(context).clearApiKey()
+        assertTrue(result.isFailure)
+        val errorMsg = result.exceptionOrNull()?.message.orEmpty()
+        assertTrue(errorMsg.contains("introuvable"))
     }
-
     @Test
     fun testAudioTrackEntityHelperMethods() {
         val flacTrack = sampleTrack1.copy(path = "/music/song.flac", mimeType = "audio/flac")

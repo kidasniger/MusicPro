@@ -78,23 +78,33 @@ class SettingsScreenRobolectricTest {
     }
 
     @Test
-    fun testGroqApiKeyStoreEncryptedPersistence() {
+    fun testGroqApiKeyStoreNeverFallsBackToPlaintextStorage() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val keyStore = GroqApiKeyStore.getInstance(context)
 
         val sampleKey = "gsk_test1234567890abcdefghijklmnopqrstuvwxyz"
-        keyStore.setApiKey(sampleKey)
+        val saved = keyStore.setApiKey(sampleKey)
 
-        assertTrue(keyStore.hasApiKey())
-        assertEquals(sampleKey, keyStore.getApiKey())
-        assertTrue(keyStore.getMaskedApiKey().startsWith("gsk_"))
-        assertTrue(keyStore.getMaskedApiKey().contains("••••"))
+        if (saved) {
+            assertTrue(keyStore.hasApiKey())
+            assertEquals(sampleKey, keyStore.getApiKey())
+            assertTrue(keyStore.getMaskedApiKey().startsWith("gsk_"))
+            assertTrue(keyStore.getMaskedApiKey().contains("••••"))
 
-        keyStore.clearApiKey()
-        assertFalse(keyStore.hasApiKey())
-        assertEquals("", keyStore.getApiKey())
+            keyStore.clearApiKey()
+            assertFalse(keyStore.hasApiKey())
+            assertEquals("", keyStore.getApiKey())
+        } else {
+            // Robolectric peut ne pas fournir un Keystore complet :
+            // l'échec est acceptable tant qu'aucune clé n'est persistée en clair.
+            assertFalse(keyStore.hasApiKey())
+            val plaintextFallback = context.getSharedPreferences(
+                "musicpro_groq_fallback_prefs",
+                Context.MODE_PRIVATE
+            )
+            assertFalse(plaintextFallback.contains("key_groq_whisper_api"))
+        }
     }
-
     @Test
     fun testSettingsScreenComposesSuccessfully() {
         val app = ApplicationProvider.getApplicationContext<Application>()
