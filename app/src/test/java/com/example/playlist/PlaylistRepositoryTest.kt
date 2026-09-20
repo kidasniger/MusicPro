@@ -159,6 +159,36 @@ class PlaylistRepositoryTest {
     }
 
     @Test
+    fun `upserting a track preserves its playlist relation`() = runTest {
+        val playlistId = repository.createPlaylist("Persistent Queue")
+        repository.addTracksToPlaylist(playlistId, listOf(101L))
+
+        val updatedTrack = sampleTrack1.copy(
+            title = "Neon Nights (Updated)",
+            lastPlayed = 123456L
+        )
+        database.audioTrackDao().upsertTracks(listOf(updatedTrack))
+
+        val playlistTracks = repository.getTracksForPlaylist(playlistId).first()
+        assertEquals(1, playlistTracks.size)
+        assertEquals(101L, playlistTracks[0].id)
+        assertEquals("Neon Nights (Updated)", playlistTracks[0].title)
+        assertEquals(123456L, playlistTracks[0].lastPlayed)
+    }
+
+    @Test
+    fun `deleting tracks absent from a non-empty scan removes only missing relations`() = runTest {
+        val playlistId = repository.createPlaylist("Partial Scan")
+        repository.addTracksToPlaylist(playlistId, listOf(101L, 102L))
+
+        database.audioTrackDao().deleteTracksNotIn(listOf(101L))
+
+        val remainingTracks = repository.getTracksForPlaylist(playlistId).first()
+        assertEquals(1, remainingTracks.size)
+        assertEquals(101L, remainingTracks[0].id)
+    }
+
+    @Test
     fun `playlist summary format duration displays hours when exceeding 60 minutes`() {
         val summary1 = PlaylistSummary(id = 1, name = "Short", totalDurationMs = 125000L)
         assertEquals("2:05", summary1.formatDuration())

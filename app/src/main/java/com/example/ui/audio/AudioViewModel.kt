@@ -296,9 +296,10 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     init {
-        // Au démarrage, purger les anciennes pistes démo résiduelles et charger immédiatement le cache Room
+        // Au démarrage, on lit d'abord Room. Un scan MediaStore n'est effectué
+        // automatiquement que si la bibliothèque locale est réellement vide.
+        // Aucun nettoyage destructif n'est lancé à chaque ouverture de l'application.
         viewModelScope.launch {
-            repository.purgeLegacyDemoTracks()
             val count = repository.getTrackCount()
             if (count > 0) {
                 _statusMessage.value = "$count morceaux chargés depuis la bibliothèque locale"

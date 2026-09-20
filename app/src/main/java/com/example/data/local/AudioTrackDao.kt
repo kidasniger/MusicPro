@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -42,14 +43,17 @@ interface AudioTrackDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTracks(tracks: List<AudioTrackEntity>)
 
+    @Upsert
+    suspend fun upsertTracks(tracks: List<AudioTrackEntity>)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTrack(track: AudioTrackEntity)
 
     @Query("DELETE FROM audio_tracks")
     suspend fun clearAllTracks()
 
-    @Query("DELETE FROM audio_tracks WHERE id BETWEEN :startId AND :endId OR contentUri LIKE 'content://media/external/audio/media/100%' OR path LIKE '%demo_track%'")
-    suspend fun deleteLegacyDemoTracks(startId: Long = 1000L, endId: Long = 1020L)
+    @Query("DELETE FROM audio_tracks WHERE id NOT IN (:ids)")
+    suspend fun deleteTracksNotIn(ids: List<Long>)
 
     @Query("SELECT * FROM audio_tracks")
     suspend fun getAllTracksSnapshot(): List<AudioTrackEntity>

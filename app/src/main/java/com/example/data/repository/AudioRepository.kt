@@ -45,29 +45,42 @@ class AudioRepository(
     }
 
     /**
-     * Rescanne le MediaStore et met à jour le cache Room local.
-     * Les fichiers supprimés du téléphone sont automatiquement retirés de la base de données.
-     * Préserve le statut hasSyncedLyrics des morceaux déjà indexés.
+     * Synchronise MediaStore avec Room sans recréer les lignes existantes.
+     *
+     * - Les lignes existantes sont mises à jour par Upsert, sans suppression/recréation :
+     *   les relations playlist -> morceau restent donc intactes.
+     * - Un scan vide est considéré comme non fiable et ne modifie jamais la base.
+     * - Les morceaux réellement absents sont supprimés uniquement après un scan non vide.
      */
     suspend fun refreshMediaStoreScan(): Int = withContext(Dispatchers.IO) {
         val existingTracks = try {
             audioTrackDao.getAllTracksSnapshot().associateBy { it.id }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             emptyMap()
         }
+
         val scannedTracks = scanner.scanAudioFiles()
+
+        if (scannedTracks.isEmpty()) {
+            android.util.Log.w(
+                "AudioRepository",
+                "Scan MediaStore vide : conservation de la bibliothèque Room existante."
+            )
+            return@withContext existingTracks.size
+        }
+
         val mergedTracks = scannedTracks.map { scanned ->
-            val prev = existingTracks[scanned.id]
-            if (prev != null && prev.hasSyncedLyrics) {
+            val previous = existingTracks[scanned.id]
+            if (previous != null && previous.hasSyncedLyrics && !scanned.hasSyncedLyrics) {
                 scanned.copy(hasSyncedLyrics = true)
             } else {
                 scanned
             }
         }
-        audioTrackDao.clearAllTracks()
-        if (mergedTracks.isNotEmpty()) {
-            audioTrackDao.insertTracks(mergedTracks)
-        }
+
+        audioTrackDao.upsertTracks(mergedTracks)
+        audioTrackDao.deleteTracksNotIn(mergedTracks.map { it.id })
+
         mergedTracks.size
     }
 
@@ -76,18 +89,6 @@ class AudioRepository(
             audioTrackDao.updateLyricsStatus(trackId, hasLyrics)
         } catch (e: Exception) {
             android.util.Log.e("AudioRepository", "Erreur updateLyricsStatus: ${e.message}")
-        }
-    }
-
-    /**
-     * Purge définitivement toutes les anciennes pistes de démonstration ou fictives
-     * présentes dans la base de données Room locale.
-     */
-    suspend fun purgeLegacyDemoTracks() = withContext(Dispatchers.IO) {
-        try {
-            audioTrackDao.deleteLegacyDemoTracks()
-        } catch (e: Exception) {
-            android.util.Log.e("AudioRepository", "Erreur lors de la purge des pistes de démo: ${e.message}")
         }
     }
 
