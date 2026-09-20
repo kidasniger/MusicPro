@@ -256,15 +256,14 @@ object Id3SyltWriter {
             )
             tempFile.copyTo(originalBackup, overwrite = true)
 
-            val originalSize = tempFile.length()
             val tagResult = tryWriteAudioTags(tempFile, lrcContent, lines)
             if (tagResult !is LyricsSaveResult.TagWriteSuccess) {
                 return tagResult
             }
 
-            // Vérification anti-corruption : le fichier temporaire doit faire au moins 80% de la taille d'origine
-            if (!tempFile.exists() || tempFile.length() < (originalSize * 0.7).toLong().coerceAtLeast(1024L)) {
-                return LyricsSaveResult.Error("Le fichier modifié est incomplet, écriture annulée pour préserver l'original.")
+            val modifiedSize = tempFile.length()
+            if (!tempFile.exists() || modifiedSize <= 0L) {
+                return LyricsSaveResult.Error("Le fichier modifié est vide, écriture annulée pour préserver le fichier original.")
             }
 
             var writeBackSuccess = false
@@ -273,7 +272,10 @@ object Id3SyltWriter {
             try {
                 if (audioFile.exists()) {
                     tempFile.copyTo(audioFile, overwrite = true)
-                    writeBackSuccess = audioFile.exists() && audioFile.length() == tempFile.length()
+                    writeBackSuccess =
+                        audioFile.exists() &&
+                        audioFile.length() == tempFile.length() &&
+                        filesMatchExactly(tempFile, audioFile)
                 }
             } catch (e: Exception) {
                 logD(TAG, "Écriture directe FUSE impossible: ${e.message}, tentative ContentResolver")
@@ -304,7 +306,9 @@ object Id3SyltWriter {
                     }
 
                     writeBackSuccess =
-                        bytesWritten == tempFile.length() && verifiedBytes == tempFile.length()
+                        bytesWritten == tempFile.length() &&
+                        verifiedBytes == tempFile.length() &&
+                        contentUriMatchesFile(context, contentUri, tempFile)
                 } catch (e: Exception) {
                     logE(TAG, "Échec écriture ContentResolver openOutputStream: ${e.message}", e)
                 }
@@ -339,6 +343,55 @@ object Id3SyltWriter {
                 originalBackup?.delete()
             } catch (_: Exception) {}
         }
+    }
+
+    private fun filesMatchExactly(first: File, second: File): Boolean {
+        if (!first.isFile || !second.isFile || first.length() != second.length()) return false
+
+        first.inputStream().use { left ->
+            second.inputStream().use { right ->
+                val leftBuffer = ByteArray(32 * 1024)
+                val rightBuffer = ByteArray(32 * 1024)
+
+                while (true) {
+                    val leftRead = left.read(leftBuffer)
+                    val rightRead = right.read(rightBuffer)
+
+                    if (leftRead != rightRead) return false
+                    if (leftRead <= 0) return true
+
+                    for (index in 0 until leftRead) {
+                        if (leftBuffer[index] != rightBuffer[index]) return false
+                    }
+                }
+            }
+        }
+    }
+
+    private fun contentUriMatchesFile(
+        context: Context,
+        contentUri: Uri,
+        source: File
+    ): Boolean {
+        val resolver = context.contentResolver
+        resolver.openInputStream(contentUri)?.use { input ->
+            source.inputStream().use { sourceInput ->
+                val targetBuffer = ByteArray(32 * 1024)
+                val sourceBuffer = ByteArray(32 * 1024)
+
+                while (true) {
+                    val sourceRead = sourceInput.read(sourceBuffer)
+                    val targetRead = input.read(targetBuffer)
+
+                    if (sourceRead != targetRead) return false
+                    if (sourceRead <= 0) return true
+
+                    for (index in 0 until sourceRead) {
+                        if (sourceBuffer[index] != targetBuffer[index]) return false
+                    }
+                }
+            }
+        } ?: return false
     }
 
     /**
