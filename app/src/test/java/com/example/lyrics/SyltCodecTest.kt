@@ -16,7 +16,8 @@ class SyltCodecTest {
             listOf(LyricLine(timestamp, text))
         )
 
-        val expected = text.toByteArray(StandardCharsets.UTF_16BE) +
+        val expected = byteArrayOf(0xFE.toByte(), 0xFF.toByte()) +
+            text.toByteArray(StandardCharsets.UTF_16BE) +
             byteArrayOf(0, 0) +
             byteArrayOf(
                 0x00,
