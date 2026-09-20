@@ -54,32 +54,25 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: '9.3.1'
+
+      - name: Verify Gradle Wrapper
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --version
 
       - name: Run unit tests
         env:
           GRADLE_OPTS: "-Djava.awt.headless=true -Xmx4g"
         run: |
-          GRADLE_ARGS=":app:testDebugUnitTest --no-daemon -Djava.awt.headless=true"
-          if [ -f "./gradlew" ]; then
-            chmod +x ./gradlew
-            ./gradlew $GRADLE_ARGS
-          else
-            gradle $GRADLE_ARGS
-          fi
+          chmod +x ./gradlew
+          ./gradlew :app:testDebugUnitTest --no-daemon -Djava.awt.headless=true
 
       - name: Run lint
         env:
           GRADLE_OPTS: "-Djava.awt.headless=true -Xmx4g"
         run: |
-          GRADLE_ARGS=":app:lintDebug --no-daemon -Djava.awt.headless=true"
-          if [ -f "./gradlew" ]; then
-            chmod +x ./gradlew
-            ./gradlew $GRADLE_ARGS
-          else
-            gradle $GRADLE_ARGS
-          fi
+          chmod +x ./gradlew
+          ./gradlew :app:lintDebug --no-daemon -Djava.awt.headless=true
       - name: Build & Sign Release APK
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/release-upload-key.jks
@@ -87,13 +80,8 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           GRADLE_OPTS: "-Djava.awt.headless=true -Xmx4g"
         run: |
-          GRADLE_ARGS="assembleRelease -PversionName=${{ steps.version_info.outputs.version_name }} -PversionCode=${{ steps.version_info.outputs.version_code }} --no-daemon -Djava.awt.headless=true"
-          if [ -f "./gradlew" ]; then
-            chmod +x ./gradlew
-            ./gradlew $GRADLE_ARGS
-          else
-            gradle $GRADLE_ARGS
-          fi
+          chmod +x ./gradlew
+          ./gradlew assembleRelease -PversionName=${{ steps.version_info.outputs.version_name }} -PversionCode=${{ steps.version_info.outputs.version_code }} --no-daemon -Djava.awt.headless=true
 
       - name: Rename APK
         run: |
