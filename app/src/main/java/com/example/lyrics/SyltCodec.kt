@@ -17,6 +17,9 @@ internal object SyltCodec {
         val stream = ByteArrayOutputStream()
 
         for (line in lines) {
+            // ID3v2.3/v2.4 encoding 1 is UTF-16 with BOM.
+            stream.write(0xFE)
+            stream.write(0xFF)
             val textBytes = line.text.toByteArray(StandardCharsets.UTF_16BE)
             stream.write(textBytes)
             stream.write(0)
