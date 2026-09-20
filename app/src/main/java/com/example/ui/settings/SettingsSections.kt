@@ -1,7 +1,5 @@
 package com.example.ui.settings
 
-package com.example.ui.settings
-
 import androidx.activity.compose.BackHandler
 import android.content.ClipData
 import android.content.ClipboardManager
