@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.data.local.AudioTrackDao
 import com.example.data.local.AudioTrackEntity
 import com.example.data.local.MusicProDatabase
+import com.example.data.scanner.AudioScanner
 import com.example.data.scanner.MediaStoreAudioScanner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -11,7 +12,7 @@ import kotlinx.coroutines.withContext
 
 class AudioRepository(
     private val audioTrackDao: AudioTrackDao,
-    private val scanner: MediaStoreAudioScanner
+    private val scanner: AudioScanner
 ) {
 
     val allTracks: Flow<List<AudioTrackEntity>> = audioTrackDao.getAllTracks()

@@ -16,6 +16,7 @@ import org.jaudiotagger.tag.id3.ID3v24Tag
 import org.jaudiotagger.tag.id3.framebody.FrameBodySYLT
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.IOException
 import java.nio.charset.StandardCharsets
 
 sealed class LyricsSaveResult {
@@ -218,6 +219,7 @@ object Id3SyltWriter {
         lines: List<LyricLine>
     ): LyricsSaveResult {
         var tempFile: File? = null
+        var originalBackup: File? = null
         return try {
             val extension = if (audioFile.name.contains('.')) audioFile.extension else "mp3"
             tempFile = File(context.cacheDir, "tag_edit_${System.currentTimeMillis()}.$extension")
@@ -248,6 +250,12 @@ object Id3SyltWriter {
                 return LyricsSaveResult.Error("Impossible de lire les données du morceau pour l'édition des tags.")
             }
 
+            originalBackup = File(
+                context.cacheDir,
+                "tag_original_" + System.currentTimeMillis() + ".tmp"
+            )
+            tempFile.copyTo(originalBackup, overwrite = true)
+
             val originalSize = tempFile.length()
             val tagResult = tryWriteAudioTags(tempFile, lrcContent, lines)
             if (tagResult !is LyricsSaveResult.TagWriteSuccess) {
@@ -265,7 +273,7 @@ object Id3SyltWriter {
             try {
                 if (audioFile.exists()) {
                     tempFile.copyTo(audioFile, overwrite = true)
-                    writeBackSuccess = true
+                    writeBackSuccess = audioFile.exists() && audioFile.length() == tempFile.length()
                 }
             } catch (e: Exception) {
                 logD(TAG, "Écriture directe FUSE impossible: ${e.message}, tentative ContentResolver")
@@ -274,21 +282,53 @@ object Id3SyltWriter {
             // Méthode B: écriture via ContentResolver OutputStream
             if (!writeBackSuccess && contentUri != null) {
                 try {
-                    context.contentResolver.openOutputStream(contentUri, "wt")?.use { output ->
+                    var bytesWritten = -1L
+                    context.contentResolver.openOutputStream(contentUri, "rwt")?.use { output ->
                         tempFile.inputStream().use { input ->
-                            input.copyTo(output)
+                            bytesWritten = input.copyTo(output)
                         }
+                        output.flush()
+                    } ?: throw IOException("openOutputStream() a retourné null")
+
+                    var verifiedBytes = -1L
+                    context.contentResolver.openInputStream(contentUri)?.use { input ->
+                        val buffer = ByteArray(16 * 1024)
+                        var total = 0L
+                        while (true) {
+                            val read = input.read(buffer)
+                            if (read <= 0) break
+                            total += read
+                            if (total > tempFile.length()) break
+                        }
+                        verifiedBytes = total
                     }
-                    writeBackSuccess = true
+
+                    writeBackSuccess =
+                        bytesWritten == tempFile.length() && verifiedBytes == tempFile.length()
                 } catch (e: Exception) {
                     logE(TAG, "Échec écriture ContentResolver openOutputStream: ${e.message}", e)
+                }
+            }
+
+            if (!writeBackSuccess && originalBackup != null && originalBackup.exists()) {
+                try {
+                    if (audioFile.exists() && audioFile.canWrite()) {
+                        originalBackup.copyTo(audioFile, overwrite = true)
+                    } else if (contentUri != null) {
+                        context.contentResolver.openOutputStream(contentUri, "rwt")?.use { output ->
+                            originalBackup.inputStream().use { input -> input.copyTo(output) }
+                            output.flush()
+                        } ?: throw IOException("Impossible de restaurer le fichier original.")
+                    }
+                } catch (restoreError: Exception) {
+                    logE(TAG, "Échec restauration après écriture incomplète: " + restoreError.message, restoreError)
                 }
             }
 
             if (writeBackSuccess) {
                 LyricsSaveResult.TagWriteSuccess(audioFile.absolutePath, tagResult.tagType, lines.size)
             } else {
-                LyricsSaveResult.Error("Échec de la réécriture du fichier audio modifié.")
+                LyricsSaveResult.Error("Échec de la réécriture vérifiée du fichier audio. Le fichier original est conservé.")
             }
         } catch (e: Throwable) {
             logE(TAG, "Erreur écriture Scoped Storage: ${e.message}", e)
@@ -296,6 +336,7 @@ object Id3SyltWriter {
         } finally {
             try {
                 tempFile?.delete()
+                originalBackup?.delete()
             } catch (_: Exception) {}
         }
     }
@@ -401,11 +442,18 @@ object Id3SyltWriter {
     ): LyricsSaveResult {
         return try {
             val dir = directory ?: return LyricsSaveResult.Error("Dossier de destination introuvable.")
-            if (!dir.exists()) {
-                dir.mkdirs()
+            if (!dir.exists() && !dir.mkdirs()) {
+                return LyricsSaveResult.Error("Impossible de créer le dossier de destination.")
+            }
+            if (!dir.isDirectory) {
+                return LyricsSaveResult.Error("Le chemin de destination nest pas un dossier.")
             }
             val lrcFile = File(dir, "$fileName.lrc")
+            val expectedSize = content.toByteArray(StandardCharsets.UTF_8).size.toLong()
             lrcFile.writeText(content, StandardCharsets.UTF_8)
+            if (!lrcFile.isFile || lrcFile.length() != expectedSize) {
+                return LyricsSaveResult.Error("Le fichier .lrc ne correspond pas aux données écrites.")
+            }
             LyricsSaveResult.LrcFileSuccess(lrcFile.absolutePath, linesCount)
         } catch (e: Exception) {
             logE(TAG, "Erreur écriture fichier .lrc : ${e.message}", e)

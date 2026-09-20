@@ -14,6 +14,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import androidx.media3.session.MediaSession.ConnectionResult.AcceptedResultBuilder
 import com.example.MainActivity
 import com.example.R
 
@@ -27,6 +28,7 @@ import com.example.R
  * - Déconnexion casque/Bluetooth (Audio Becoming Noisy -> pause automatique)
  * - Maintien actif pendant le Doze mode via WakeLock (C.WAKE_MODE_LOCAL)
  */
+@OptIn(UnstableApi::class)
 class MusicPlaybackService : MediaSessionService() {
 
     private var player: ExoPlayer? = null
@@ -74,6 +76,32 @@ class MusicPlaybackService : MediaSessionService() {
         // 4. MediaSession Media3 avec token de session
         mediaSession = MediaSession.Builder(this, exoPlayer)
             .setSessionActivity(pendingIntent)
+            .setCallback(object : MediaSession.Callback {
+                override fun onConnect(
+                    session: MediaSession,
+                    controller: MediaSession.ControllerInfo
+                ): MediaSession.ConnectionResult {
+                    val isLegacyController =
+                        controller.packageName == MediaSession.ControllerInfo.LEGACY_CONTROLLER_PACKAGE_NAME
+                    val isOwnVerifiedController =
+                        controller.packageName == packageName && controller.isPackageNameVerified
+                    val isNotificationController = session.isMediaNotificationController(controller)
+
+                    if (!controller.isTrusted &&
+                        !isOwnVerifiedController &&
+                        !isLegacyController &&
+                        !isNotificationController
+                    ) {
+                        android.util.Log.w(
+                            "MusicPlaybackService",
+                            "MediaSession: contrôleur refusé ${controller.packageName}"
+                        )
+                        return MediaSession.ConnectionResult.reject()
+                    }
+
+                    return AcceptedResultBuilder(session, controller).build()
+                }
+            })
             .build()
 
         // Synchronisation du Widget Glance sur les événements de lecture
@@ -127,7 +155,27 @@ class MusicPlaybackService : MediaSessionService() {
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
-        return mediaSession
+        val session = mediaSession ?: return null
+        val isLegacyController =
+            controllerInfo.packageName == MediaSession.ControllerInfo.LEGACY_CONTROLLER_PACKAGE_NAME
+        val isOwnVerifiedController =
+            controllerInfo.packageName == packageName && controllerInfo.isPackageNameVerified
+        val isNotificationController = session.isMediaNotificationController(controllerInfo)
+
+        return if (
+            controllerInfo.isTrusted ||
+            isOwnVerifiedController ||
+            isLegacyController ||
+            isNotificationController
+        ) {
+            session
+        } else {
+            android.util.Log.w(
+                "MusicPlaybackService",
+                "MediaSession: requête de session refusée pour ${controllerInfo.packageName}"
+            )
+            null
+        }
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {

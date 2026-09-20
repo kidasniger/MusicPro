@@ -55,13 +55,9 @@
         <receiver
             android:name=".widget.MusicWidgetReceiver"
             android:label="@string/widget_name"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.example.musicpro.ACTION_WIDGET_PLAY_PAUSE" />
-                <action android:name="com.example.musicpro.ACTION_WIDGET_NEXT" />
-                <action android:name="com.example.musicpro.ACTION_WIDGET_PREV" />
-                <action android:name="com.example.musicpro.ACTION_WIDGET_UPDATE_STATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"

@@ -57,6 +57,29 @@ jobs:
         with:
           gradle-version: '9.3.1'
 
+      - name: Run unit tests
+        env:
+          GRADLE_OPTS: "-Djava.awt.headless=true -Xmx4g"
+        run: |
+          GRADLE_ARGS=":app:testDebugUnitTest --no-daemon -Djava.awt.headless=true"
+          if [ -f "./gradlew" ]; then
+            chmod +x ./gradlew
+            ./gradlew $GRADLE_ARGS
+          else
+            gradle $GRADLE_ARGS
+          fi
+
+      - name: Run lint
+        env:
+          GRADLE_OPTS: "-Djava.awt.headless=true -Xmx4g"
+        run: |
+          GRADLE_ARGS=":app:lintDebug --no-daemon -Djava.awt.headless=true"
+          if [ -f "./gradlew" ]; then
+            chmod +x ./gradlew
+            ./gradlew $GRADLE_ARGS
+          else
+            gradle $GRADLE_ARGS
+          fi
       - name: Build & Sign Release APK
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/release-upload-key.jks

@@ -11,13 +11,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class MediaStoreAudioScanner(private val context: Context) {
+class MediaStoreAudioScanner(private val context: Context) : AudioScanner {
 
     companion object {
         private const val TAG = "MediaStoreAudioScanner"
     }
 
-    suspend fun scanAudioFiles(): List<AudioTrackEntity> = withContext(Dispatchers.IO) {
+    override suspend fun scanAudioFiles(): List<AudioTrackEntity> = withContext(Dispatchers.IO) {
         val tracksList = mutableListOf<AudioTrackEntity>()
 
         val collectionUri: Uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
