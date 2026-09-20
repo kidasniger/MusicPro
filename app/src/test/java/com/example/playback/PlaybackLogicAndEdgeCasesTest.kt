@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.media3.common.Player
 import androidx.test.core.app.ApplicationProvider
 import com.example.data.local.AudioTrackEntity
+import com.example.groq.GroqTranscriptionManager
 import com.example.ui.audio.AudioViewModel
 import com.example.ui.audio.LibraryTab
 import com.example.ui.audio.LrclibSearchUiState
