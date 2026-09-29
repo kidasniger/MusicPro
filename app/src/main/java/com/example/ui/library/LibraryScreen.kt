@@ -120,6 +120,8 @@ fun LibraryScreen(
     onSelectTab: (LibraryTab) -> Unit,
     onTrackClick: (AudioTrackEntity) -> Unit,
     onToggleFavorite: (Long) -> Unit,
+    onPlayTracks: (List<AudioTrackEntity>, Boolean) -> Unit = { list, _ -> list.firstOrNull()?.let(onTrackClick) },
+    onAddToQueue: (AudioTrackEntity) -> Unit = {},
     onRefreshScan: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -312,7 +314,9 @@ fun LibraryScreen(
                             isPlaying = isPlaying,
                             favorites = favorites,
                             onBack = { selectedAlbum = null },
-                            onPlayAll = { albumTracks.firstOrNull()?.let { onTrackClick(it) } },
+                            onPlayAll = { onPlayTracks(albumTracks, false) },
+                            onShuffle = { onPlayTracks(albumTracks, true) },
+                            onAddToQueue = onAddToQueue,
                             onTrackClick = onTrackClick,
                             onToggleFavorite = onToggleFavorite
                         )
@@ -335,7 +339,9 @@ fun LibraryScreen(
                             isPlaying = isPlaying,
                             favorites = favorites,
                             onBack = { selectedArtist = null },
-                            onPlayAll = { artistTracks.firstOrNull()?.let { onTrackClick(it) } },
+                            onPlayAll = { onPlayTracks(artistTracks, false) },
+                            onShuffle = { onPlayTracks(artistTracks, true) },
+                            onAddToQueue = onAddToQueue,
                             onTrackClick = onTrackClick,
                             onToggleFavorite = onToggleFavorite
                         )
@@ -359,7 +365,9 @@ fun LibraryScreen(
                             isPlaying = isPlaying,
                             favorites = favorites,
                             onBack = { selectedFolder = null },
-                            onPlayAll = { folderTracks.firstOrNull()?.let { onTrackClick(it) } },
+                            onPlayAll = { onPlayTracks(folderTracks, false) },
+                            onShuffle = { onPlayTracks(folderTracks, true) },
+                            onAddToQueue = onAddToQueue,
                             onTrackClick = onTrackClick,
                             onToggleFavorite = onToggleFavorite
                         )
@@ -822,6 +830,8 @@ private fun AlbumDetailView(
     favorites: Set<Long>,
     onBack: () -> Unit,
     onPlayAll: () -> Unit,
+    onShuffle: () -> Unit = {},
+    onAddToQueue: (AudioTrackEntity) -> Unit = {},
     onTrackClick: (AudioTrackEntity) -> Unit,
     onToggleFavorite: (Long) -> Unit
 ) {
@@ -915,8 +925,12 @@ private fun AlbumDetailView(
         }
 
         item {
-            Button(
-                onClick = onPlayAll,
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = onPlayAll,
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                 modifier = Modifier
@@ -939,6 +953,17 @@ private fun AlbumDetailView(
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Lire", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+                androidx.compose.material3.OutlinedButton(
+                    onClick = onShuffle,
+                    enabled = tracks.isNotEmpty(),
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Aléatoire", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
