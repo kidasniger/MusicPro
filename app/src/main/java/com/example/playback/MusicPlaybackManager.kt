@@ -1,6 +1,7 @@
 package com.example.playback
 
 import android.content.ComponentName
+import android.os.Bundle
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
@@ -74,6 +75,15 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
 
     private val _playbackSpeed = MutableStateFlow(1.0f)
     val playbackSpeed: StateFlow<Float> = _playbackSpeed.asStateFlow()
+
+    private val _eqEnabled = MutableStateFlow(false)
+    val eqEnabled: StateFlow<Boolean> = _eqEnabled.asStateFlow()
+
+    private val _eqPreset = MutableStateFlow("Flat")
+    val eqPreset: StateFlow<String> = _eqPreset.asStateFlow()
+
+    private val _eqLevels = MutableStateFlow(listOf(0, 0, 0, 0, 0))
+    val eqLevels: StateFlow<List<Int>> = _eqLevels.asStateFlow()
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
@@ -424,6 +434,57 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
         if (controller.mediaItemCount > 1) {
             controller.removeMediaItems(1, controller.mediaItemCount)
         }
+    }
+
+    fun setEqualizerEnabled(enabled: Boolean) {
+        _eqEnabled.value = enabled
+        sendAudioEffect(AudioEffectCommands.SET_ENABLED, Bundle().apply {
+            putBoolean(AudioEffectCommands.KEY_ENABLED, enabled)
+        })
+    }
+
+    fun setEqualizerPreset(name: String) {
+        val presets = mapOf(
+            "Flat" to -1,
+            "Bass Boost" to 0,
+            "Vocal" to 1,
+            "Rock" to 2,
+            "Classical" to 3,
+            "Hip-Hop" to 4
+        )
+        val preset = presets[name] ?: -1
+        _eqPreset.value = name
+        if (preset >= 0) {
+            sendAudioEffect(AudioEffectCommands.SET_PRESET, Bundle().apply {
+                putShort(AudioEffectCommands.KEY_PRESET, preset.toShort())
+            })
+        } else {
+            _eqLevels.value = listOf(0, 0, 0, 0, 0)
+            sendAudioEffect(AudioEffectCommands.RESET, Bundle.EMPTY)
+        }
+    }
+
+    fun setEqualizerBand(index: Int, levelMb: Int) {
+        val normalizedIndex = index.coerceIn(0, 4)
+        val next = _eqLevels.value.toMutableList()
+        next[normalizedIndex] = levelMb.coerceIn(-1500, 1500)
+        _eqLevels.value = next
+        _eqPreset.value = "Personnalisé"
+        sendAudioEffect(AudioEffectCommands.SET_BAND, Bundle().apply {
+            putInt(AudioEffectCommands.KEY_BAND, normalizedIndex)
+            putShort(AudioEffectCommands.KEY_LEVEL, next[normalizedIndex].toShort())
+        })
+    }
+
+    fun resetEqualizer() {
+        _eqEnabled.value = false
+        _eqPreset.value = "Flat"
+        _eqLevels.value = listOf(0, 0, 0, 0, 0)
+        sendAudioEffect(AudioEffectCommands.RESET, Bundle.EMPTY)
+    }
+
+    private fun sendAudioEffect(command: androidx.media3.session.SessionCommand, args: Bundle) {
+        mediaController?.sendCustomCommand(command, args)
     }
 
     fun setPlaybackSpeed(speed: Float) {
