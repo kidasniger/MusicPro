@@ -439,6 +439,13 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun playPlaylist(list: List<AudioTrackEntity>, shuffle: Boolean = false) {
+        if (list.isEmpty()) return
+        val currentlyShuffle = isShuffleEnabled.value
+        if (currentlyShuffle != shuffle) playbackManager.toggleShuffle()
+        playbackManager.playTrack(list.first(), list)
+    }
+
     fun togglePlayPause() {
         if (currentTrack.value == null) {
             tracks.value.firstOrNull()?.let { playTrack(it) }
