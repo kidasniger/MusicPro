@@ -1,10 +1,10 @@
-name: Build APK
+name: Build & Release APK
 
 on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: musicpro-build-${{ github.ref }}
@@ -77,10 +77,22 @@ jobs:
           path: build_output/*.apk
           retention-days: 14
 
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version_info.outputs.tag_name }}
+          name: "Release ${{ steps.version_info.outputs.tag_name }} (v${{ steps.version_info.outputs.version_name }})"
+          body: |
+            ### Nouveautés et correctifs
+            - APK Release signée générée automatiquement.
+            - Release et tag créés immédiatement après la génération de l'APK.
+          files: build_output/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build Summary
         run: |
-          echo "### APK générée" >> "$GITHUB_STEP_SUMMARY"
+          echo "### APK générée + Release créée" >> "$GITHUB_STEP_SUMMARY"
           echo "- Fichier: MusicPro-${{ steps.version_info.outputs.tag_name }}.apk" >> "$GITHUB_STEP_SUMMARY"
           echo "- Version: ${{ steps.version_info.outputs.version_name }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "La Release et le tag seront créés automatiquement après ce build." >> "$GITHUB_STEP_SUMMARY"
+          echo "- Tag: ${{ steps.version_info.outputs.tag_name }}" >> "$GITHUB_STEP_SUMMARY"
