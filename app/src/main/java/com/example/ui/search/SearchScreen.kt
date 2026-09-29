@@ -82,6 +82,9 @@ fun SearchScreen(
     onFilterChange: (SearchFilter) -> Unit,
     onTrackClick: (AudioTrackEntity) -> Unit,
     onToggleFavorite: (Long) -> Unit,
+    searchHistory: List<String> = emptyList(),
+    onSearchSubmit: (String) -> Unit = {},
+    onClearSearchHistory: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val focusManager = LocalFocusManager.current
@@ -169,7 +172,7 @@ fun SearchScreen(
                     }
                 },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
+                keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus(); onSearchSubmit(query) }),
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -229,6 +232,44 @@ fun SearchScreen(
                     .fillMaxSize()
                     .padding(horizontal = 20.dp, vertical = 12.dp)
             ) {
+                if (searchHistory.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.History, contentDescription = null, tint = MusicProVioletLight, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Recherches récentes", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MusicProTextPrimary)
+                        }
+                        Text(
+                            "Effacer",
+                            fontSize = 11.sp,
+                            color = MusicProTextSecondary,
+                            modifier = Modifier.clickable(onClick = onClearSearchHistory)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        searchHistory.take(6).forEach { historyItem ->
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(MusicProSurfaceVariant)
+                                    .clickable {
+                                        onQueryChange(historyItem)
+                                        onSearchSubmit(historyItem)
+                                    }
+                                    .padding(horizontal = 12.dp, vertical = 7.dp)
+                            ) {
+                                Text(historyItem, fontSize = 12.sp, color = MusicProTextPrimary, maxLines = 1)
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.TrendingUp,
