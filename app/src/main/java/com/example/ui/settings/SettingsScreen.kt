@@ -188,8 +188,6 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            SettingsSectionHeader("IA & Paroles", "Whisper, LRCLIB et traitement synchronisé")
-
             GroqApiKeyCard(
                 apiKeyInput = apiKeyInput,
                 isConfigured = isConfigured,
