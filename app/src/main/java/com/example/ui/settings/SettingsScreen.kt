@@ -190,8 +190,6 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
-
             SettingsSectionHeader("Lecture", "Comportement du lecteur MusicPro")
 
             PlaybackSettingsCard(
@@ -264,6 +262,8 @@ fun SettingsScreen(
                 }
             )
 
+
+            SettingsSectionHeader("Bibliothèque", "Cache, scan et fichiers locaux")
 
             CacheManagementCard(
                 cacheSize = cacheSize,
