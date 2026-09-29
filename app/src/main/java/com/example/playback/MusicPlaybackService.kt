@@ -3,7 +3,6 @@ package com.example.playback
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.media.AudioManager
 import android.media.audiofx.Equalizer
 import android.os.Bundle
 import android.content.Context
@@ -68,14 +67,13 @@ class MusicPlaybackService : MediaSessionService() {
             .setWakeMode(C.WAKE_MODE_LOCAL)
             .build()
 
-        val audioSessionId = AudioManager.generateAudioSessionId()
-        if (audioSessionId != AudioManager.ERROR) {
-            try {
-                exoPlayer.setAudioSessionId(audioSessionId)
-                equalizer = Equalizer(0, audioSessionId)
-            } catch (error: Exception) {
-                android.util.Log.w("MusicPlaybackService", "Égaliseur matériel indisponible: ${error.message}")
+        try {
+            val sessionId = exoPlayer.audioSessionId
+            if (sessionId != androidx.media3.common.C.AUDIO_SESSION_ID_UNSET) {
+                equalizer = Equalizer(0, sessionId)
             }
+        } catch (error: Exception) {
+            android.util.Log.w("MusicPlaybackService", "Égaliseur matériel indisponible: ${error.message}")
         }
 
         player = exoPlayer
@@ -124,7 +122,7 @@ class MusicPlaybackService : MediaSessionService() {
                         .add(AudioEffectCommands.SET_BAND)
                         .add(AudioEffectCommands.RESET)
                         .build()
-                    return AcceptedResultBuilder(session, controller)
+                    return AcceptedResultBuilder(session)
                         .setAvailableSessionCommands(available)
                         .build()
                 }
@@ -153,7 +151,7 @@ class MusicPlaybackService : MediaSessionService() {
                                     val actual = if (count == 1) 0 else
                                         (requested.toFloat() * (count - 1) / 4f).toInt()
                                     val range = eq.bandLevelRange
-                                    val level = args.getShort(AudioEffectCommands.KEY_LEVEL, 0)
+                                    val level = args.getShort(AudioEffectCommands.KEY_LEVEL, 0.toShort())
                                         .coerceIn(range[0], range[1])
                                     eq.setBandLevel(actual.toShort(), level)
                                 }
