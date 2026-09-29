@@ -162,7 +162,7 @@ class MusicPlaybackService : MediaSessionService() {
                                     val range = eq.bandLevelRange
                                     val neutral = 0.coerceIn(range[0].toInt(), range[1].toInt()).toShort()
                                     for (band in 0 until eq.numberOfBands) {
-                                        eq.setBandLevel(band, neutral)
+                                        eq.setBandLevel(band.toShort(), neutral)
                                     }
                                 }
                             }
