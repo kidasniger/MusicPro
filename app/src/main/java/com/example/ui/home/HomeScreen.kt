@@ -595,6 +595,60 @@ fun HomeScreen(
         )
     }
 
+    if (isFavoritesOpen) {
+        FavoritesScreen(
+            tracks = tracks,
+            favorites = favorites,
+            currentTrack = currentTrack,
+            isPlaying = isPlaying,
+            onPlayAll = { audioViewModel.playPlaylist(tracks.filter { favorites.contains(it.id) }) },
+            onShuffle = { audioViewModel.playPlaylist(tracks.filter { favorites.contains(it.id) }, shuffle = true) },
+            onTrackClick = { audioViewModel.playTrack(it, tracks.filter { tr -> favorites.contains(tr.id) }) },
+            onToggleFavorite = { audioViewModel.toggleFavorite(it) },
+            onAddToQueue = { audioViewModel.addToQueue(it) },
+            onBack = { isFavoritesOpen = false },
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+
+    if (isQueueOpen) {
+        QueueSheet(
+            queue = queue,
+            currentIndex = queueIndex,
+            isPlaying = isPlaying,
+            onPlayTrack = { audioViewModel.playTrack(it, queue) },
+            onRemove = { audioViewModel.removeFromQueue(it) },
+            onMove = { from, to -> audioViewModel.moveQueueItem(from, to) },
+            onClear = { audioViewModel.clearQueue() },
+            onClose = { isQueueOpen = false }
+        )
+    }
+
+    if (isEqualizerOpen) {
+        EqualizerSheet(
+            enabled = eqEnabled,
+            preset = eqPreset,
+            levels = eqLevels,
+            onEnabledChange = { audioViewModel.setEqualizerEnabled(it) },
+            onPresetChange = { audioViewModel.setEqualizerPreset(it) },
+            onBandChange = { index, value -> audioViewModel.setEqualizerBand(index, value) },
+            onReset = { audioViewModel.resetEqualizer() },
+            onClose = { isEqualizerOpen = false }
+        )
+    }
+
+    if (isKaraokeSettingsOpen) {
+        KaraokeSettingsDialog(
+            fontSize = karaokeFontSize,
+            activeColor = karaokeActiveColor,
+            offsetMs = karaokeOffsetMs,
+            onFontSizeChange = { audioViewModel.setKaraokeFontSize(it) },
+            onColorChange = { audioViewModel.setKaraokeActiveColor(it) },
+            onOffsetChange = { audioViewModel.setKaraokeOffsetMs(it) },
+            onDismiss = { isKaraokeSettingsOpen = false }
+        )
+    }
+
     // Dialogue d'alerte de nouvelle mise à jour disponible au lancement
     val currentUpdate = updateCheckState
     if (currentUpdate is UpdateCheckState.UpdateAvailable && !isUpdateDialogDismissed) {
