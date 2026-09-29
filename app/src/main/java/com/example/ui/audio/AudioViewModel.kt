@@ -55,6 +55,7 @@ sealed class LrclibSearchUiState {
 
 enum class LibraryTab(val label: String) {
     TRACKS("Morceaux"),
+    FAVORITES("Favoris"),
     PLAYLISTS("Playlists"),
     ALBUMS("Albums"),
     ARTISTS("Artistes"),
