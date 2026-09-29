@@ -1,13 +1,13 @@
-name: Build & Release APK
+name: Build APK
 
 on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: musicpro-release-${{ github.ref }}
+  group: musicpro-build-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -45,12 +45,12 @@ jobs:
           if [ -z "$BASE_VERSION" ]; then
             BASE_VERSION="1.0"
           fi
-          VERSION_NAME="${BASE_VERSION}-b${{ github.run_number }}"
+          VERSION_NAME="$BASE_VERSION-b${{ github.run_number }}"
           VERSION_CODE="${{ github.run_number }}"
-          TAG_NAME="v${VERSION_NAME}"
-          echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
-          echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
-          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          TAG_NAME="v$VERSION_NAME"
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
@@ -68,24 +68,19 @@ jobs:
       - name: Rename APK
         run: |
           mkdir -p build_output
-          cp app/build/outputs/apk/release/*.apk build_output/MusicPro-${{ steps.version_info.outputs.tag_name }}.apk
+          cp app/build/outputs/apk/release/*.apk "build_output/MusicPro-${{ steps.version_info.outputs.tag_name }}.apk"
 
-      - name: Upload Artifact
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release-signed
           path: build_output/*.apk
           retention-days: 14
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.version_info.outputs.tag_name }}
-          name: "Release ${{ steps.version_info.outputs.tag_name }} (v${{ steps.version_info.outputs.version_name }})"
-          body: |
-            ### Nouveautés et correctifs :
-            - ${{ github.event.head_commit.message || github.event.workflow_dispatch.inputs.release_notes || 'Améliorations des performances et corrections de bugs.' }}
-            - Build signé généré manuellement depuis le workflow de release.
-          files: build_output/*.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build Summary
+        run: |
+          echo "### APK générée" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Fichier: MusicPro-${{ steps.version_info.outputs.tag_name }}.apk" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Version: ${{ steps.version_info.outputs.version_name }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "La Release et le tag seront créés automatiquement après ce build." >> "$GITHUB_STEP_SUMMARY"

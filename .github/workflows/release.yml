@@ -1,0 +1,76 @@
+name: Release après génération APK
+
+on:
+  workflow_run:
+    workflows: ["Build APK"]
+    types: [completed]
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: musicpro-release-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download APK générée
+        uses: actions/download-artifact@v4
+        with:
+          name: app-release-signed
+          path: release
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Préparer la Release
+        id: prepare
+        shell: bash
+        run: |
+          APK_PATH=$(find release -type f -name '*.apk' | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            echo "Aucune APK trouvée dans l'artifact app-release-signed." >&2
+            exit 1
+          fi
+
+          APK_NAME=$(basename "$APK_PATH")
+          TAG_NAME=$(echo "$APK_NAME" | sed -E 's/^MusicPro-(.*)\.apk$/\1/')
+          if [ -z "$TAG_NAME" ] || [ "$TAG_NAME" = "$APK_NAME" ]; then
+            echo "Impossible de déterminer le tag à partir de $APK_NAME" >&2
+            exit 1
+          fi
+
+          VERSION_NAME=$(echo "$TAG_NAME" | cut -c2-)
+
+          echo "apk_path=$APK_PATH" >> "$GITHUB_OUTPUT"
+          echo "apk_name=$APK_NAME" >> "$GITHUB_OUTPUT"
+          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Créer Release + Tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APK_PATH: $PREPARE_APK_PATH
+          TAG_NAME: $PREPARE_TAG_NAME
+          VERSION_NAME: $PREPARE_VERSION_NAME
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          gh release create "$TAG_NAME" "$APK_PATH" \
+            --repo "${{ github.repository }}" \
+            --target "$HEAD_SHA" \
+            --title "Release $TAG_NAME (v$VERSION_NAME)" \
+            --notes "### Nouveautés et correctifs
+
+- Build Release signé généré automatiquement.
+- APK créée par le workflow Build APK.
+- Release et tag créés automatiquement après génération de l'APK."
+
+      - name: Résumé
+        run: |
+          echo "### Release créée" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Tag: $PREPARE_TAG_NAME" >> "$GITHUB_STEP_SUMMARY"
+          echo "- APK: $PREPARE_APK_NAME" >> "$GITHUB_STEP_SUMMARY"
