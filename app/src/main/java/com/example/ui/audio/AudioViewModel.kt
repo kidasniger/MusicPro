@@ -252,6 +252,7 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
                     SearchFilter.TITLES -> track.title.lowercase().contains(q)
                     SearchFilter.ARTISTS -> track.artist.lowercase().contains(q)
                     SearchFilter.ALBUMS -> track.album.lowercase().contains(q)
+                    SearchFilter.PLAYLISTS -> false
                 }
             }
         }
