@@ -16,6 +16,7 @@ import com.example.data.local.AudioTrackEntity
 import com.example.data.local.PlaylistSummary
 import com.example.data.repository.AudioRepository
 import com.example.data.repository.PlaylistRepository
+import com.example.data.preferences.UserPreferencesRepository
 import com.example.groq.GroqTranscriptionResult
 import com.example.lyrics.LrcParser
 import com.example.lyrics.LyricsData
@@ -91,6 +92,7 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = AudioRepository.getInstance(application)
     private val playlistRepository = PlaylistRepository.getInstance(application)
+    private val preferencesRepository = UserPreferencesRepository(application)
 
     // Playlists gérées via Room Database
     val playlists: StateFlow<List<PlaylistSummary>> = playlistRepository.getPlaylistSummaries()
@@ -157,8 +159,21 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     private val _searchFilter = MutableStateFlow(SearchFilter.ALL)
     val searchFilter: StateFlow<SearchFilter> = _searchFilter.asStateFlow()
 
-    private val _favorites = MutableStateFlow<Set<Long>>(emptySet())
-    val favorites: StateFlow<Set<Long>> = _favorites.asStateFlow()
+    val favorites: StateFlow<Set<Long>> = preferencesRepository.favoriteTrackIds
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    private val _searchHistory = MutableStateFlow<List<String>>(emptyList())
+    val searchHistory: StateFlow<List<String>> = _searchHistory.asStateFlow()
+
+    val queue: StateFlow<List<AudioTrackEntity>> = playbackManager.queue
+    val queueIndex: StateFlow<Int> = playbackManager.queueIndex
+
+    val karaokeFontSize: StateFlow<Float> = preferencesRepository.karaokeFontSize
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 18f)
+    val karaokeActiveColor: StateFlow<String> = preferencesRepository.karaokeActiveColor
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "cyan")
+    val karaokeOffsetMs: StateFlow<Long> = preferencesRepository.karaokeOffsetMs
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
 
     // Gestionnaire de lecture Media3 (Foreground Service, Audio Focus, MediaStyle notification)
     private val playbackManager = MusicPlaybackManager.getInstance(application)
@@ -293,6 +308,10 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     init {
+        viewModelScope.launch {
+            preferencesRepository.searchHistory.collect { _searchHistory.value = it }
+        }
+
         // Au démarrage, on lit d'abord Room. Un scan MediaStore n'est effectué
         // automatiquement que si la bibliothèque locale est réellement vide.
         // Aucun nettoyage destructif n'est lancé à chaque ouverture de l'application.
