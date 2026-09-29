@@ -569,6 +569,23 @@ fun HomeScreen(
                 },
                 onOpenAddTracks = {
                     isAddTracksToPlaylistOpen = true
+                },
+                onShare = {
+                    val shareText = buildString {
+                        append(pl.name)
+                        if (pl.description.isNotBlank()) append("\n\n").append(pl.description)
+                        if (selectedPlaylistTracks.isNotEmpty()) {
+                            append("\n\n")
+                            selectedPlaylistTracks.forEachIndexed { index, track ->
+                                append(index + 1).append(". ").append(track.title).append(" — ").append(track.artist).append("\n")
+                            }
+                        }
+                    }
+                    val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(android.content.Intent.EXTRA_TEXT, shareText)
+                    }
+                    context.startActivity(android.content.Intent.createChooser(shareIntent, "Partager la playlist"))
                 }
             )
         }
