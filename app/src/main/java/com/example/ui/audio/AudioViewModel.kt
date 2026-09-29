@@ -384,12 +384,50 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun toggleFavorite(trackId: Long) {
-        val current = _favorites.value
-        if (current.contains(trackId)) {
-            _favorites.value = current - trackId
-        } else {
-            _favorites.value = current + trackId
+        viewModelScope.launch {
+            val current = favorites.value
+            val next = if (current.contains(trackId)) current - trackId else current + trackId
+            preferencesRepository.setFavoriteTrackIds(next)
         }
+    }
+
+    fun addSearchToHistory(query: String) {
+        val value = query.trim()
+        if (value.isBlank()) return
+        viewModelScope.launch {
+            val current = _searchHistory.value.toMutableList()
+            current.removeAll { it.equals(value, ignoreCase = true) }
+            current.add(0, value)
+            preferencesRepository.setSearchHistory(current.take(12))
+        }
+    }
+
+    fun clearSearchHistory() {
+        viewModelScope.launch { preferencesRepository.setSearchHistory(emptyList()) }
+    }
+
+    fun addToQueue(track: AudioTrackEntity, playNext: Boolean = false) =
+        playbackManager.addToQueue(track, playNext)
+
+    fun removeFromQueue(index: Int) =
+        playbackManager.removeFromQueue(index)
+
+    fun moveQueueItem(from: Int, to: Int) =
+        playbackManager.moveQueueItem(from, to)
+
+    fun clearQueue() =
+        playbackManager.clearQueue()
+
+    fun setKaraokeFontSize(size: Float) {
+        viewModelScope.launch { preferencesRepository.setKaraokeFontSize(size) }
+    }
+
+    fun setKaraokeActiveColor(value: String) {
+        viewModelScope.launch { preferencesRepository.setKaraokeActiveColor(value) }
+    }
+
+    fun setKaraokeOffsetMs(value: Long) {
+        viewModelScope.launch { preferencesRepository.setKaraokeOffsetMs(value) }
     }
 
     fun playTrack(track: AudioTrackEntity, playlist: List<AudioTrackEntity> = tracks.value) {
