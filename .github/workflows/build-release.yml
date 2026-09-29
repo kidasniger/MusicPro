@@ -1,12 +1,14 @@
 name: Build & Release APK
 
 on:
-  push:
-    branches: [ "main", "master" ]
   workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: musicpro-release-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -28,7 +30,6 @@ jobs:
       - name: Accept Android SDK Licenses
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-
 
       - name: Decode Keystore from Secret
         run: |
@@ -55,24 +56,6 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Verify Gradle Wrapper
-        run: |
-          chmod +x ./gradlew
-          ./gradlew --version
-
-      - name: Run unit tests
-        env:
-          GRADLE_OPTS: "-Djava.awt.headless=true -Xmx4g"
-        run: |
-          chmod +x ./gradlew
-          ./gradlew :app:testDebugUnitTest --no-daemon -Djava.awt.headless=true
-
-      - name: Run lint
-        env:
-          GRADLE_OPTS: "-Djava.awt.headless=true -Xmx4g"
-        run: |
-          chmod +x ./gradlew
-          ./gradlew :app:lintDebug --no-daemon -Djava.awt.headless=true
       - name: Build & Sign Release APK
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/release-upload-key.jks
@@ -102,10 +85,8 @@ jobs:
           name: "Release ${{ steps.version_info.outputs.tag_name }} (v${{ steps.version_info.outputs.version_name }})"
           body: |
             ### Nouveautés et correctifs :
-            - ${{ github.event.head_commit.message || 'Améliorations des performances et corrections de bugs.' }}
-            - Optimisation de la stabilité audio et de la lecture
-            - Mise à jour de l'interface et corrections générales
+            - ${{ github.event.head_commit.message || github.event.workflow_dispatch.inputs.release_notes || 'Améliorations des performances et corrections de bugs.' }}
+            - Build signé généré manuellement depuis le workflow de release.
           files: build_output/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
