@@ -16,6 +16,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -88,6 +89,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -344,9 +346,40 @@ fun NowPlayingScreen(
                     else -> 245.dp
                 }
 
+                var gestureDx by remember { mutableFloatStateOf(0f) }
+                var gestureDy by remember { mutableFloatStateOf(0f) }
+
                 Box(
                     modifier = Modifier
                         .size(vinylSize)
+                        .pointerInput(track?.id) {
+                            detectDragGestures(
+                                onDragStart = {
+                                    gestureDx = 0f
+                                    gestureDy = 0f
+                                },
+                                onDrag = { change, dragAmount ->
+                                    change.consume()
+                                    gestureDx += dragAmount.x
+                                    gestureDy += dragAmount.y
+                                },
+                                onDragEnd = {
+                                    when {
+                                        gestureDy < -90f -> onOpenQueue()
+                                        gestureDy > 90f -> onBack()
+                                        gestureDx > 90f -> onPrevious()
+                                        gestureDx < -90f -> onNext()
+                                        else -> onPlayPause()
+                                    }
+                                    gestureDx = 0f
+                                    gestureDy = 0f
+                                },
+                                onDragCancel = {
+                                    gestureDx = 0f
+                                    gestureDy = 0f
+                                }
+                            )
+                        }
                         .shadow(
                             elevation = 20.dp,
                             shape = CircleShape,
