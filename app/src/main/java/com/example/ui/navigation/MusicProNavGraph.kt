@@ -36,6 +36,9 @@ fun MusicProNavGraph(
     onRequestPermissions: (Map<String, Boolean>) -> Unit,
     onManualCheck: () -> Unit,
     initialOpenNowPlaying: Boolean = false,
+    initialOpenQueue: Boolean = false,
+    initialOpenLyrics: Boolean = false,
+    mediaUiRequestId: Long = 0L,
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController()
 ) {
@@ -142,6 +145,9 @@ fun MusicProNavGraph(
         composable(Destinations.HOME) {
             HomeScreen(
                 initialOpenNowPlaying = initialOpenNowPlaying,
+                initialOpenQueue = initialOpenQueue,
+                initialOpenLyrics = initialOpenLyrics,
+                mediaUiRequestId = mediaUiRequestId,
                 onOpenSettings = {
                     navController.navigate(Destinations.SETTINGS)
                 },

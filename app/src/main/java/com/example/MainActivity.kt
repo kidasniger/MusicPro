@@ -1,6 +1,7 @@
 package com.example
 
 import android.os.Bundle
+import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -9,6 +10,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -29,16 +33,20 @@ import androidx.compose.material3.MaterialTheme
 
 class MainActivity : ComponentActivity() {
 
+  private val mediaUiRequestState = mutableStateOf<Pair<String, Long>?>(null)
+
   private val permissionViewModel: PermissionViewModel by viewModels()
   private val onboardingViewModel: OnboardingViewModel by viewModels()
   private val settingsViewModel: SettingsViewModel by viewModels()
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    mediaUiRequestState.value = readMediaUiRequest(intent)
     enableEdgeToEdge()
 
     setContent {
       val currentThemeMode by settingsViewModel.themeMode.collectAsStateWithLifecycle()
+      val mediaUiRequest by mediaUiRequestState
       val isDynamicColor by settingsViewModel.isDynamicColor.collectAsStateWithLifecycle()
 
       MusicProTheme(themeMode = currentThemeMode, dynamicColor = isDynamicColor) {
@@ -69,6 +77,9 @@ class MainActivity : ComponentActivity() {
             uiState = uiState,
             isOnboardingCompleted = isOnboardingCompleted,
             initialOpenNowPlaying = openNowPlaying,
+            initialOpenQueue = mediaUiRequest?.first == MusicPlaybackService.ACTION_SHOW_QUEUE,
+            initialOpenLyrics = mediaUiRequest?.first == MusicPlaybackService.ACTION_SHOW_LYRICS,
+            mediaUiRequestId = mediaUiRequest?.second ?: 0L,
             onCompleteOnboarding = {
               onboardingViewModel.completeOnboarding()
             },
@@ -82,6 +93,23 @@ class MainActivity : ComponentActivity() {
         }
       }
     }
+  }
+
+  override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    setIntent(intent)
+    mediaUiRequestState.value = readMediaUiRequest(intent)
+  }
+
+  private fun readMediaUiRequest(intent: Intent?): Pair<String, Long>? {
+    val action = intent?.action ?: return null
+    if (action != MusicPlaybackService.ACTION_SHOW_NOW_PLAYING &&
+        action != MusicPlaybackService.ACTION_SHOW_QUEUE &&
+        action != MusicPlaybackService.ACTION_SHOW_LYRICS
+    ) {
+      return null
+    }
+    return action to intent.getLongExtra(MusicPlaybackService.EXTRA_REQUEST_ID, System.nanoTime())
   }
 }
 

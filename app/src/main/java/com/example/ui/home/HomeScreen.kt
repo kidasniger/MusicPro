@@ -145,6 +145,9 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
     onOpenOnboarding: () -> Unit = {},
     initialOpenNowPlaying: Boolean = false,
+    initialOpenQueue: Boolean = false,
+    initialOpenLyrics: Boolean = false,
+    mediaUiRequestId: Long = 0L,
     audioViewModel: AudioViewModel = viewModel(),
     settingsViewModel: SettingsViewModel = viewModel(),
     modifier: Modifier = Modifier
@@ -158,6 +161,28 @@ fun HomeScreen(
     var isQueueOpen by remember { mutableStateOf(false) }
     var isEqualizerOpen by remember { mutableStateOf(false) }
     var isKaraokeSettingsOpen by remember { mutableStateOf(false) }
+
+    // Ouvre l'écran demandé depuis la notification, y compris lorsque l'application
+    // était déjà ouverte et reçoit un nouvel Intent via onNewIntent().
+    LaunchedEffect(mediaUiRequestId) {
+        when {
+            initialOpenQueue -> {
+                isNowPlayingOpen = false
+                isLyricsOpen = false
+                isQueueOpen = true
+            }
+            initialOpenLyrics -> {
+                isNowPlayingOpen = false
+                isQueueOpen = false
+                isLyricsOpen = true
+            }
+            initialOpenNowPlaying -> {
+                isLyricsOpen = false
+                isQueueOpen = false
+                isNowPlayingOpen = true
+            }
+        }
+    }
 
     // État et vérification automatique des mises à jour au démarrage
     val updateCheckState by settingsViewModel.updateCheckState.collectAsStateWithLifecycle()

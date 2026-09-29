@@ -10,11 +10,13 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Process
+import android.os.SystemClock
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.CommandButton
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
@@ -25,6 +27,13 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.Futures
 import com.example.MainActivity
 import com.example.R
+import com.example.data.preferences.UserPreferencesRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 /**
  * Service Media3 de lecture audio en arrière-plan avec MediaSession.
@@ -42,11 +51,24 @@ class MusicPlaybackService : MediaSessionService() {
     private var player: ExoPlayer? = null
     private var mediaSession: MediaSession? = null
     private var equalizer: Equalizer? = null
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val preferencesRepository by lazy { UserPreferencesRepository(applicationContext) }
+    private var favoriteTrackIds: Set<Long> = emptySet()
 
     companion object {
         const val NOTIFICATION_CHANNEL_ID = "musicpro_playback_channel"
         const val NOTIFICATION_ID = 1001
+
         const val ACTION_SHOW_NOW_PLAYING = "com.example.musicpro.ACTION_SHOW_NOW_PLAYING"
+        const val ACTION_SHOW_QUEUE = "com.example.musicpro.ACTION_SHOW_QUEUE"
+        const val ACTION_SHOW_LYRICS = "com.example.musicpro.ACTION_SHOW_LYRICS"
+        const val EXTRA_REQUEST_ID = "musicpro_request_id"
+
+        const val ACTION_TOGGLE_FAVORITE = "com.example.musicpro.ACTION_TOGGLE_FAVORITE"
+        const val ACTION_OPEN_QUEUE = "com.example.musicpro.ACTION_OPEN_QUEUE"
+        const val ACTION_OPEN_LYRICS = "com.example.musicpro.ACTION_OPEN_LYRICS"
+
+        private const val TAG = "MusicPlaybackService"
     }
 
     @OptIn(UnstableApi::class)
@@ -78,6 +100,14 @@ class MusicPlaybackService : MediaSessionService() {
         }
 
         player = exoPlayer
+
+        // Synchronisation des favoris avec le bouton cœur de la notification.
+        serviceScope.launch {
+            preferencesRepository.favoriteTrackIds.collectLatest { ids ->
+                favoriteTrackIds = ids
+                updateNotificationButtons()
+            }
+        }
 
         // 3. PendingIntent pour réouvrir l'application directement sur l'écran de lecture
         val intent = Intent(this, MainActivity::class.java).apply {
@@ -122,10 +152,17 @@ class MusicPlaybackService : MediaSessionService() {
                         .add(AudioEffectCommands.SET_PRESET)
                         .add(AudioEffectCommands.SET_BAND)
                         .add(AudioEffectCommands.RESET)
+                        .add(SessionCommand(ACTION_TOGGLE_FAVORITE, Bundle.EMPTY))
+                        .add(SessionCommand(ACTION_OPEN_QUEUE, Bundle.EMPTY))
+                        .add(SessionCommand(ACTION_OPEN_LYRICS, Bundle.EMPTY))
                         .build()
-                    return AcceptedResultBuilder(session)
+
+                    val acceptedBuilder = AcceptedResultBuilder(session)
                         .setAvailableSessionCommands(available)
-                        .build()
+                    if (isNotificationController) {
+                        acceptedBuilder.setMediaButtonPreferences(buildNotificationButtons())
+                    }
+                    return acceptedBuilder.build()
                 }
 
                 @SuppressLint("WrongConstant")
@@ -168,6 +205,9 @@ class MusicPlaybackService : MediaSessionService() {
                                     }
                                 }
                             }
+                            ACTION_TOGGLE_FAVORITE -> toggleCurrentFavorite()
+                            ACTION_OPEN_QUEUE -> openMediaUi(ACTION_SHOW_QUEUE)
+                            ACTION_OPEN_LYRICS -> openMediaUi(ACTION_SHOW_LYRICS)
                         }
                         Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
                     } catch (error: Exception) {
@@ -185,6 +225,7 @@ class MusicPlaybackService : MediaSessionService() {
             }
 
             override fun onMediaItemTransition(mediaItem: androidx.media3.common.MediaItem?, reason: Int) {
+                updateNotificationButtons()
                 notifyWidgetUpdate(exoPlayer, exoPlayer.isPlaying)
             }
 
@@ -206,6 +247,50 @@ class MusicPlaybackService : MediaSessionService() {
             .build()
 
         setMediaNotificationProvider(notificationProvider)
+    }
+
+    private fun buildNotificationButtons(): List<CommandButton> {
+        val isFavorite = player?.currentMediaItem?.mediaId?.toLongOrNull()?.let(favoriteTrackIds::contains) == true
+
+        return listOf(
+            CommandButton.Builder(
+                if (isFavorite) CommandButton.ICON_HEART_FILLED else CommandButton.ICON_HEART_UNFILLED
+            )
+                .setDisplayName(if (isFavorite) "Retirer des favoris" else "Ajouter aux favoris")
+                .setSessionCommand(SessionCommand(ACTION_TOGGLE_FAVORITE, Bundle.EMPTY))
+                .build(),
+            CommandButton.Builder(CommandButton.ICON_QUEUE_ADD)
+                .setDisplayName("Ouvrir la file d'attente")
+                .setSessionCommand(SessionCommand(ACTION_OPEN_QUEUE, Bundle.EMPTY))
+                .build(),
+            CommandButton.Builder(CommandButton.ICON_SUBTITLES)
+                .setDisplayName("Ouvrir les paroles")
+                .setSessionCommand(SessionCommand(ACTION_OPEN_LYRICS, Bundle.EMPTY))
+                .build()
+        )
+    }
+
+    private fun updateNotificationButtons() {
+        mediaSession?.setMediaButtonPreferences(buildNotificationButtons())
+    }
+
+    private fun toggleCurrentFavorite() {
+        val trackId = player?.currentMediaItem?.mediaId?.toLongOrNull() ?: return
+        serviceScope.launch(Dispatchers.IO) {
+            val next = favoriteTrackIds.toMutableSet().apply {
+                if (!add(trackId)) remove(trackId)
+            }
+            preferencesRepository.setFavoriteTrackIds(next)
+        }
+    }
+
+    private fun openMediaUi(action: String) {
+        val intent = Intent(this, MainActivity::class.java).apply {
+            this.action = action
+            putExtra(EXTRA_REQUEST_ID, SystemClock.uptimeMillis())
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        startActivity(intent)
     }
 
     private fun notifyWidgetUpdate(player: ExoPlayer, isPlaying: Boolean) {
@@ -260,6 +345,7 @@ class MusicPlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        serviceScope.cancel()
         mediaSession?.run {
             player.release()
             release()
