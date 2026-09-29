@@ -11,6 +11,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -67,6 +68,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -281,7 +283,8 @@ fun LibraryScreen(
                         isPlaying = isPlaying,
                         favorites = favorites,
                         onTrackClick = onTrackClick,
-                        onToggleFavorite = onToggleFavorite
+                        onToggleFavorite = onToggleFavorite,
+                        onAddToQueue = onAddToQueue
                     )
                 }
                 LibraryTab.FAVORITES -> {
@@ -291,7 +294,8 @@ fun LibraryScreen(
                         isPlaying = isPlaying,
                         favorites = favorites,
                         onTrackClick = onTrackClick,
-                        onToggleFavorite = onToggleFavorite
+                        onToggleFavorite = onToggleFavorite,
+                        onAddToQueue = onAddToQueue
                     )
                 }
                 LibraryTab.PLAYLISTS -> {
@@ -393,7 +397,8 @@ private fun TracksList(
     isPlaying: Boolean,
     favorites: Set<Long>,
     onTrackClick: (AudioTrackEntity) -> Unit,
-    onToggleFavorite: (Long) -> Unit
+    onToggleFavorite: (Long) -> Unit,
+    onAddToQueue: (AudioTrackEntity) -> Unit = {}
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -410,7 +415,9 @@ private fun TracksList(
                 isPlaying = isPlaying,
                 isFavorite = isFav,
                 onClick = { onTrackClick(track) },
-                onToggleFavorite = { onToggleFavorite(track.id) }
+                onToggleFavorite = { onToggleFavorite(track.id) },
+                onSwipeLeft = { onAddToQueue(track) },
+                onSwipeRight = { onToggleFavorite(track.id) }
             )
         }
     }
@@ -425,11 +432,30 @@ fun TrackRowItem(
     isFavorite: Boolean,
     onClick: () -> Unit,
     onToggleFavorite: () -> Unit,
+    onSwipeLeft: () -> Unit = {},
+    onSwipeRight: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .pointerInput(track.id) {
+                var drag = 0f
+                detectHorizontalDragGestures(
+                    onHorizontalDrag = { change, amount ->
+                        change.consume()
+                        drag += amount
+                    },
+                    onDragEnd = {
+                        when {
+                            drag < -90f -> onSwipeLeft()
+                            drag > 90f -> onSwipeRight()
+                        }
+                        drag = 0f
+                    },
+                    onDragCancel = { drag = 0f }
+                )
+            }
             .clickable(onClick = onClick)
             .background(
                 if (isCurrent) MusicProSurfaceElevated.copy(alpha = 0.9f)
