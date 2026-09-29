@@ -288,7 +288,9 @@ class MusicPlaybackService : MediaSessionService() {
         val intent = Intent(this, MainActivity::class.java).apply {
             this.action = action
             putExtra(EXTRA_REQUEST_ID, SystemClock.uptimeMillis())
-            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
         startActivity(intent)
     }
