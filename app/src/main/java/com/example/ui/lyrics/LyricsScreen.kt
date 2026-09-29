@@ -143,6 +143,10 @@ fun LyricsScreen(
     groqErrorMessage: String? = null,
     onClearGroqError: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
+    karaokeFontSize: Float = 18f,
+    karaokeActiveColor: String = "cyan",
+    karaokeOffsetMs: Long = 0L,
+    onOpenKaraokeSettings: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
@@ -188,8 +192,9 @@ fun LyricsScreen(
     }
 
     // Calcul réactif de l'index de la ligne active selon ExoPlayer.currentPosition
-    val activeLineIndex by remember(lyricsData, currentPositionMs) {
-        derivedStateOf { lyricsData.findActiveLineIndex(currentPositionMs) }
+    val effectiveKaraokePosition = (currentPositionMs - karaokeOffsetMs).coerceAtLeast(0L)
+    val activeLineIndex by remember(lyricsData, effectiveKaraokePosition) {
+        derivedStateOf { lyricsData.findActiveLineIndex(effectiveKaraokePosition) }
     }
 
     // Scroll automatique fluide centré sur la ligne active
@@ -340,7 +345,7 @@ fun LyricsScreen(
                                     isPast = isPast,
                                     onClick = {
                                         registerInteraction()
-                                        onSeekTo(line.timeMs)
+                                        onSeekTo((line.timeMs + karaokeOffsetMs).coerceAtLeast(0L))
                                     }
                                 )
                             }
