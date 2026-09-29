@@ -284,6 +284,10 @@ fun HomeScreen(
             trackForAddToPlaylistChooser != null -> {
                 trackForAddToPlaylistChooser = null
             }
+            isKaraokeSettingsOpen -> isKaraokeSettingsOpen = false
+            isEqualizerOpen -> isEqualizerOpen = false
+            isQueueOpen -> isQueueOpen = false
+            isFavoritesOpen -> isFavoritesOpen = false
             selectedPlaylist != null -> {
                 audioViewModel.selectPlaylist(null)
             }
