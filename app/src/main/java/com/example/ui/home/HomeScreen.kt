@@ -851,7 +851,7 @@ private fun HomeExplorerContent(
                     modifier = Modifier.weight(1f)
                 ) {
                     Row(Modifier.padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Favorite, null, tint = Color(0xFFFF4081), modifier = Modifier.size(19.dp))
+                        Text("♥", fontSize = 20.sp, color = Color(0xFFFF4081))
                         Spacer(Modifier.width(8.dp))
                         Column {
                             Text("Favoris", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
