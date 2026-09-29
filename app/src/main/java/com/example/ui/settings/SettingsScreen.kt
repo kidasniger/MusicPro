@@ -129,6 +129,9 @@ fun SettingsScreen(
     // États du ViewModel (Thème, Dynamic Color, Cache)
     val currentTheme by settingsViewModel.themeMode.collectAsStateWithLifecycle()
     val isDynamicColor by settingsViewModel.isDynamicColor.collectAsStateWithLifecycle()
+    val autoPlay by settingsViewModel.autoPlay.collectAsStateWithLifecycle()
+    val gaplessPlayback by settingsViewModel.gaplessPlayback.collectAsStateWithLifecycle()
+    val resumePlayback by settingsViewModel.resumePlayback.collectAsStateWithLifecycle()
     val cacheSize by settingsViewModel.cacheSize.collectAsStateWithLifecycle()
     val isClearingCache by settingsViewModel.isClearingCache.collectAsStateWithLifecycle()
     val isCleaningLibrary by settingsViewModel.isCleaningLibrary.collectAsStateWithLifecycle()
@@ -176,7 +179,8 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            // Section 1 : Personnalisation & Thème
+            SettingsSectionHeader("Apparence", "Thème et couleurs de MusicPro")
+
             ThemeSelectionCard(
                 currentTheme = currentTheme,
                 onThemeSelected = { settingsViewModel.setThemeMode(it) },
@@ -253,7 +257,8 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Section 3 : Stockage & Cache local
+            SettingsSectionHeader("Bibliothèque", "Cache, scan et fichiers locaux")
+
             CacheManagementCard(
                 cacheSize = cacheSize,
                 isClearing = isClearingCache,
@@ -267,7 +272,8 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Section 4 : Mises à jour de l'application (GitHub Releases)
+            SettingsSectionHeader("Mises à jour", "Version et installation des releases")
+
             AppUpdateCard(
                 currentVersion = settingsViewModel.currentVersionName,
                 updateCheckState = updateCheckState,
@@ -283,12 +289,14 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Section 5 : À propos de MusicPro
+            SettingsSectionHeader("À propos", "Informations techniques et confidentialité")
+
             AboutCard(currentVersion = settingsViewModel.currentVersionName)
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Section 6 : Permissions Système
+            SettingsSectionHeader("Système", "Permissions Android")
+
             PermissionsCard(onNavigateToPermissions = onNavigateToPermissions)
 
             Spacer(modifier = Modifier.height(24.dp))
