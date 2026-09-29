@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStore
@@ -27,6 +28,14 @@ class UserPreferencesRepository(private val context: Context) {
         val KEY_ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         val KEY_THEME_MODE = stringPreferencesKey("app_theme_mode")
         val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
+        val KEY_FAVORITE_TRACK_IDS = stringSetPreferencesKey("favorite_track_ids")
+        val KEY_SEARCH_HISTORY = stringSetPreferencesKey("search_history")
+        val KEY_AUTO_PLAY = booleanPreferencesKey("auto_play")
+        val KEY_GAPLESS = booleanPreferencesKey("gapless_playback")
+        val KEY_RESUME_PLAYBACK = booleanPreferencesKey("resume_playback")
+        val KEY_KARAOKE_FONT_SIZE = stringPreferencesKey("karaoke_font_size")
+        val KEY_KARAOKE_ACTIVE_COLOR = stringPreferencesKey("karaoke_active_color")
+        val KEY_KARAOKE_OFFSET = stringPreferencesKey("karaoke_offset")
     }
 
     val isOnboardingCompleted: Flow<Boolean> = context.musicProDataStore.data
@@ -82,9 +91,87 @@ class UserPreferencesRepository(private val context: Context) {
         }
     }
 
+    val favoriteTrackIds: Flow<Set<Long>> = context.musicProDataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { preferences ->
+            preferences[KEY_FAVORITE_TRACK_IDS].orEmpty()
+                .mapNotNull { it.toLongOrNull() }
+                .toSet()
+        }
+
+    val searchHistory: Flow<List<String>> = context.musicProDataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { preferences ->
+            preferences[KEY_SEARCH_HISTORY].orEmpty().toList().sorted()
+        }
+
+    val autoPlay: Flow<Boolean> = context.musicProDataStore.data
+        .catch { exception -> if (exception is IOException) emit(emptyPreferences()) else throw exception }
+        .map { it[KEY_AUTO_PLAY] ?: true }
+
+    val gaplessPlayback: Flow<Boolean> = context.musicProDataStore.data
+        .catch { exception -> if (exception is IOException) emit(emptyPreferences()) else throw exception }
+        .map { it[KEY_GAPLESS] ?: true }
+
+    val resumePlayback: Flow<Boolean> = context.musicProDataStore.data
+        .catch { exception -> if (exception is IOException) emit(emptyPreferences()) else throw exception }
+        .map { it[KEY_RESUME_PLAYBACK] ?: true }
+
+    val karaokeFontSize: Flow<Float> = context.musicProDataStore.data
+        .catch { exception -> if (exception is IOException) emit(emptyPreferences()) else throw exception }
+        .map { it[KEY_KARAOKE_FONT_SIZE]?.toFloatOrNull() ?: 18f }
+
+    val karaokeActiveColor: Flow<String> = context.musicProDataStore.data
+        .catch { exception -> if (exception is IOException) emit(emptyPreferences()) else throw exception }
+        .map { it[KEY_KARAOKE_ACTIVE_COLOR] ?: "cyan" }
+
+    val karaokeOffsetMs: Flow<Long> = context.musicProDataStore.data
+        .catch { exception -> if (exception is IOException) emit(emptyPreferences()) else throw exception }
+        .map { it[KEY_KARAOKE_OFFSET]?.toLongOrNull() ?: 0L }
+
     suspend fun setDynamicColor(enabled: Boolean) {
         context.musicProDataStore.edit { preferences ->
             preferences[KEY_DYNAMIC_COLOR] = enabled
         }
+    }
+
+    suspend fun setFavoriteTrackIds(ids: Set<Long>) {
+        context.musicProDataStore.edit { preferences ->
+            preferences[KEY_FAVORITE_TRACK_IDS] = ids.map(Long::toString).toSet()
+        }
+    }
+
+    suspend fun setSearchHistory(values: List<String>) {
+        context.musicProDataStore.edit { preferences ->
+            preferences[KEY_SEARCH_HISTORY] = values.distinct().take(12).toSet()
+        }
+    }
+
+    suspend fun setAutoPlay(enabled: Boolean) {
+        context.musicProDataStore.edit { preferences -> preferences[KEY_AUTO_PLAY] = enabled }
+    }
+
+    suspend fun setGaplessPlayback(enabled: Boolean) {
+        context.musicProDataStore.edit { preferences -> preferences[KEY_GAPLESS] = enabled }
+    }
+
+    suspend fun setResumePlayback(enabled: Boolean) {
+        context.musicProDataStore.edit { preferences -> preferences[KEY_RESUME_PLAYBACK] = enabled }
+    }
+
+    suspend fun setKaraokeFontSize(size: Float) {
+        context.musicProDataStore.edit { preferences -> preferences[KEY_KARAOKE_FONT_SIZE] = size.toString() }
+    }
+
+    suspend fun setKaraokeActiveColor(value: String) {
+        context.musicProDataStore.edit { preferences -> preferences[KEY_KARAOKE_ACTIVE_COLOR] = value }
+    }
+
+    suspend fun setKaraokeOffsetMs(value: Long) {
+        context.musicProDataStore.edit { preferences -> preferences[KEY_KARAOKE_OFFSET] = value.toString() }
     }
 }
