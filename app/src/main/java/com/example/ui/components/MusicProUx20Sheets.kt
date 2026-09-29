@@ -52,8 +52,8 @@ fun FavoritesScreen(
         Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Retour", tint = MusicProTextPrimary) }
             Column(Modifier.weight(1f)) {
-                Text("❤️ Favoris", 22.sp, FontWeight.Bold, color = MusicProTextPrimary)
-                Text(favoriteTracks.size.toString() + " morceau(s) • " + formatDuration(totalDuration), 12.sp, color = MusicProCyanNeon)
+                Text("❤️ Favoris", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
+                Text(favoriteTracks.size.toString() + " morceau(s) • " + formatDuration(totalDuration), fontSize = 12.sp, color = MusicProCyanNeon)
             }
         }
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -103,7 +103,7 @@ fun QueueSheet(
     ModalBottomSheet(onDismissRequest = onClose, containerColor = MusicProCardBackground) {
         Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 18.dp, vertical = 8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) { Text("À suivre", 20.sp, FontWeight.Bold, color = MusicProTextPrimary); Text(queue.size.toString() + " morceau(s)", 12.sp, color = MusicProCyanNeon) }
+                Column(Modifier.weight(1f)) { Text("À suivre", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary); Text(queue.size.toString() + " morceau(s)", fontSize = 12.sp, color = MusicProCyanNeon) }
                 TextButton(onClick = onClear, enabled = queue.size > 1) { Text("Vider", color = MusicProTextSecondary) }
             }
             LazyColumn(contentPadding = PaddingValues(vertical = 8.dp, bottom = 24.dp)) {
@@ -134,7 +134,7 @@ fun EqualizerSheet(
     val labels = listOf("60 Hz", "230 Hz", "910 Hz", "3.6 kHz", "14 kHz")
     ModalBottomSheet(onDismissRequest = onClose, containerColor = MusicProCardBackground) {
         Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(20.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.Equalizer, null, tint = MusicProCyanNeon); Spacer(Modifier.width(10.dp)); Column(Modifier.weight(1f)) { Text("Égaliseur", 20.sp, FontWeight.Bold, color = MusicProTextPrimary); Text("Effet appliqué au moteur audio", 12.sp, color = MusicProTextSecondary) }; Switch(checked = enabled, onCheckedChange = onEnabledChange) }
+            Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.Equalizer, null, tint = MusicProCyanNeon); Spacer(Modifier.width(10.dp)); Column(Modifier.weight(1f)) { Text("Égaliseur", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary); Text("Effet appliqué au moteur audio", fontSize = 12.sp, color = MusicProTextSecondary) }; Switch(checked = enabled, onCheckedChange = onEnabledChange) }
             Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)) { presets.forEach { item -> FilterChip(selected = preset == item, onClick = { onPresetChange(item) }, label = { Text(item, fontSize = 9.sp) }) } }
             labels.forEachIndexed { index, label -> Column(Modifier.fillMaxWidth().padding(top = 8.dp)) { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text(label, color = MusicProTextPrimary, fontSize = 11.sp); Text((levels.getOrElse(index) { 0 } / 100f).roundToInt().toString() + " dB", color = MusicProCyanNeon, fontSize = 11.sp) }; Slider(value = levels.getOrElse(index) { 0 }.toFloat(), onValueChange = { onBandChange(index, it.roundToInt()) }, valueRange = -1500f..1500f) } }
             OutlinedButton(onClick = onReset, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) { Icon(Icons.Default.Refresh, null); Spacer(Modifier.width(6.dp)); Text("Réinitialiser") }
