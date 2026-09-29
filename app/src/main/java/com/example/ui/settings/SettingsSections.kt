@@ -44,6 +44,8 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.NetworkCheck
 import androidx.compose.material.icons.filled.OpenInBrowser
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Security
@@ -956,6 +958,86 @@ fun CacheManagementCard(
 /**
  * Section 5: À propos de MusicPro
  */
+@Composable
+fun PlaybackSettingsCard(
+    autoPlay: Boolean,
+    gaplessPlayback: Boolean,
+    resumePlayback: Boolean,
+    onAutoPlayChanged: (Boolean) -> Unit,
+    onGaplessChanged: (Boolean) -> Unit,
+    onResumeChanged: (Boolean) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth().border(1.dp, MusicProVioletPrimary.copy(alpha = 0.3f), RoundedCornerShape(18.dp)),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MusicProCardBackground)
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier.size(34.dp).clip(CircleShape).background(MusicProVioletPrimary.copy(alpha = 0.25f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.PlayArrow, null, tint = MusicProCyanNeon, modifier = Modifier.size(18.dp))
+                }
+                Spacer(Modifier.width(10.dp))
+                Column {
+                    Text("Lecture", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
+                    Text("Comportement du lecteur MusicPro", fontSize = 11.sp, color = MusicProTextMuted)
+                }
+            }
+            SettingToggleRow("Lecture automatique", "Enchaîner la file sans intervention", autoPlay, onAutoPlayChanged)
+            SettingToggleRow("Lecture sans blanc", "Préparer la piste suivante avec Media3", gaplessPlayback, onGaplessChanged)
+            SettingToggleRow("Reprendre la lecture", "Conserver cette préférence pour les prochaines sessions", resumePlayback, onResumeChanged)
+        }
+    }
+}
+
+@Composable
+private fun SettingToggleRow(
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        Modifier.fillMaxWidth().padding(top = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(Modifier.weight(1f).padding(end = 10.dp)) {
+            Text(title, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = MusicProTextPrimary)
+            Text(subtitle, fontSize = 10.sp, color = MusicProTextMuted)
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = MusicProCyanNeon,
+                uncheckedTrackColor = MusicProSurfaceElevated
+            )
+        )
+    }
+}
+
+@Composable
+private fun SettingsSectionHeader(
+    title: String,
+    subtitle: String
+) {
+    Row(
+        Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(Modifier.size(6.dp).clip(CircleShape).background(MusicProCyanNeon))
+        Spacer(Modifier.width(8.dp))
+        Column {
+            Text(title, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MusicProCyanNeon)
+            Text(subtitle, fontSize = 10.sp, color = MusicProTextMuted)
+        }
+    }
+}
+
 @Composable
 fun AboutCard(currentVersion: String = "1.0") {
     Card(
