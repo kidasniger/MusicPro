@@ -1,7 +1,8 @@
 name: Build & Release APK
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [ "main" ]
 
 permissions:
   contents: write
@@ -30,6 +31,20 @@ jobs:
       - name: Accept Android SDK Licenses
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
+      - name: Run unit tests
+        env:
+          GRADLE_OPTS: "-Djava.awt.headless=true -Xmx4g"
+        run: |
+          chmod +x ./gradlew
+          ./gradlew :app:testDebugUnitTest --no-daemon -Djava.awt.headless=true
+
+      - name: Run lint
+        env:
+          GRADLE_OPTS: "-Djava.awt.headless=true -Xmx4g"
+        run: |
+          chmod +x ./gradlew
+          ./gradlew :app:lintDebug --no-daemon -Djava.awt.headless=true
 
       - name: Decode Keystore from Secret
         run: |
@@ -92,7 +107,7 @@ jobs:
 
       - name: Build Summary
         run: |
-          echo "### APK générée + Release créée" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Build + APK + Release + Tag terminés automatiquement" >> "$GITHUB_STEP_SUMMARY"
           echo "- Fichier: MusicPro-${{ steps.version_info.outputs.tag_name }}.apk" >> "$GITHUB_STEP_SUMMARY"
           echo "- Version: ${{ steps.version_info.outputs.version_name }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Tag: ${{ steps.version_info.outputs.tag_name }}" >> "$GITHUB_STEP_SUMMARY"
