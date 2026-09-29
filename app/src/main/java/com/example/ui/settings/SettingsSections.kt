@@ -1021,7 +1021,7 @@ private fun SettingToggleRow(
 }
 
 @Composable
-private fun SettingsSectionHeader(
+fun SettingsSectionHeader(
     title: String,
     subtitle: String
 ) {
