@@ -36,9 +36,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.consumePositionChange
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
@@ -1037,9 +1040,28 @@ private fun MiniPlayerBar(
         (progressMs.toFloat() / track.duration.toFloat()).coerceIn(0f, 1f)
     } else 0f
 
+    var horizontalDrag by remember(track.id) { mutableStateOf(0f) }
+
     Surface(
         modifier = modifier
             .fillMaxWidth()
+            .pointerInput(track.id) {
+                detectHorizontalDragGestures(
+                    onDragStart = { horizontalDrag = 0f },
+                    onHorizontalDrag = { change, amount ->
+                        change.consume()
+                        horizontalDrag += amount
+                    },
+                    onDragEnd = {
+                        when {
+                            horizontalDrag > 80f -> onPrevious()
+                            horizontalDrag < -80f -> onNext()
+                        }
+                        horizontalDrag = 0f
+                    },
+                    onDragCancel = { horizontalDrag = 0f }
+                )
+            }
             .clickable(onClick = onClick)
             .shadow(16.dp, spotColor = MusicProVioletGlow),
         color = MusicProSurfaceElevated,
