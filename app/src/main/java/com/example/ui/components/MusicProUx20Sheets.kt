@@ -44,11 +44,12 @@ fun FavoritesScreen(
     onTrackClick: (AudioTrackEntity) -> Unit,
     onToggleFavorite: (Long) -> Unit,
     onAddToQueue: (AudioTrackEntity) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val favoriteTracks = tracks.filter { favorites.contains(it.id) }
     val totalDuration = favoriteTracks.sumOf { it.duration }
-    Column(Modifier.fillMaxWidth().background(MusicProBackground).navigationBarsPadding()) {
+    Column(modifier.fillMaxWidth().background(MusicProBackground).navigationBarsPadding()) {
         Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Retour", tint = MusicProTextPrimary) }
             Column(Modifier.weight(1f)) {
@@ -106,7 +107,7 @@ fun QueueSheet(
                 Column(Modifier.weight(1f)) { Text("À suivre", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary); Text(queue.size.toString() + " morceau(s)", fontSize = 12.sp, color = MusicProCyanNeon) }
                 TextButton(onClick = onClear, enabled = queue.size > 1) { Text("Vider", color = MusicProTextSecondary) }
             }
-            LazyColumn(contentPadding = PaddingValues(vertical = 8.dp, bottom = 24.dp)) {
+            LazyColumn(contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp)) {
                 itemsIndexed(queue, key = { _, it -> it.id }) { index, track ->
                     val current = index == currentIndex
                     Row(Modifier.fillMaxWidth().background(if (current) MusicProSurfaceElevated else Color.Transparent, RoundedCornerShape(10.dp)).padding(6.dp), verticalAlignment = Alignment.CenterVertically) {
