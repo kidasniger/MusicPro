@@ -257,7 +257,78 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            SettingsSectionHeader("Bibliothèque", "Cache, scan et fichiers locaux")
+            SettingsSectionHeader("Lecture", "Comportement du lecteur MusicPro")
+
+            PlaybackSettingsCard(
+                autoPlay = autoPlay,
+                gaplessPlayback = gaplessPlayback,
+                resumePlayback = resumePlayback,
+                onAutoPlayChanged = { settingsViewModel.setAutoPlay(it) },
+                onGaplessChanged = { settingsViewModel.setGaplessPlayback(it) },
+                onResumeChanged = { settingsViewModel.setResumePlayback(it) }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            SettingsSectionHeader("IA & Paroles", "Whisper, LRCLIB et traitement synchronisé")
+
+            GroqApiKeyCard(
+                apiKeyInput = apiKeyInput,
+                isConfigured = isConfigured,
+                maskedKey = maskedKey,
+                isPasswordVisible = isPasswordVisible,
+                isTestingKey = isTestingKey,
+                statusFeedback = statusFeedbackMessage,
+                onApiKeyChange = {
+                    apiKeyInput = it
+                    statusFeedbackMessage = null
+                },
+                onToggleVisibility = { isPasswordVisible = !isPasswordVisible },
+                onPasteClipboard = {
+                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clip = clipboard.primaryClip
+                    if (clip != null && clip.itemCount > 0) {
+                        apiKeyInput = clip.getItemAt(0).text?.toString().orEmpty().trim()
+                        statusFeedbackMessage = null
+                    }
+                },
+                onSaveKey = {
+                    keyboardController?.hide()
+                    if (apiKeyInput.isNotBlank()) {
+                        if (apiKeyStore.setApiKey(apiKeyInput)) {
+                            isConfigured = true
+                            maskedKey = apiKeyStore.getMaskedApiKey()
+                            statusFeedbackMessage = Pair(true, "Clé enregistrée.")
+                        } else {
+                            statusFeedbackMessage = Pair(false, "Impossible d'enregistrer la clé.")
+                        }
+                    } else {
+                        statusFeedbackMessage = Pair(false, "Veuillez saisir une clé API valide.")
+                    }
+                },
+                onDeleteKey = {
+                    apiKeyStore.clearApiKey()
+                    apiKeyInput = ""
+                    isConfigured = false
+                    maskedKey = ""
+                    statusFeedbackMessage = Pair(true, "Clé API supprimée.")
+                },
+                onTestKey = {
+                    keyboardController?.hide()
+                    val keyToTest = apiKeyInput.ifBlank { apiKeyStore.getApiKey() }
+                    if (keyToTest.isBlank()) {
+                        statusFeedbackMessage = Pair(false, "Veuillez d'abord saisir une clé API.")
+                    } else {
+                        isTestingKey = true
+                        scope.launch {
+                            val result = GroqTranscriptionManager.testApiKey(keyToTest)
+                            isTestingKey = false
+                            statusFeedbackMessage = if (result.isSuccess) Pair(true, "Connexion réussie.") else Pair(false, result.exceptionOrNull()?.message ?: "Échec du test")
+                        }
+                    }
+                }
+            )
+
 
             CacheManagementCard(
                 cacheSize = cacheSize,
