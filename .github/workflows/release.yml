@@ -54,9 +54,9 @@ jobs:
       - name: Créer Release + Tag
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          APK_PATH: $PREPARE_APK_PATH
-          TAG_NAME: $PREPARE_TAG_NAME
-          VERSION_NAME: $PREPARE_VERSION_NAME
+          APK_PATH: ${{ steps.prepare.outputs.apk_path }}
+          TAG_NAME: ${{ steps.prepare.outputs.tag_name }}
+          VERSION_NAME: ${{ steps.prepare.outputs.version_name }}
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           gh release create "$TAG_NAME" "$APK_PATH" \
@@ -72,5 +72,5 @@ jobs:
       - name: Résumé
         run: |
           echo "### Release créée" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Tag: $PREPARE_TAG_NAME" >> "$GITHUB_STEP_SUMMARY"
-          echo "- APK: $PREPARE_APK_NAME" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Tag: ${{ steps.prepare.outputs.tag_name }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- APK: ${{ steps.prepare.outputs.apk_name }}" >> "$GITHUB_STEP_SUMMARY"
