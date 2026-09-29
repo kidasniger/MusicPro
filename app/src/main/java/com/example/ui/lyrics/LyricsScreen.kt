@@ -343,6 +343,8 @@ fun LyricsScreen(
                                     line = line,
                                     isActive = isActive,
                                     isPast = isPast,
+                                    baseFontSize = karaokeFontSize,
+                                    activeColorName = karaokeActiveColor,
                                     onClick = {
                                         registerInteraction()
                                         onSeekTo((line.timeMs + karaokeOffsetMs).coerceAtLeast(0L))
@@ -866,6 +868,8 @@ private fun LyricLineItem(
     line: LyricLine,
     isActive: Boolean,
     isPast: Boolean,
+    baseFontSize: Float = 18f,
+    activeColorName: String = "cyan",
     onClick: () -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
@@ -873,7 +877,11 @@ private fun LyricLineItem(
     // Transitions fluides de typographie et couleur (Style moderne & épuré)
     val textColor by animateColorAsState(
         targetValue = when {
-            isActive -> Color.White
+            isActive -> when (activeColorName) {
+                "violet" -> MusicProVioletLight
+                "white" -> Color.White
+                else -> MusicProCyanNeon
+            }
             isPast -> Color.White.copy(alpha = 0.48f)
             else -> Color.White.copy(alpha = 0.24f)
         },
@@ -882,7 +890,7 @@ private fun LyricLineItem(
     )
 
     val fontSize by animateFloatAsState(
-        targetValue = if (isActive) 23f else 17f,
+        targetValue = if (isActive) baseFontSize + 5f else baseFontSize - 1f,
         animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
         label = "lyric_size"
     )
