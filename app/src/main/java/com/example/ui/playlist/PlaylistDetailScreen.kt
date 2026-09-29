@@ -40,6 +40,7 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -110,6 +111,7 @@ fun PlaylistDetailScreen(
     onDeletePlaylist: () -> Unit,
     onRenamePlaylist: (newName: String, newDescription: String) -> Unit,
     onOpenAddTracks: () -> Unit,
+    onShare: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     // Local reorderable track list synced with incoming Room data
@@ -204,6 +206,16 @@ fun PlaylistDetailScreen(
                             onClick = {
                                 showMenu = false
                                 onOpenAddTracks()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Partager la playlist", color = MusicProCyanNeon) },
+                            leadingIcon = {
+                                Icon(Icons.Default.Share, contentDescription = null, tint = MusicProCyanNeon)
+                            },
+                            onClick = {
+                                showMenu = false
+                                onShare()
                             }
                         )
                         DropdownMenuItem(
