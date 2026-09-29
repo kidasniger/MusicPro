@@ -29,7 +29,7 @@ class UserPreferencesRepository(private val context: Context) {
         val KEY_THEME_MODE = stringPreferencesKey("app_theme_mode")
         val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
         val KEY_FAVORITE_TRACK_IDS = stringSetPreferencesKey("favorite_track_ids")
-        val KEY_SEARCH_HISTORY = stringSetPreferencesKey("search_history")
+        val KEY_SEARCH_HISTORY = stringPreferencesKey("search_history")
         val KEY_AUTO_PLAY = booleanPreferencesKey("auto_play")
         val KEY_GAPLESS = booleanPreferencesKey("gapless_playback")
         val KEY_RESUME_PLAYBACK = booleanPreferencesKey("resume_playback")
@@ -106,7 +106,12 @@ class UserPreferencesRepository(private val context: Context) {
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
         .map { preferences ->
-            preferences[KEY_SEARCH_HISTORY].orEmpty().toList().sorted()
+            preferences[KEY_SEARCH_HISTORY]
+                .orEmpty()
+                .split("\n")
+                .map(String::trim)
+                .filter(String::isNotBlank)
+                .take(12)
         }
 
     val autoPlay: Flow<Boolean> = context.musicProDataStore.data
@@ -147,7 +152,12 @@ class UserPreferencesRepository(private val context: Context) {
 
     suspend fun setSearchHistory(values: List<String>) {
         context.musicProDataStore.edit { preferences ->
-            preferences[KEY_SEARCH_HISTORY] = values.distinct().take(12).toSet()
+            preferences[KEY_SEARCH_HISTORY] = values
+                .map(String::trim)
+                .filter(String::isNotBlank)
+                .distinct()
+                .take(12)
+                .joinToString("\n")
         }
     }
 
