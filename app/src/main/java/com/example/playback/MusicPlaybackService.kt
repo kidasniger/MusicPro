@@ -3,6 +3,9 @@ package com.example.playback
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.media.AudioManager
+import android.media.audiofx.Equalizer
+import android.os.Bundle
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -16,6 +19,10 @@ import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.MediaSession.ConnectionResult.AcceptedResultBuilder
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionResult
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.Futures
 import com.example.MainActivity
 import com.example.R
 
@@ -34,6 +41,7 @@ class MusicPlaybackService : MediaSessionService() {
 
     private var player: ExoPlayer? = null
     private var mediaSession: MediaSession? = null
+    private var equalizer: Equalizer? = null
 
     companion object {
         const val NOTIFICATION_CHANNEL_ID = "musicpro_playback_channel"
@@ -56,9 +64,19 @@ class MusicPlaybackService : MediaSessionService() {
         // 2. Initialisation d'ExoPlayer avec gestion d'Audio Focus, Audio Becoming Noisy et WakeLock
         val exoPlayer = ExoPlayer.Builder(this)
             .setAudioAttributes(audioAttributes, /* handleAudioFocus = */ true)
-            .setHandleAudioBecomingNoisy(true) // Pause automatique si casque/Bluetooth déconnecté
-            .setWakeMode(C.WAKE_MODE_LOCAL) // Empêche la mise en veille CPU pendant Doze Mode
+            .setHandleAudioBecomingNoisy(true)
+            .setWakeMode(C.WAKE_MODE_LOCAL)
             .build()
+
+        val audioSessionId = AudioManager.generateAudioSessionId()
+        if (audioSessionId != AudioManager.ERROR) {
+            try {
+                exoPlayer.setAudioSessionId(audioSessionId)
+                equalizer = Equalizer(0, audioSessionId)
+            } catch (error: Exception) {
+                android.util.Log.w("MusicPlaybackService", "Égaliseur matériel indisponible: ${error.message}")
+            }
+        }
 
         player = exoPlayer
 
@@ -100,7 +118,62 @@ class MusicPlaybackService : MediaSessionService() {
                         return MediaSession.ConnectionResult.reject()
                     }
 
-                    return AcceptedResultBuilder(session).build()
+                    val available = MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
+                        .add(AudioEffectCommands.SET_ENABLED)
+                        .add(AudioEffectCommands.SET_PRESET)
+                        .add(AudioEffectCommands.SET_BAND)
+                        .add(AudioEffectCommands.RESET)
+                        .build()
+                    return AcceptedResultBuilder(session, controller)
+                        .setAvailableSessionCommands(available)
+                        .build()
+                }
+
+                override fun onCustomCommand(
+                    session: MediaSession,
+                    controller: MediaSession.ControllerInfo,
+                    customCommand: SessionCommand,
+                    args: Bundle
+                ): ListenableFuture<SessionResult> {
+                    return try {
+                        when (customCommand.customAction) {
+                            AudioEffectCommands.ACTION_SET_ENABLED -> {
+                                equalizer?.enabled = args.getBoolean(AudioEffectCommands.KEY_ENABLED, true)
+                            }
+                            AudioEffectCommands.ACTION_SET_PRESET -> {
+                                equalizer?.enabled = true
+                                equalizer?.usePreset(args.getShort(AudioEffectCommands.KEY_PRESET, 0))
+                            }
+                            AudioEffectCommands.ACTION_SET_BAND -> {
+                                val eq = equalizer
+                                if (eq != null) {
+                                    eq.enabled = true
+                                    val count = eq.numberOfBands.toInt().coerceAtLeast(1)
+                                    val requested = args.getInt(AudioEffectCommands.KEY_BAND, 0).coerceIn(0, 4)
+                                    val actual = if (count == 1) 0 else
+                                        (requested.toFloat() * (count - 1) / 4f).toInt()
+                                    val range = eq.bandLevelRange
+                                    val level = args.getShort(AudioEffectCommands.KEY_LEVEL, 0)
+                                        .coerceIn(range[0], range[1])
+                                    eq.setBandLevel(actual.toShort(), level)
+                                }
+                            }
+                            AudioEffectCommands.ACTION_RESET -> {
+                                equalizer?.enabled = false
+                                equalizer?.let { eq ->
+                                    val range = eq.bandLevelRange
+                                    val neutral = 0.coerceIn(range[0].toInt(), range[1].toInt()).toShort()
+                                    for (band in 0 until eq.numberOfBands) {
+                                        eq.setBandLevel(band, neutral)
+                                    }
+                                }
+                            }
+                        }
+                        Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+                    } catch (error: Exception) {
+                        android.util.Log.w("MusicPlaybackService", "Commande EQ refusée: ${error.message}")
+                        Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_UNKNOWN))
+                    }
                 }
             })
             .build()
@@ -192,6 +265,8 @@ class MusicPlaybackService : MediaSessionService() {
             release()
             mediaSession = null
         }
+        equalizer?.release()
+        equalizer = null
         player = null
         super.onDestroy()
     }
