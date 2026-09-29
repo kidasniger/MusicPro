@@ -355,6 +355,7 @@ fun HomeScreen(
                         onOpenOnboarding = onOpenOnboarding,
                         onNavigateToLibrary = { currentSection = NavigationSection.LIBRARY },
                         onNavigateToSearch = { currentSection = NavigationSection.SEARCH },
+                        onOpenFavorites = { isFavoritesOpen = true },
                         onTrackClick = { audioViewModel.playTrack(it) },
                         onToggleFavorite = { audioViewModel.toggleFavorite(it) },
                         onRefreshScan = { audioViewModel.refreshScan() }
@@ -396,7 +397,10 @@ fun HomeScreen(
                         onQueryChange = { audioViewModel.setSearchQuery(it) },
                         onFilterChange = { audioViewModel.setSearchFilter(it) },
                         onTrackClick = { audioViewModel.playTrack(it) },
-                        onToggleFavorite = { audioViewModel.toggleFavorite(it) }
+                        onToggleFavorite = { audioViewModel.toggleFavorite(it) },
+                        searchHistory = searchHistory,
+                        onSearchSubmit = { audioViewModel.addSearchToHistory(it) },
+                        onClearSearchHistory = { audioViewModel.clearSearchHistory() }
                     )
                 }
             }
@@ -684,6 +688,7 @@ private fun HomeExplorerContent(
     onOpenOnboarding: () -> Unit,
     onNavigateToLibrary: () -> Unit,
     onNavigateToSearch: () -> Unit,
+    onOpenFavorites: () -> Unit = {},
     onTrackClick: (AudioTrackEntity) -> Unit,
     onToggleFavorite: (Long) -> Unit,
     onRefreshScan: () -> Unit
@@ -830,6 +835,46 @@ private fun HomeExplorerContent(
                     modifier = Modifier.weight(1f),
                     onClick = onNavigateToLibrary
                 )
+            }
+        }
+
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Surface(
+                    onClick = onOpenFavorites,
+                    shape = RoundedCornerShape(14.dp),
+                    color = MusicProSurfaceElevated,
+                    border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.35f)),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Row(Modifier.padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Favorite, null, tint = Color(0xFFFF4081), modifier = Modifier.size(19.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Column {
+                            Text("Favoris", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
+                            Text(favorites.size.toString() + " titres", fontSize = 10.sp, color = MusicProTextSecondary)
+                        }
+                    }
+                }
+                Surface(
+                    onClick = onNavigateToLibrary,
+                    shape = RoundedCornerShape(14.dp),
+                    color = MusicProSurfaceElevated,
+                    border = BorderStroke(1.dp, MusicProCyanNeon.copy(alpha = 0.25f)),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Row(Modifier.padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.AutoMirrored.Filled.QueueMusic, null, tint = MusicProCyanNeon, modifier = Modifier.size(19.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Column {
+                            Text("Bibliothèque", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
+                            Text(tracks.size.toString() + " titres", fontSize = 10.sp, color = MusicProTextSecondary)
+                        }
+                    }
+                }
             }
         }
 
