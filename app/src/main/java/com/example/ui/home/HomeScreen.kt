@@ -353,6 +353,8 @@ fun HomeScreen(
                         albumsCount = albums.size,
                         artistsCount = artists.size,
                         foldersCount = folders.size,
+                        albums = albums,
+                        playlists = playlists,
                         isScanning = isScanning,
                         currentPlayingTrack = currentTrack,
                         isPlaying = isPlaying,
@@ -703,6 +705,8 @@ private fun HomeExplorerContent(
     albumsCount: Int,
     artistsCount: Int,
     foldersCount: Int,
+    albums: List<com.example.ui.audio.AlbumSummary> = emptyList(),
+    playlists: List<com.example.data.local.PlaylistSummary> = emptyList(),
     isScanning: Boolean,
     currentPlayingTrack: AudioTrackEntity?,
     isPlaying: Boolean,
@@ -895,6 +899,61 @@ private fun HomeExplorerContent(
                         Column {
                             Text("Bibliothèque", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
                             Text(tracks.size.toString() + " titres", fontSize = 10.sp, color = MusicProTextSecondary)
+                        }
+                    }
+                }
+            }
+        }
+
+        if (albums.isNotEmpty() || playlists.isNotEmpty()) {
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Collections", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Albums ${albums.size}", fontSize = 10.sp, color = MusicProVioletLight)
+                    Spacer(Modifier.width(6.dp))
+                    Text("Playlists ${playlists.size}", fontSize = 10.sp, color = MusicProCyanNeon)
+                }
+            }
+            if (albums.isNotEmpty()) {
+                item {
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(albums.take(8), key = { it.name }) { album ->
+                            Surface(
+                                onClick = onNavigateToLibrary,
+                                shape = RoundedCornerShape(14.dp),
+                                color = MusicProCardBackground,
+                                border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.24f)),
+                                modifier = Modifier.width(150.dp)
+                            ) {
+                                Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Box(Modifier.size(48.dp).clip(RoundedCornerShape(10.dp)).background(MusicProSurfaceVariant), contentAlignment = Alignment.Center) {
+                                        if (!album.coverUri.isNullOrBlank()) AsyncImage(model = album.coverUri, contentDescription = album.name, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()) else Icon(Icons.Default.Album, null, tint = MusicProVioletLight)
+                                    }
+                                    Spacer(Modifier.width(8.dp))
+                                    Column(Modifier.weight(1f)) {
+                                        Text(album.name, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                        Text(album.artist, fontSize = 9.sp, color = MusicProTextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (playlists.isNotEmpty()) {
+                item {
+                    LazyRow(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(playlists.take(6), key = { it.id }) { playlist ->
+                            Surface(onClick = onNavigateToLibrary, shape = RoundedCornerShape(12.dp), color = MusicProSurfaceElevated, border = BorderStroke(1.dp, MusicProCyanNeon.copy(alpha = 0.20f))) {
+                                Text("♫ ${playlist.name}", modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp), fontSize = 11.sp, color = MusicProTextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            }
                         }
                     }
                 }
