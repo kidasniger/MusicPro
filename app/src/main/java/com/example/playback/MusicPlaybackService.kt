@@ -1,5 +1,6 @@
 package com.example.playback
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -127,6 +128,7 @@ class MusicPlaybackService : MediaSessionService() {
                         .build()
                 }
 
+                @SuppressLint("WrongConstant")
                 override fun onCustomCommand(
                     session: MediaSession,
                     controller: MediaSession.ControllerInfo,
