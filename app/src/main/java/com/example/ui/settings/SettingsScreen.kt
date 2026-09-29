@@ -179,26 +179,11 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            SettingsSectionHeader("Apparence", "Thème et couleurs de MusicPro")
-
             ThemeSelectionCard(
                 currentTheme = currentTheme,
                 onThemeSelected = { settingsViewModel.setThemeMode(it) },
                 isDynamicColor = isDynamicColor,
                 onDynamicColorChanged = { settingsViewModel.setDynamicColor(it) }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            SettingsSectionHeader("Lecture", "Comportement du lecteur MusicPro")
-
-            PlaybackSettingsCard(
-                autoPlay = autoPlay,
-                gaplessPlayback = gaplessPlayback,
-                resumePlayback = resumePlayback,
-                onAutoPlayChanged = { settingsViewModel.setAutoPlay(it) },
-                onGaplessChanged = { settingsViewModel.setGaplessPlayback(it) },
-                onResumeChanged = { settingsViewModel.setResumePlayback(it) }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -262,6 +247,20 @@ fun SettingsScreen(
                 }
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            SettingsSectionHeader("Lecture", "Comportement du lecteur MusicPro")
+
+            PlaybackSettingsCard(
+                autoPlay = autoPlay,
+                gaplessPlayback = gaplessPlayback,
+                resumePlayback = resumePlayback,
+                onAutoPlayChanged = { settingsViewModel.setAutoPlay(it) },
+                onGaplessChanged = { settingsViewModel.setGaplessPlayback(it) },
+                onResumeChanged = { settingsViewModel.setResumePlayback(it) }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             SettingsSectionHeader("Bibliothèque", "Cache, scan et fichiers locaux")
 
