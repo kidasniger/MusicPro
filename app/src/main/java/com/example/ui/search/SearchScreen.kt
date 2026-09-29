@@ -50,6 +50,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.local.AudioTrackEntity
+import com.example.data.local.PlaylistSummary
 import com.example.ui.audio.SearchFilter
 import com.example.ui.library.TrackRowItem
 import com.example.ui.theme.MusicProBackground
@@ -85,6 +86,8 @@ fun SearchScreen(
     searchHistory: List<String> = emptyList(),
     onSearchSubmit: (String) -> Unit = {},
     onClearSearchHistory: () -> Unit = {},
+    playlists: List<PlaylistSummary> = emptyList(),
+    onPlaylistClick: (PlaylistSummary) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val focusManager = LocalFocusManager.current
@@ -351,7 +354,96 @@ fun SearchScreen(
             }
         } else {
             // Affichage des résultats
-            if (searchResults.isEmpty()) {
+            val matchingPlaylists = if (filter == SearchFilter.PLAYLISTS) {
+                val normalized = query.trim().lowercase()
+                playlists.filter {
+                    it.name.lowercase().contains(normalized) ||
+                        it.description.lowercase().contains(normalized)
+                }
+            } else {
+                emptyList()
+            }
+
+            if (filter == SearchFilter.PLAYLISTS) {
+                if (matchingPlaylists.isEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 24.dp, vertical = 40.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center
+                    ) {
+                        Icon(
+                            Icons.Default.SearchOff,
+                            contentDescription = null,
+                            tint = MusicProTextMuted,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            "Aucune playlist pour \"$query\"",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MusicProTextPrimary,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 120.dp, top = 8.dp)
+                    ) {
+                        itemsIndexed(
+                            matchingPlaylists,
+                            key = { _, item -> item.id }
+                        ) { _, playlist ->
+                            androidx.compose.material3.Surface(
+                                onClick = { onPlaylistClick(playlist) },
+                                color = MusicProSurface,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(14.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(44.dp)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(MusicProSurfaceVariant),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("♫", fontSize = 20.sp, color = MusicProCyanNeon)
+                                    }
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            playlist.name,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MusicProTextPrimary,
+                                            maxLines = 1
+                                        )
+                                        Text(
+                                            playlist.trackCount.toString() +
+                                                " morceau(s) • " +
+                                                playlist.formatDuration(),
+                                            fontSize = 11.sp,
+                                            color = MusicProTextSecondary
+                                        )
+                                    }
+                                    Text("›", fontSize = 22.sp, color = MusicProCyanNeon)
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (searchResults.isEmpty()) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
