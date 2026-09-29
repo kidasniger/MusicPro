@@ -427,6 +427,19 @@ fun HomeScreen(
             onToggleShuffle = { audioViewModel.toggleShuffle() },
             onToggleFavorite = { activeTrack?.let { audioViewModel.toggleFavorite(it.id) } },
             onSetSpeed = { audioViewModel.setPlaybackSpeed(it) },
+            onOpenQueue = { isQueueOpen = true },
+            onOpenEqualizer = { isEqualizerOpen = true },
+            onOpenKaraokeSettings = { isKaraokeSettingsOpen = true },
+            onAddToPlaylist = { activeTrack?.let { trackForAddToPlaylistChooser = it } },
+            onShare = {
+                activeTrack?.let { track ->
+                    val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(android.content.Intent.EXTRA_TEXT, track.title + " — " + track.artist)
+                    }
+                    context.startActivity(android.content.Intent.createChooser(shareIntent, "Partager le morceau"))
+                }
+            },
             lyricsData = lyricsData,
             onOpenLyrics = { isLyricsOpen = true }
         )
@@ -462,7 +475,11 @@ fun HomeScreen(
             groqProgressMessage = groqProgressMessage,
             groqErrorMessage = groqErrorMessage,
             onClearGroqError = { audioViewModel.clearGroqError() },
-            onOpenSettings = onOpenSettings
+            onOpenSettings = onOpenSettings,
+            karaokeFontSize = karaokeFontSize,
+            karaokeActiveColor = karaokeActiveColor,
+            karaokeOffsetMs = karaokeOffsetMs,
+            onOpenKaraokeSettings = { isKaraokeSettingsOpen = true }
         )
     }
 
