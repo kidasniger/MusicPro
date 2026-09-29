@@ -931,38 +931,21 @@ private fun AlbumDetailView(
             ) {
                 Button(
                     onClick = onPlayAll,
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 8.dp)
-                    .height(44.dp)
-                    .background(MusicProPrimaryGradient, RoundedCornerShape(12.dp))
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.PlayArrow,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Lire tout l'album",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MusicProVioletPrimary)
                 ) {
+                    Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(17.dp))
+                    Spacer(Modifier.width(6.dp))
                     Text("Lire", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
                 androidx.compose.material3.OutlinedButton(
                     onClick = onShuffle,
-                    enabled = tracks.isNotEmpty(),
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp)
                 ) {
+                    Icon(Icons.Default.Shuffle, contentDescription = null, modifier = Modifier.size(17.dp))
+                    Spacer(Modifier.width(6.dp))
                     Text("Aléatoire", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
