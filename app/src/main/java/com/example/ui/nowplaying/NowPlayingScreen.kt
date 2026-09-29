@@ -54,6 +54,9 @@ import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.Timer
@@ -143,6 +146,11 @@ fun NowPlayingScreen(
     onToggleShuffle: () -> Unit,
     onToggleFavorite: () -> Unit,
     onSetSpeed: (Float) -> Unit,
+    onOpenQueue: () -> Unit = {},
+    onOpenEqualizer: () -> Unit = {},
+    onOpenKaraokeSettings: () -> Unit = {},
+    onAddToPlaylist: () -> Unit = {},
+    onShare: () -> Unit = {},
     lyricsData: LyricsData = LyricsData(),
     onOpenLyrics: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -270,6 +278,23 @@ fun NowPlayingScreen(
                     }
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(
+                            onClick = onOpenQueue,
+                            modifier = Modifier
+                                .size(42.dp)
+                                .clip(CircleShape)
+                                .background(MusicProSurfaceElevated)
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.QueueMusic,
+                                contentDescription = "File d'attente",
+                                tint = MusicProCyanNeon,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(6.dp))
+
                         IconButton(
                             onClick = onOpenLyrics,
                             modifier = Modifier
@@ -819,7 +844,12 @@ fun NowPlayingScreen(
                 sleepTimerMinutes = sleepTimerMinutes,
                 sleepTimerSecondsRemaining = sleepTimerSecondsRemaining,
                 onSetSleepTimer = { mins -> sleepTimerMinutes = mins },
-                onClose = { showOptionsSheet = false }
+                onClose = { showOptionsSheet = false },
+                onOpenQueue = onOpenQueue,
+                onOpenEqualizer = onOpenEqualizer,
+                onOpenKaraokeSettings = onOpenKaraokeSettings,
+                onAddToPlaylist = onAddToPlaylist,
+                onShare = onShare
             )
         }
     }
@@ -836,7 +866,12 @@ private fun NowPlayingOptionsSheetContent(
     sleepTimerMinutes: Int?,
     sleepTimerSecondsRemaining: Int?,
     onSetSleepTimer: (Int?) -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    onOpenQueue: () -> Unit = {},
+    onOpenEqualizer: () -> Unit = {},
+    onOpenKaraokeSettings: () -> Unit = {},
+    onAddToPlaylist: () -> Unit = {},
+    onShare: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -924,6 +959,17 @@ private fun NowPlayingOptionsSheetContent(
                     )
                 }
             }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            SecondaryActionButton(Icons.AutoMirrored.Filled.QueueMusic, "File", onOpenQueue)
+            SecondaryActionButton(Icons.Default.Equalizer, "Égaliseur", onOpenEqualizer)
+            SecondaryActionButton(Icons.Default.Tune, "Karaoké", onOpenKaraokeSettings)
+            SecondaryActionButton(Icons.Default.Add, "Playlist", onAddToPlaylist)
+            SecondaryActionButton(Icons.Default.Share, "Partager", onShare)
         }
 
         Spacer(modifier = Modifier.height(18.dp))
@@ -1041,6 +1087,29 @@ private fun NowPlayingOptionsSheetContent(
         }
 
         Spacer(modifier = Modifier.height(14.dp))
+    }
+}
+
+@Composable
+private fun SecondaryActionButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(10.dp),
+        color = Color(0x14FFFFFF),
+        border = BorderStroke(1.dp, Color(0x1AFFFFFF)),
+        modifier = Modifier.weight(1f)
+    ) {
+        Column(
+            modifier = Modifier.padding(vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(icon, contentDescription = label, tint = MusicProCyanNeon, modifier = Modifier.size(17.dp))
+            Text(label, fontSize = 8.sp, color = MusicProTextSecondary, maxLines = 1)
+        }
     }
 }
 
