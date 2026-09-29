@@ -187,6 +187,9 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     val isShuffleEnabled: StateFlow<Boolean> = playbackManager.isShuffleEnabled
     val playbackSpeed: StateFlow<Float> = playbackManager.playbackSpeed
     val playbackErrorMessage: StateFlow<String?> = playbackManager.errorMessage
+    val eqEnabled: StateFlow<Boolean> = playbackManager.eqEnabled
+    val eqPreset: StateFlow<String> = playbackManager.eqPreset
+    val eqLevels: StateFlow<List<Int>> = playbackManager.eqLevels
 
     fun clearPlaybackErrorMessage() = playbackManager.clearErrorMessage()
 
@@ -418,6 +421,18 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
 
     fun clearQueue() =
         playbackManager.clearQueue()
+
+    fun setEqualizerEnabled(enabled: Boolean) =
+        playbackManager.setEqualizerEnabled(enabled)
+
+    fun setEqualizerPreset(preset: String) =
+        playbackManager.setEqualizerPreset(preset)
+
+    fun setEqualizerBand(index: Int, level: Int) =
+        playbackManager.setEqualizerBand(index, level)
+
+    fun resetEqualizer() =
+        playbackManager.resetEqualizer()
 
     fun setKaraokeFontSize(size: Float) {
         viewModelScope.launch { preferencesRepository.setKaraokeFontSize(size) }
