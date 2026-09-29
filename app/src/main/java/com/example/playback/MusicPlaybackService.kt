@@ -140,7 +140,7 @@ class MusicPlaybackService : MediaSessionService() {
                             }
                             AudioEffectCommands.ACTION_SET_PRESET -> {
                                 equalizer?.enabled = true
-                                equalizer?.usePreset(args.getShort(AudioEffectCommands.KEY_PRESET, 0))
+                                equalizer?.usePreset(args.getShort(AudioEffectCommands.KEY_PRESET, 0.toShort()))
                             }
                             AudioEffectCommands.ACTION_SET_BAND -> {
                                 val eq = equalizer
