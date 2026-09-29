@@ -152,6 +152,10 @@ fun HomeScreen(
     var isNowPlayingOpen by remember { mutableStateOf(initialOpenNowPlaying) }
     var isLyricsOpen by remember { mutableStateOf(false) }
     var isLrclibSearchOpen by remember { mutableStateOf(false) }
+    var isFavoritesOpen by remember { mutableStateOf(false) }
+    var isQueueOpen by remember { mutableStateOf(false) }
+    var isEqualizerOpen by remember { mutableStateOf(false) }
+    var isKaraokeSettingsOpen by remember { mutableStateOf(false) }
 
     // État et vérification automatique des mises à jour au démarrage
     val updateCheckState by settingsViewModel.updateCheckState.collectAsStateWithLifecycle()
@@ -184,6 +188,15 @@ fun HomeScreen(
     val playbackSpeed by audioViewModel.playbackSpeed.collectAsStateWithLifecycle()
     val playbackErrorMessage by audioViewModel.playbackErrorMessage.collectAsStateWithLifecycle()
     val favorites by audioViewModel.favorites.collectAsStateWithLifecycle()
+    val searchHistory by audioViewModel.searchHistory.collectAsStateWithLifecycle()
+    val queue by audioViewModel.queue.collectAsStateWithLifecycle()
+    val queueIndex by audioViewModel.queueIndex.collectAsStateWithLifecycle()
+    val eqEnabled by audioViewModel.eqEnabled.collectAsStateWithLifecycle()
+    val eqPreset by audioViewModel.eqPreset.collectAsStateWithLifecycle()
+    val eqLevels by audioViewModel.eqLevels.collectAsStateWithLifecycle()
+    val karaokeFontSize by audioViewModel.karaokeFontSize.collectAsStateWithLifecycle()
+    val karaokeActiveColor by audioViewModel.karaokeActiveColor.collectAsStateWithLifecycle()
+    val karaokeOffsetMs by audioViewModel.karaokeOffsetMs.collectAsStateWithLifecycle()
     val lyricsData by audioViewModel.lyricsData.collectAsStateWithLifecycle()
     val isLyricsLoading by audioViewModel.isLyricsLoading.collectAsStateWithLifecycle()
 
