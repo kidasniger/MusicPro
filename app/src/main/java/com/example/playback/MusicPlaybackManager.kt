@@ -40,6 +40,12 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
     private var mediaController: MediaController? = null
 
     private var currentPlaylist: List<AudioTrackEntity> = emptyList()
+
+    private val _queue = MutableStateFlow<List<AudioTrackEntity>>(emptyList())
+    val queue: StateFlow<List<AudioTrackEntity>> = _queue.asStateFlow()
+
+    private val _queueIndex = MutableStateFlow(0)
+    val queueIndex: StateFlow<Int> = _queueIndex.asStateFlow()
     private var positionTickerJob: Job? = null
     private var pendingTrackToPlay: AudioTrackEntity? = null
     private var pendingPlaylistToPlay: List<AudioTrackEntity> = emptyList()
@@ -139,6 +145,8 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 updateCurrentTrackFromMediaItem(mediaItem)
+                _queue.value = currentPlaylist
+                _queueIndex.value = currentPlaylist.indexOfFirst { it.id == _currentTrack.value?.id }.coerceAtLeast(0)
                 com.example.widget.MusicWidgetUpdater.update(appContext, _currentTrack.value, _isPlaying.value)
             }
 
@@ -254,6 +262,8 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
         }
 
         currentPlaylist = playlist
+        _queue.value = playlist
+        _queueIndex.value = playlist.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
         _currentTrack.value = track
 
         val mediaItems = playlist.map { it.toMediaItem() }
@@ -371,6 +381,49 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
         val newShuffle = !controller.shuffleModeEnabled
         controller.shuffleModeEnabled = newShuffle
         _isShuffleEnabled.value = newShuffle
+    }
+
+    fun addToQueue(track: AudioTrackEntity, playNext: Boolean = false) {
+        val controller = mediaController
+        val current = currentPlaylist.toMutableList()
+        if (current.any { it.id == track.id }) return
+        val insertAt = if (playNext) (_queueIndex.value + 1).coerceAtMost(current.size) else current.size
+        current.add(insertAt, track)
+        currentPlaylist = current
+        _queue.value = current
+        if (controller != null) controller.addMediaItem(insertAt, track.toMediaItem())
+    }
+
+    fun removeFromQueue(index: Int) {
+        val current = currentPlaylist
+        if (index !in current.indices) return
+        if (index == _queueIndex.value) return
+        mediaController?.removeMediaItem(index)
+        currentPlaylist = current.toMutableList().also { it.removeAt(index) }
+        _queue.value = currentPlaylist
+        _queueIndex.value = currentPlaylist.indexOfFirst { it.id == _currentTrack.value?.id }.coerceAtLeast(0)
+    }
+
+    fun moveQueueItem(from: Int, to: Int) {
+        val current = currentPlaylist.toMutableList()
+        if (from !in current.indices || to !in current.indices || from == to) return
+        mediaController?.moveMediaItem(from, to)
+        val item = current.removeAt(from)
+        current.add(to, item)
+        currentPlaylist = current
+        _queue.value = current
+        _queueIndex.value = current.indexOfFirst { it.id == _currentTrack.value?.id }.coerceAtLeast(0)
+    }
+
+    fun clearQueue() {
+        val current = _currentTrack.value ?: return
+        currentPlaylist = listOf(current)
+        _queue.value = listOf(current)
+        _queueIndex.value = 0
+        val controller = mediaController ?: return
+        if (controller.mediaItemCount > 1) {
+            controller.removeMediaItems(1, controller.mediaItemCount)
+        }
     }
 
     fun setPlaybackSpeed(speed: Float) {
