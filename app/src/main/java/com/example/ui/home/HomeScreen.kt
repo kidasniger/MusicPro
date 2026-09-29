@@ -95,6 +95,10 @@ import com.example.permissions.PermissionUtils
 import com.example.ui.audio.AudioViewModel
 import com.example.ui.audio.LibraryTab
 import com.example.ui.components.AppUpdateDialog
+import com.example.ui.components.FavoritesScreen
+import com.example.ui.components.QueueSheet
+import com.example.ui.components.EqualizerSheet
+import com.example.ui.components.KaraokeSettingsDialog
 import com.example.ui.components.EmptyAudioStateView
 import com.example.ui.settings.SettingsViewModel
 import com.example.updater.UpdateCheckState
