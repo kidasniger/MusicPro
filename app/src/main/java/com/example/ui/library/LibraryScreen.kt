@@ -221,6 +221,7 @@ fun LibraryScreen(
                 val isSelected = tab == selectedTab
                 val countLabel = when (tab) {
                     LibraryTab.TRACKS -> "(${tracks.size})"
+                    LibraryTab.FAVORITES -> "(${favorites.size})"
                     LibraryTab.PLAYLISTS -> "(${playlists.size})"
                     LibraryTab.ALBUMS -> "(${albums.size})"
                     LibraryTab.ARTISTS -> "(${artists.size})"
@@ -264,7 +265,7 @@ fun LibraryScreen(
         Spacer(modifier = Modifier.height(4.dp))
 
         // Contenu principal selon l'onglet
-        if (tracks.isEmpty() && !isScanning && selectedTab != LibraryTab.PLAYLISTS) {
+        if (tracks.isEmpty() && !isScanning && selectedTab != LibraryTab.PLAYLISTS && selectedTab != LibraryTab.FAVORITES) {
             EmptyAudioStateView(
                 onRefreshScan = onRefreshScan,
                 modifier = Modifier.fillMaxSize()
@@ -274,6 +275,16 @@ fun LibraryScreen(
                 LibraryTab.TRACKS -> {
                     TracksList(
                         tracks = tracks,
+                        currentPlayingTrack = currentPlayingTrack,
+                        isPlaying = isPlaying,
+                        favorites = favorites,
+                        onTrackClick = onTrackClick,
+                        onToggleFavorite = onToggleFavorite
+                    )
+                }
+                LibraryTab.FAVORITES -> {
+                    TracksList(
+                        tracks = tracks.filter { favorites.contains(it.id) },
                         currentPlayingTrack = currentPlayingTrack,
                         isPlaying = isPlaying,
                         favorites = favorites,
