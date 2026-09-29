@@ -66,7 +66,8 @@ enum class SearchFilter(val label: String) {
     ALL("Tous"),
     TITLES("Titres"),
     ARTISTS("Artistes"),
-    ALBUMS("Albums")
+    ALBUMS("Albums"),
+    PLAYLISTS("Playlists")
 }
 
 data class AlbumSummary(
