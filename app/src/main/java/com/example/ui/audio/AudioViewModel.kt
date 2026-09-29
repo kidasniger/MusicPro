@@ -166,9 +166,6 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     private val _searchHistory = MutableStateFlow<List<String>>(emptyList())
     val searchHistory: StateFlow<List<String>> = _searchHistory.asStateFlow()
 
-    val queue: StateFlow<List<AudioTrackEntity>> = playbackManager.queue
-    val queueIndex: StateFlow<Int> = playbackManager.queueIndex
-
     val karaokeFontSize: StateFlow<Float> = preferencesRepository.karaokeFontSize
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 18f)
     val karaokeActiveColor: StateFlow<String> = preferencesRepository.karaokeActiveColor
@@ -178,6 +175,9 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
 
     // Gestionnaire de lecture Media3 (Foreground Service, Audio Focus, MediaStyle notification)
     private val playbackManager = MusicPlaybackManager.getInstance(application)
+
+    val queue: StateFlow<List<AudioTrackEntity>> = playbackManager.queue
+    val queueIndex: StateFlow<Int> = playbackManager.queueIndex
 
     val currentTrack: StateFlow<AudioTrackEntity?> = playbackManager.currentTrack
     val isPlaying: StateFlow<Boolean> = playbackManager.isPlaying
