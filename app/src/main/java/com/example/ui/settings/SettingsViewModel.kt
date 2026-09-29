@@ -36,6 +36,15 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val isDynamicColor: StateFlow<Boolean> = preferencesRepository.isDynamicColorEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val autoPlay: StateFlow<Boolean> = preferencesRepository.autoPlay
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val gaplessPlayback: StateFlow<Boolean> = preferencesRepository.gaplessPlayback
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val resumePlayback: StateFlow<Boolean> = preferencesRepository.resumePlayback
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
     private val _cacheSize = MutableStateFlow("Calcul...")
     val cacheSize: StateFlow<String> = _cacheSize.asStateFlow()
 
@@ -62,6 +71,18 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             preferencesRepository.setDynamicColor(enabled)
         }
+    }
+
+    fun setAutoPlay(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setAutoPlay(enabled) }
+    }
+
+    fun setGaplessPlayback(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setGaplessPlayback(enabled) }
+    }
+
+    fun setResumePlayback(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setResumePlayback(enabled) }
     }
 
     fun refreshCacheSize() {
