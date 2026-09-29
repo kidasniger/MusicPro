@@ -408,7 +408,13 @@ fun HomeScreen(
                         onToggleFavorite = { audioViewModel.toggleFavorite(it) },
                         searchHistory = searchHistory,
                         onSearchSubmit = { audioViewModel.addSearchToHistory(it) },
-                        onClearSearchHistory = { audioViewModel.clearSearchHistory() }
+                        onClearSearchHistory = { audioViewModel.clearSearchHistory() },
+                        playlists = playlists,
+                        onPlaylistClick = { playlist ->
+                            audioViewModel.selectPlaylist(playlist.id)
+                            currentSection = NavigationSection.LIBRARY
+                            audioViewModel.selectTab(LibraryTab.PLAYLISTS)
+                        }
                     )
                 }
             }
