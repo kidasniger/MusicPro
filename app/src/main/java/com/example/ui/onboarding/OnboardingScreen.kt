@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -195,6 +196,7 @@ fun OnboardingScreen(
                     border = BorderStroke(1.dp, Color(0x26FFFFFF)),
                     modifier = Modifier
                         .clickable { onFinishOnboarding() }
+                        .heightIn(min = 48.dp)
                         .testTag("onboarding_skip_button")
                 ) {
                     Text(
@@ -408,7 +410,7 @@ private fun OnboardingPageView(
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = page.badgeText,
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = MusicProSuccess,
                             letterSpacing = 1.sp
@@ -432,7 +434,7 @@ private fun OnboardingPageView(
                     ) {
                         Text(
                             text = "♪ I look around and Sin City's cold and empty",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = MusicProTextMuted,
                             textAlign = TextAlign.Center
                         )
@@ -454,7 +456,7 @@ private fun OnboardingPageView(
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
                             text = "No, I can't sleep until I feel your touch...",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = MusicProTextMuted,
                             textAlign = TextAlign.Center
                         )
@@ -503,7 +505,7 @@ private fun OnboardingPageView(
                             )
                             Text(
                                 text = "12 morceaux • Widget d'accueil actif",
-                                fontSize = 11.sp,
+                                fontSize = 12.sp,
                                 color = MusicProCyanLight
                             )
                         }
