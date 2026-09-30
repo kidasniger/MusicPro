@@ -25,9 +25,8 @@ interface GroqApiService {
         @Part("timestamp_granularities[]") timestampGranularities: RequestBody? = null,
         @Part("language") language: RequestBody? = null
     ): Response<GroqTranscriptionResponse>
-}
 
-
+    
     /**
      * Normalise un titre/artiste pour améliorer une recherche de paroles LRCLIB.
      */
@@ -36,3 +35,4 @@ interface GroqApiService {
         @Header("Authorization") authorization: String,
         @Body request: GroqChatCompletionRequest
     ): Response<GroqChatCompletionResponse>
+}
