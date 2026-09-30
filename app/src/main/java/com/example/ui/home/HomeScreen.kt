@@ -573,12 +573,12 @@ fun HomeScreen(
             },
             onClearFeedback = { audioViewModel.clearSaveFeedback() },
             aiQuerySuggestion = aiQuerySuggestion,
-            onAiAssist = {
+            onAiAssist = { title, artist ->
                 activeTrack?.let { track ->
                     audioViewModel.suggestLrclibQueryWithAi(
                         track = track,
-                        currentTitle = track.title,
-                        currentArtist = track.artist,
+                        currentTitle = title,
+                        currentArtist = artist,
                         durationSec = track.duration.takeIf { it > 0 }?.div(1000)
                     )
                 }
