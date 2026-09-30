@@ -437,23 +437,6 @@ fun TrackRowItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .pointerInput(track.id) {
-                var drag = 0f
-                detectHorizontalDragGestures(
-                    onHorizontalDrag = { change, amount ->
-                        change.consume()
-                        drag += amount
-                    },
-                    onDragEnd = {
-                        when {
-                            drag < -90f -> onSwipeLeft()
-                            drag > 90f -> onSwipeRight()
-                        }
-                        drag = 0f
-                    },
-                    onDragCancel = { drag = 0f }
-                )
-            }
             .clickable(onClick = onClick)
             .background(
                 if (isCurrent) MusicProSurfaceElevated.copy(alpha = 0.9f)
