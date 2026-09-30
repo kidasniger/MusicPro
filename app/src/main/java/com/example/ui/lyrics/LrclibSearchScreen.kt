@@ -111,7 +111,7 @@ fun LrclibSearchScreen(
     onSelectAndSave: (LrclibSearchResult) -> Unit,
     onClearFeedback: () -> Unit,
     aiQuerySuggestion: Pair<String, String>? = null,
-    onAiAssist: () -> Unit = {},
+    onAiAssist: (title: String, artist: String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
     var titleQuery by remember(track) { mutableStateOf(track?.title ?: "") }
@@ -181,7 +181,7 @@ fun LrclibSearchScreen(
                 onPerformSearch = {
                     onSearch(titleQuery, artistQuery, trackDurationSec)
                 },
-                onAiAssist = onAiAssist
+                onAiAssist = { onAiAssist(titleQuery, artistQuery) }
             )
 
             // 4. Zone de résultats / états
