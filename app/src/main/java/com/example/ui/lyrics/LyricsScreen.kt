@@ -73,7 +73,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -191,20 +190,17 @@ fun LyricsScreen(
         }
     }
 
-    // Calcul réactif de l'index de la ligne active selon ExoPlayer.currentPosition
+    // Calcul de l'index actif à partir de la position fournie par ExoPlayer.
+    // La recherche est dichotomique et reste légère même avec beaucoup de lignes.
     val effectiveKaraokePosition = (currentPositionMs - karaokeOffsetMs).coerceAtLeast(0L)
-    val activeLineIndex by remember(lyricsData, effectiveKaraokePosition) {
-        derivedStateOf { lyricsData.findActiveLineIndex(effectiveKaraokePosition) }
-    }
+    val activeLineIndex = lyricsData.findActiveLineIndex(effectiveKaraokePosition)
 
-    // Scroll automatique fluide centré sur la ligne active
+    // Défilement immédiat : une animation précédente ne doit pas retarder la ligne active.
     LaunchedEffect(activeLineIndex) {
         if (activeLineIndex in lyricsData.lines.indices && !listState.isScrollInProgress) {
-            // Défilement centré pour laisser les lignes précédentes et suivantes visibles
-            val scrollOffset = -220
-            listState.animateScrollToItem(
+            listState.scrollToItem(
                 index = activeLineIndex.coerceAtLeast(0),
-                scrollOffset = scrollOffset
+                scrollOffset = -220
             )
         }
     }
