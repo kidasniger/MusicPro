@@ -3,6 +3,7 @@ package com.example.groq
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.Header
 import retrofit2.http.Multipart
 import retrofit2.http.POST
@@ -25,3 +26,13 @@ interface GroqApiService {
         @Part("language") language: RequestBody? = null
     ): Response<GroqTranscriptionResponse>
 }
+
+
+    /**
+     * Normalise un titre/artiste pour améliorer une recherche de paroles LRCLIB.
+     */
+    @POST("openai/v1/chat/completions")
+    suspend fun suggestLyricsSearchQuery(
+        @Header("Authorization") authorization: String,
+        @Body request: GroqChatCompletionRequest
+    ): Response<GroqChatCompletionResponse>
