@@ -270,7 +270,12 @@ class MusicPlaybackService : MediaSessionService() {
         val isPlaying = forcePlaying ?: exoPlayer.isPlaying
         serviceScope.launch {
             runCatching {
-                preferencesRepository.setSavedPlaybackState(trackId, position, isPlaying)
+                preferencesRepository.setSavedPlaybackState(
+                    trackId = trackId,
+                    positionMs = position,
+                    wasPlaying = isPlaying,
+                    shuffleEnabled = exoPlayer.shuffleModeEnabled
+                )
             }
         }
     }
