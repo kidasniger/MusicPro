@@ -541,21 +541,21 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
 
             result.fold(
                 onSuccess = { suggestion ->
+                    _aiLyricsQuerySuggestion.value = suggestion.title to suggestion.artist
                     _lrclibSearchState.value = LrclibSearchUiState.Loading
+
                     val searchResult = lyricsRepository.searchLyricsOnline(
                         suggestion.title,
                         suggestion.artist,
                         durationSec
                     )
+
                     searchResult.fold(
                         onSuccess = { list ->
-                            if (list.isEmpty()) {
-                                _lrclibSearchState.value = LrclibSearchUiState.Empty(
-                                    suggestion.title,
-                                    suggestion.artist
-                                )
+                            _lrclibSearchState.value = if (list.isEmpty()) {
+                                LrclibSearchUiState.Empty(suggestion.title, suggestion.artist)
                             } else {
-                                _lrclibSearchState.value = LrclibSearchUiState.Success(list)
+                                LrclibSearchUiState.Success(list)
                             }
                         },
                         onFailure = { error ->
@@ -564,13 +564,6 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
                             )
                         }
                     )
-                    _lrclibSearchState.value = when (val state = _lrclibSearchState.value) {
-                        is LrclibSearchUiState.Success -> state
-                        is LrclibSearchUiState.Empty -> state
-                        is LrclibSearchUiState.Error -> state
-                        else -> LrclibSearchUiState.Idle
-                    }
-                    _aiLyricsQuerySuggestion.value = suggestion.title to suggestion.artist
                 },
                 onFailure = { error ->
                     _lrclibSearchState.value = LrclibSearchUiState.Error(
