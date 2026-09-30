@@ -30,8 +30,11 @@ import com.example.R
 import com.example.data.preferences.UserPreferencesRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -54,6 +57,7 @@ class MusicPlaybackService : MediaSessionService() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val preferencesRepository by lazy { UserPreferencesRepository(applicationContext) }
     private var favoriteTrackIds: Set<Long> = emptySet()
+    private var playbackPersistenceJob: Job? = null
 
     companion object {
         const val NOTIFICATION_CHANNEL_ID = "musicpro_playback_channel"
@@ -222,15 +226,21 @@ class MusicPlaybackService : MediaSessionService() {
         exoPlayer.addListener(object : androidx.media3.common.Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 notifyWidgetUpdate(exoPlayer, isPlaying)
+                persistPlaybackState(exoPlayer)
+                if (isPlaying) startPlaybackPersistence(exoPlayer) else stopPlaybackPersistence()
             }
 
             override fun onMediaItemTransition(mediaItem: androidx.media3.common.MediaItem?, reason: Int) {
                 updateNotificationButtons()
                 notifyWidgetUpdate(exoPlayer, exoPlayer.isPlaying)
+                persistPlaybackState(exoPlayer)
             }
 
             override fun onPlaybackStateChanged(playbackState: Int) {
                 notifyWidgetUpdate(exoPlayer, exoPlayer.isPlaying)
+                if (playbackState == androidx.media3.common.Player.STATE_ENDED) {
+                    persistPlaybackState(exoPlayer, forcePositionMs = 0L, forcePlaying = false)
+                }
             }
 
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
@@ -247,6 +257,37 @@ class MusicPlaybackService : MediaSessionService() {
             .build()
 
         setMediaNotificationProvider(notificationProvider)
+    }
+
+    private fun persistPlaybackState(
+        exoPlayer: ExoPlayer,
+        forcePositionMs: Long? = null,
+        forcePlaying: Boolean? = null
+    ) {
+        val trackId = exoPlayer.currentMediaItem?.mediaId?.toLongOrNull() ?: return
+        if (trackId <= 0L) return
+        val position = (forcePositionMs ?: exoPlayer.currentPosition).coerceAtLeast(0L)
+        val isPlaying = forcePlaying ?: exoPlayer.isPlaying
+        serviceScope.launch {
+            runCatching {
+                preferencesRepository.setSavedPlaybackState(trackId, position, isPlaying)
+            }
+        }
+    }
+
+    private fun startPlaybackPersistence(exoPlayer: ExoPlayer) {
+        playbackPersistenceJob?.cancel()
+        playbackPersistenceJob = serviceScope.launch {
+            while (isActive) {
+                delay(1500)
+                persistPlaybackState(exoPlayer)
+            }
+        }
+    }
+
+    private fun stopPlaybackPersistence() {
+        playbackPersistenceJob?.cancel()
+        playbackPersistenceJob = null
     }
 
     private fun buildNotificationButtons(): List<CommandButton> {
@@ -347,6 +388,8 @@ class MusicPlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        player?.let { persistPlaybackState(it) }
+        stopPlaybackPersistence()
         serviceScope.cancel()
         mediaSession?.run {
             player.release()
