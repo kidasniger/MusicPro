@@ -285,7 +285,7 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
             _currentPositionMs.value = position
             _durationMs.value = track.duration
 
-            controller.setMediaItem(track.toMediaItem(), 0, position)
+            controller.setMediaItem(track.toMediaItem(), position)
             controller.prepare()
             if (saved.wasPlaying) {
                 controller.play()
