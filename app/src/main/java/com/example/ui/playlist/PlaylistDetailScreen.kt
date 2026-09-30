@@ -273,7 +273,7 @@ fun PlaylistDetailScreen(
                     Text(
                         text = "Glisser pour réordonner",
                         color = MusicProCyanLight.copy(alpha = 0.8f),
-                        fontSize = 11.sp
+                        fontSize = 12.sp
                     )
                 }
             }
@@ -531,7 +531,7 @@ private fun PlaylistHeaderHero(
                             Text(
                                 text = "$trackCount morceau(x)",
                                 color = MusicProCyanNeon,
-                                fontSize = 11.sp,
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                             )
@@ -541,7 +541,7 @@ private fun PlaylistHeaderHero(
                             Text(
                                 text = playlist.formatDuration(),
                                 color = MusicProTextMuted,
-                                fontSize = 11.sp
+                                fontSize = 12.sp
                             )
                         }
                     }
@@ -586,7 +586,7 @@ private fun PlaylistHeaderHero(
                 IconButton(
                     onClick = onAddTracks,
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(48.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(MusicProSurfaceElevated)
                         .border(1.dp, MusicProCyanNeon.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
@@ -753,7 +753,7 @@ private fun ReorderableTrackRow(
             // Artwork
             Box(
                 modifier = Modifier
-                    .size(42.dp)
+                    .size(48.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .background(MusicProSurfaceElevated),
                 contentAlignment = Alignment.Center

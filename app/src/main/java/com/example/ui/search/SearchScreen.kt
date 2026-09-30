@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -35,6 +36,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -214,6 +216,7 @@ fun SearchScreen(
                             RoundedCornerShape(10.dp)
                         )
                         .clickable { onFilterChange(f) }
+                        .heightIn(min = 48.dp)
                         .padding(horizontal = 14.dp, vertical = 7.dp)
                         .testTag("search_filter_${f.name.lowercase()}"),
                     contentAlignment = Alignment.Center
@@ -248,7 +251,7 @@ fun SearchScreen(
                         }
                         Text(
                             "Effacer",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = MusicProTextSecondary,
                             modifier = Modifier.clickable(onClick = onClearSearchHistory)
                         )
@@ -302,6 +305,7 @@ fun SearchScreen(
                                 .background(MusicProSurfaceVariant)
                                 .border(1.dp, Color(0x228A2BE2), RoundedCornerShape(20.dp))
                                 .clickable { onQueryChange(suggestion) }
+                                .heightIn(min = 48.dp)
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                                 .testTag("search_suggestion_$suggestion")
                         ) {
@@ -433,7 +437,7 @@ fun SearchScreen(
                                             playlist.trackCount.toString() +
                                                 " morceau(s) • " +
                                                 playlist.formatDuration(),
-                                            fontSize = 11.sp,
+                                            fontSize = 12.sp,
                                             color = MusicProTextSecondary
                                         )
                                     }

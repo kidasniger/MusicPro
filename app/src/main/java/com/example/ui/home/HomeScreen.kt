@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -70,6 +71,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -153,14 +155,15 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    var currentSection by remember { mutableStateOf(NavigationSection.HOME) }
-    var isNowPlayingOpen by remember { mutableStateOf(initialOpenNowPlaying) }
-    var isLyricsOpen by remember { mutableStateOf(false) }
-    var isLrclibSearchOpen by remember { mutableStateOf(false) }
-    var isFavoritesOpen by remember { mutableStateOf(false) }
-    var isQueueOpen by remember { mutableStateOf(false) }
-    var isEqualizerOpen by remember { mutableStateOf(false) }
-    var isKaraokeSettingsOpen by remember { mutableStateOf(false) }
+    var currentSectionName by rememberSaveable { mutableStateOf(NavigationSection.HOME.name) }
+    val currentSection = NavigationSection.valueOf(currentSectionName)
+    var isNowPlayingOpen by rememberSaveable { mutableStateOf(initialOpenNowPlaying) }
+    var isLyricsOpen by rememberSaveable { mutableStateOf(false) }
+    var isLrclibSearchOpen by rememberSaveable { mutableStateOf(false) }
+    var isFavoritesOpen by rememberSaveable { mutableStateOf(false) }
+    var isQueueOpen by rememberSaveable { mutableStateOf(false) }
+    var isEqualizerOpen by rememberSaveable { mutableStateOf(false) }
+    var isKaraokeSettingsOpen by rememberSaveable { mutableStateOf(false) }
 
     // Ouvre l'écran demandé depuis la notification, y compris lorsque l'application
     // était déjà ouverte et reçoit un nouvel Intent via onNewIntent().
@@ -322,7 +325,7 @@ fun HomeScreen(
                 audioViewModel.setSearchQuery("")
             }
             currentSection != NavigationSection.HOME -> {
-                currentSection = NavigationSection.HOME
+                currentSectionName = NavigationSection.HOME
             }
             else -> {
                 val currentTime = System.currentTimeMillis()
@@ -386,8 +389,8 @@ fun HomeScreen(
                         favorites = favorites,
                         onOpenSettings = onOpenSettings,
                         onOpenOnboarding = onOpenOnboarding,
-                        onNavigateToLibrary = { currentSection = NavigationSection.LIBRARY },
-                        onNavigateToSearch = { currentSection = NavigationSection.SEARCH },
+                        onNavigateToLibrary = { currentSectionName = NavigationSection.LIBRARY },
+                        onNavigateToSearch = { currentSectionName = NavigationSection.SEARCH },
                         onOpenFavorites = { isFavoritesOpen = true },
                         onTrackClick = { audioViewModel.playTrack(it) },
                         onToggleFavorite = { audioViewModel.toggleFavorite(it) },
@@ -437,7 +440,7 @@ fun HomeScreen(
                         playlists = playlists,
                         onPlaylistClick = { playlist ->
                             audioViewModel.selectPlaylist(playlist.id)
-                            currentSection = NavigationSection.LIBRARY
+                            currentSectionName = NavigationSection.LIBRARY
                             audioViewModel.selectTab(LibraryTab.PLAYLISTS)
                         }
                     )
@@ -863,36 +866,39 @@ private fun HomeExplorerContent(
 
         // Bandeau statistiques du cache Room
         item {
-            Row(
+            Surface(
+                onClick = onNavigateToLibrary,
+                shape = RoundedCornerShape(16.dp),
+                color = MusicProSurfaceElevated,
+                border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.28f)),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(horizontal = 16.dp, vertical = 6.dp)
+                    .testTag("home_library_summary")
             ) {
-                StatCard(
-                    title = "Morceaux",
-                    count = tracks.size.toString(),
-                    icon = Icons.Default.MusicNote,
-                    color = MusicProCyanNeon,
-                    modifier = Modifier.weight(1f),
-                    onClick = onNavigateToLibrary
-                )
-                StatCard(
-                    title = "Albums",
-                    count = albumsCount.toString(),
-                    icon = Icons.Default.Album,
-                    color = MusicProVioletLight,
-                    modifier = Modifier.weight(1f),
-                    onClick = onNavigateToLibrary
-                )
-                StatCard(
-                    title = "Artistes",
-                    count = artistsCount.toString(),
-                    icon = Icons.Default.Person,
-                    color = MusicProGreenEmerald,
-                    modifier = Modifier.weight(1f),
-                    onClick = onNavigateToLibrary
-                )
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MusicProCyanNeon.copy(alpha = 0.12f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.AutoMirrored.Filled.QueueMusic, null, tint = MusicProCyanNeon, modifier = Modifier.size(21.dp))
+                        }
+                        Spacer(Modifier.width(10.dp))
+                        Column {
+                            Text("Votre bibliothèque", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
+                            Text("${tracks.size} morceaux • $albumsCount albums • $artistsCount artistes", fontSize = 12.sp, color = MusicProTextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    }
+                    Icon(Icons.Default.Search, contentDescription = "Ouvrir la recherche", tint = MusicProTextSecondary, modifier = Modifier.size(20.dp))
+                }
             }
         }
 
@@ -913,7 +919,7 @@ private fun HomeExplorerContent(
                         Spacer(Modifier.width(8.dp))
                         Column {
                             Text("Favoris", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
-                            Text(favorites.size.toString() + " titres", fontSize = 10.sp, color = MusicProTextSecondary)
+                            Text(favorites.size.toString() + " titres", fontSize = 12.sp, color = MusicProTextSecondary)
                         }
                     }
                 }
@@ -929,7 +935,7 @@ private fun HomeExplorerContent(
                         Spacer(Modifier.width(8.dp))
                         Column {
                             Text("Bibliothèque", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
-                            Text(tracks.size.toString() + " titres", fontSize = 10.sp, color = MusicProTextSecondary)
+                            Text(tracks.size.toString() + " titres", fontSize = 12.sp, color = MusicProTextSecondary)
                         }
                     }
                 }
@@ -944,9 +950,9 @@ private fun HomeExplorerContent(
                 ) {
                     Text("Collections", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
                     Spacer(Modifier.width(8.dp))
-                    Text("Albums ${albums.size}", fontSize = 10.sp, color = MusicProVioletLight)
+                    Text("Albums ${albums.size}", fontSize = 12.sp, color = MusicProVioletLight)
                     Spacer(Modifier.width(6.dp))
-                    Text("Playlists ${playlists.size}", fontSize = 10.sp, color = MusicProCyanNeon)
+                    Text("Playlists ${playlists.size}", fontSize = 12.sp, color = MusicProCyanNeon)
                 }
             }
             if (albums.isNotEmpty()) {
@@ -969,8 +975,8 @@ private fun HomeExplorerContent(
                                     }
                                     Spacer(Modifier.width(8.dp))
                                     Column(Modifier.weight(1f)) {
-                                        Text(album.name, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                                        Text(album.artist, fontSize = 9.sp, color = MusicProTextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        Text(album.name, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                        Text(album.artist, fontSize = 12.sp, color = MusicProTextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                     }
                                 }
                             }
@@ -983,7 +989,7 @@ private fun HomeExplorerContent(
                     LazyRow(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(playlists.take(6), key = { it.id }) { playlist ->
                             Surface(onClick = onNavigateToLibrary, shape = RoundedCornerShape(12.dp), color = MusicProSurfaceElevated, border = BorderStroke(1.dp, MusicProCyanNeon.copy(alpha = 0.20f))) {
-                                Text("♫ ${playlist.name}", modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp), fontSize = 11.sp, color = MusicProTextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text("♫ ${playlist.name}", modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp), fontSize = 12.sp, color = MusicProTextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
                         }
                     }
@@ -1082,7 +1088,7 @@ private fun StatCard(
         )
         Text(
             text = title,
-            fontSize = 10.sp,
+            fontSize = 12.sp,
             color = MusicProTextSecondary
         )
     }
@@ -1109,6 +1115,7 @@ private fun MusicProBottomNavBar(
                     .clip(RoundedCornerShape(12.dp))
                     .clickable { onSelectSection(section) }
                     .padding(horizontal = 16.dp, vertical = 6.dp)
+                    .heightIn(min = 48.dp)
                     .testTag("nav_tab_${section.name.lowercase()}"),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -1242,7 +1249,7 @@ private fun MiniPlayerBar(
 
                 IconButton(
                     onClick = onPrevious,
-                    modifier = Modifier.size(34.dp)
+                    modifier = Modifier .size(48.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.SkipPrevious,
@@ -1255,7 +1262,7 @@ private fun MiniPlayerBar(
                 IconButton(
                     onClick = onPlayPauseToggle,
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
                         .background(MusicProVioletPrimary)
                         .testTag("mini_player_play_pause_button")

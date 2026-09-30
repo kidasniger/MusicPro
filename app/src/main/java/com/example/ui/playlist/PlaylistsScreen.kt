@@ -141,7 +141,7 @@ fun PlaylistsScreen(
                                     imageVector = Icons.Default.QueueMusic,
                                     contentDescription = null,
                                     tint = MusicProCyanNeon,
-                                    modifier = Modifier.size(40.dp)
+                                    modifier = Modifier.size(48.dp)
                                 )
                             }
                         }
@@ -343,7 +343,7 @@ private fun PlaylistCardItem(
                         Text(
                             text = "${playlist.trackCount} morceau(x)",
                             color = MusicProCyanNeon,
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                         )
@@ -353,7 +353,7 @@ private fun PlaylistCardItem(
                         Text(
                             text = playlist.formatDuration(),
                             color = MusicProTextMuted,
-                            fontSize = 11.sp
+                            fontSize = 12.sp
                         )
                     }
                 }

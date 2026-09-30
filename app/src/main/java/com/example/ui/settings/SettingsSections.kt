@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -127,7 +128,7 @@ fun SettingsTopBar(onBack: () -> Unit) {
         IconButton(
             onClick = onBack,
             modifier = Modifier
-                .size(42.dp)
+                .size(48.dp)
                 .clip(CircleShape)
                 .background(MusicProSurfaceElevated)
                 .testTag("settings_back_button")
@@ -207,7 +208,7 @@ fun ThemeSelectionCard(
                     )
                     Text(
                         text = "Sélectionnez l'ambiance visuelle de MusicPro",
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         color = MusicProTextMuted
                     )
                 }
@@ -281,7 +282,7 @@ fun ThemeSelectionCard(
                             )
                             Text(
                                 text = "Adapte les teintes à votre fond d'écran Android",
-                                fontSize = 10.sp,
+                                fontSize = 12.sp,
                                 color = MusicProTextMuted
                             )
                         }
@@ -316,6 +317,7 @@ fun ThemeOptionItem(
     Surface(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
+            .heightIn(min = 48.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         color = containerColor,
@@ -354,7 +356,7 @@ fun ThemeOptionItem(
 
             Text(
                 text = title,
-                fontSize = 11.sp,
+                fontSize = 12.sp,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                 color = if (containerColor == Color(0xFFF3F4F8)) Color(0xFF101018) else MusicProTextPrimary,
                 maxLines = 1,
@@ -363,7 +365,7 @@ fun ThemeOptionItem(
 
             Text(
                 text = subtitle,
-                fontSize = 9.sp,
+                fontSize = 12.sp,
                 color = if (containerColor == Color(0xFFF3F4F8)) Color(0xFF555566) else MusicProTextMuted,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -440,7 +442,7 @@ fun GroqApiKeyCard(
                         )
                         Text(
                             text = "Modèle Whisper large-v3 par IA",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = MusicProTextMuted,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -472,7 +474,7 @@ fun GroqApiKeyCard(
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = if (isConfigured) "Configurée" else "Non définie",
-                            fontSize = 10.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (isConfigured) MusicProSuccess else MusicProWarning
                         )
@@ -503,7 +505,7 @@ fun GroqApiKeyCard(
                         Text(
                             text = "Clé : $maskedKey",
                             fontFamily = FontFamily.Monospace,
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = MusicProTextSecondary,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -585,7 +587,7 @@ fun GroqApiKeyCard(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = message,
-                                fontSize = 11.sp,
+                                fontSize = 12.sp,
                                 color = if (isSuccess) MusicProSuccess else MusicProError,
                                 lineHeight = 15.sp
                             )
@@ -703,7 +705,7 @@ fun GroqApiKeyCard(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Clé gratuite en 1 clic sur console.groq.com. Vos fichiers audio volumineux (>22 Mo) sont automatiquement découpés sans perte pour respecter les limites de l'API.",
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         color = MusicProTextSecondary,
                         lineHeight = 15.sp
                     )
@@ -768,7 +770,7 @@ fun CacheManagementCard(
                         )
                         Text(
                             text = "Vignettes, cache et synchronisation",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = MusicProTextMuted
                         )
                     }
@@ -776,7 +778,7 @@ fun CacheManagementCard(
 
                 IconButton(
                     onClick = onRefresh,
-                    modifier = Modifier.size(32.dp).testTag("refresh_cache_size_button")
+                    modifier = Modifier.size(48.dp).testTag("refresh_cache_size_button")
                 ) {
                     Icon(
                         imageVector = Icons.Default.Refresh,
@@ -806,7 +808,7 @@ fun CacheManagementCard(
                     Column {
                         Text(
                             text = "Cache temporaire",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = MusicProTextMuted
                         )
                         Text(
@@ -873,7 +875,7 @@ fun CacheManagementCard(
                         )
                         Text(
                             text = "Retire les morceaux fantômes et libère la mémoire",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = MusicProTextMuted
                         )
                     }
@@ -937,7 +939,7 @@ fun CacheManagementCard(
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = msg,
-                                    fontSize = 11.sp,
+                                    fontSize = 12.sp,
                                     color = MusicProSuccess
                                 )
                             }
@@ -983,7 +985,7 @@ fun PlaybackSettingsCard(
                 Spacer(Modifier.width(10.dp))
                 Column {
                     Text("Lecture", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
-                    Text("Comportement du lecteur MusicPro", fontSize = 11.sp, color = MusicProTextMuted)
+                    Text("Comportement du lecteur MusicPro", fontSize = 12.sp, color = MusicProTextMuted)
                 }
             }
             SettingToggleRow("Lecture automatique", "Enchaîner la file sans intervention", autoPlay, onAutoPlayChanged)
@@ -1006,7 +1008,7 @@ private fun SettingToggleRow(
     ) {
         Column(Modifier.weight(1f).padding(end = 10.dp)) {
             Text(title, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = MusicProTextPrimary)
-            Text(subtitle, fontSize = 10.sp, color = MusicProTextMuted)
+            Text(subtitle, fontSize = 12.sp, color = MusicProTextMuted)
         }
         Switch(
             checked = checked,
@@ -1033,7 +1035,7 @@ fun SettingsSectionHeader(
         Spacer(Modifier.width(8.dp))
         Column {
             Text(title, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MusicProCyanNeon)
-            Text(subtitle, fontSize = 10.sp, color = MusicProTextMuted)
+            Text(subtitle, fontSize = 12.sp, color = MusicProTextMuted)
         }
     }
 }
@@ -1088,7 +1090,7 @@ fun AboutCard(currentVersion: String = "1.0") {
                         ) {
                             Text(
                                 text = "v$currentVersion",
-                                fontSize = 10.sp,
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MusicProCyanNeon,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -1097,7 +1099,7 @@ fun AboutCard(currentVersion: String = "1.0") {
                     }
                     Text(
                         text = "Lecteur Audio Haute Définition & IA Paroles",
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         color = MusicProTextSecondary
                     )
                 }
@@ -1134,7 +1136,7 @@ fun AboutCard(currentVersion: String = "1.0") {
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Vos fichiers audio et métadonnées restent 100% locaux. Seules les requêtes de paroles expressément demandées interrogent Groq ou LRCLIB.",
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         color = MusicProTextSecondary,
                         lineHeight = 15.sp
                     )
@@ -1155,13 +1157,13 @@ fun TechBadgeRow(title: String, value: String) {
     ) {
         Text(
             text = title,
-            fontSize = 11.sp,
+            fontSize = 12.sp,
             color = MusicProTextMuted,
             modifier = Modifier.weight(1f, fill = false)
         )
         Text(
             text = value,
-            fontSize = 11.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
             color = MusicProCyanLight,
             fontFamily = FontFamily.Monospace,
@@ -1200,7 +1202,7 @@ fun PermissionsCard(onNavigateToPermissions: () -> Unit) {
                 )
                 Text(
                     text = "Accès aux fichiers audio locaux et notifications",
-                    fontSize = 11.sp,
+                    fontSize = 12.sp,
                     color = MusicProTextMuted
                 )
             }

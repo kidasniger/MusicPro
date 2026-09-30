@@ -130,13 +130,13 @@ val MusicProTextPrimary = Color(0xFFFFFFFF)
 val MusicProTextSecondary = Color(0xCCFFFFFF)
 
 /** Texte tertiaire blanc 60% (Descriptions) */
-val MusicProTextTertiary = Color(0x99FFFFFF)
+val MusicProTextTertiary = Color(0xFFB8BBC8)
 
 /** Texte atténué blanc 40% (Compteurs, timestamps, placeholders) */
-val MusicProTextMuted = Color(0x66FFFFFF)
+val MusicProTextMuted = Color(0xFF8F94A6)
 
 /** Texte très discret blanc 20% (Index, mentions légales) */
-val MusicProTextDisabled = Color(0x33FFFFFF)
+val MusicProTextDisabled = Color(0xFF64697A)
 
 /** Bordure principale subtile blanc 10% */
 val MusicProBorder = Color(0x1AFFFFFF)

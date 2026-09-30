@@ -11,7 +11,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -68,7 +67,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -234,7 +232,7 @@ fun LibraryScreen(
 
                 Box(
                     modifier = Modifier
-                        .height(38.dp)
+                        .height(48.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(
                             if (isSelected) MusicProPrimaryGradient
@@ -439,23 +437,6 @@ fun TrackRowItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .pointerInput(track.id) {
-                var drag = 0f
-                detectHorizontalDragGestures(
-                    onHorizontalDrag = { change, amount ->
-                        change.consume()
-                        drag += amount
-                    },
-                    onDragEnd = {
-                        when {
-                            drag < -90f -> onSwipeLeft()
-                            drag > 90f -> onSwipeRight()
-                        }
-                        drag = 0f
-                    },
-                    onDragCancel = { drag = 0f }
-                )
-            }
             .clickable(onClick = onClick)
             .background(
                 if (isCurrent) MusicProSurfaceElevated.copy(alpha = 0.9f)
@@ -559,7 +540,7 @@ fun TrackRowItem(
                 ) {
                     Text(
                         text = track.getAudioFormat(),
-                        fontSize = 9.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (track.getAudioFormat() == "FLAC") MusicProGreenEmerald else MusicProVioletLight
                     )
@@ -575,7 +556,7 @@ fun TrackRowItem(
                     ) {
                         Text(
                             text = "LRC",
-                            fontSize = 9.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = MusicProCyanNeon
                         )
@@ -599,7 +580,7 @@ fun TrackRowItem(
         // Bouton favori
         IconButton(
             onClick = onToggleFavorite,
-            modifier = Modifier.size(36.dp)
+            modifier = Modifier.size(48.dp)
         ) {
             Icon(
                 imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
@@ -690,7 +671,7 @@ private fun AlbumGridItem(
 
         Text(
             text = album.artist,
-            fontSize = 11.sp,
+            fontSize = 12.sp,
             color = MusicProTextSecondary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -700,7 +681,7 @@ private fun AlbumGridItem(
 
         Text(
             text = "${album.trackCount} titres",
-            fontSize = 10.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
             color = MusicProCyanLight
         )
@@ -822,7 +803,7 @@ private fun FoldersList(
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = folder.samplePath,
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         color = MusicProTextSecondary,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -837,7 +818,7 @@ private fun FoldersList(
                 ) {
                     Text(
                         text = "${folder.trackCount} titres",
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = MusicProCyanLight
                     )
@@ -943,7 +924,7 @@ private fun AlbumDetailView(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "${album.trackCount} titre(s) disponible(s)",
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         color = MusicProTextMuted
                     )
                 }
@@ -1195,7 +1176,7 @@ private fun FolderDetailView(
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = folder.samplePath,
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         color = MusicProTextSecondary,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -1203,7 +1184,7 @@ private fun FolderDetailView(
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = "${folder.trackCount} fichier(s) audio",
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         color = MusicProVioletLight
                     )
                 }
