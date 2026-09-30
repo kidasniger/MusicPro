@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -73,6 +74,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -254,7 +256,7 @@ fun NowPlayingScreen(
                             imageVector = Icons.Default.KeyboardArrowDown,
                             contentDescription = "Réduire le lecteur",
                             tint = MusicProCyanNeon,
-                            modifier = Modifier.size(28.dp)
+                            modifier = Modifier.size(48.dp)
                         )
                     }
 
@@ -266,7 +268,7 @@ fun NowPlayingScreen(
                     ) {
                         Text(
                             text = "LECTURE EN COURS",
-                            fontSize = 10.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 2.sp,
                             color = MusicProCyanNeon
@@ -480,7 +482,7 @@ fun NowPlayingScreen(
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = if (format == "FLAC") "FLAC 24-bit • Lossless" else "$format • 320 kbps",
-                            fontSize = 10.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (format == "FLAC") MusicProGreenEmerald else MusicProCyanLight
                         )
@@ -562,7 +564,7 @@ fun NowPlayingScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = if (lyricsData.lines.isNotEmpty()) "LRC / SYLT" else "Ouvrir",
-                            fontSize = 10.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = MusicProVioletLight
                         )
@@ -621,13 +623,13 @@ fun NowPlayingScreen(
                     ) {
                         Text(
                             text = formatTime(displayPositionMs),
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = MusicProCyanLight
                         )
                         Text(
                             text = formatTime(effectiveDuration),
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = MusicProTextMuted
                         )
@@ -646,7 +648,7 @@ fun NowPlayingScreen(
                     IconButton(
                         onClick = onToggleShuffle,
                         modifier = Modifier
-                            .size(44.dp)
+                            .size(48.dp)
                             .testTag("now_playing_shuffle_button")
                     ) {
                         Icon(
@@ -690,7 +692,7 @@ fun NowPlayingScreen(
                             imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                             contentDescription = if (isPlaying) "Pause" else "Lecture",
                             tint = Color.White,
-                            modifier = Modifier.size(34.dp)
+                            modifier = Modifier.size(48.dp)
                         )
                     }
 
@@ -715,7 +717,7 @@ fun NowPlayingScreen(
                     IconButton(
                         onClick = onToggleRepeat,
                         modifier = Modifier
-                            .size(44.dp)
+                            .size(48.dp)
                             .testTag("now_playing_repeat_button")
                     ) {
                         val isRepeatActive = repeatMode != Player.REPEAT_MODE_OFF
@@ -746,6 +748,7 @@ fun NowPlayingScreen(
                             .clip(RoundedCornerShape(8.dp))
                             .background(Color(0x1AFFFFFF))
                             .border(1.dp, MusicProVioletLight.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                            .heightIn(min = 48.dp)
                             .clickable {
                                 val speeds = listOf(0.8f, 1.0f, 1.25f, 1.5f)
                                 val nextIndex = (speeds.indexOf(playbackSpeed) + 1).let {
@@ -765,7 +768,7 @@ fun NowPlayingScreen(
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = "${playbackSpeed}x",
-                                fontSize = 11.sp,
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
                             )
@@ -785,7 +788,7 @@ fun NowPlayingScreen(
                                 currentVolume = newVol
                                 audioManager?.setStreamVolume(AudioManager.STREAM_MUSIC, newVol.toInt(), 0)
                             },
-                            modifier = Modifier.size(28.dp)
+                            modifier = Modifier.size(48.dp)
                         ) {
                             Icon(
                                 imageVector = if (currentVolume == 0f) Icons.AutoMirrored.Filled.VolumeMute else Icons.AutoMirrored.Filled.VolumeDown,
@@ -842,7 +845,7 @@ fun NowPlayingScreen(
                     IconButton(
                         onClick = { showOptionsSheet = true },
                         modifier = Modifier
-                            .size(34.dp)
+                            .size(48.dp)
                             .clip(CircleShape)
                             .background(
                                 if (sleepTimerSecondsRemaining != null) MusicProVioletPrimary.copy(alpha = 0.6f)
@@ -925,13 +928,17 @@ private fun NowPlayingOptionsSheetContent(
                 fontWeight = FontWeight.Bold,
                 color = MusicProTextPrimary
             )
-            Text(
-                text = "Fermer",
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = MusicProCyanNeon,
-                modifier = Modifier.clickable { onClose() }
-            )
+            TextButton(
+                onClick = onClose,
+                modifier = Modifier.heightIn(min = 48.dp)
+            ) {
+                Text(
+                    text = "Fermer",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MusicProCyanNeon
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(18.dp))
@@ -985,7 +992,7 @@ private fun NowPlayingOptionsSheetContent(
                 ) {
                     Text(
                         text = label,
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                         color = if (isSelected) Color.White else MusicProTextSecondary,
                         textAlign = TextAlign.Center,
@@ -1046,7 +1053,7 @@ private fun NowPlayingOptionsSheetContent(
                 ) {
                     Text(
                         text = "${speed}x",
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                         color = if (isSelected) Color.White else MusicProTextSecondary,
                         textAlign = TextAlign.Center,
@@ -1172,7 +1179,7 @@ private fun StatusFeatureChip(
             Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text = text,
-                fontSize = 10.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
                 color = MusicProTextSecondary,
                 maxLines = 1,
