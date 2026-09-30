@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -13,6 +14,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import java.io.IOException
+
+data class SavedPlaybackState(
+    val trackId: Long,
+    val positionMs: Long,
+    val wasPlaying: Boolean
+)
 
 val Context.musicProDataStore: DataStore<Preferences> by preferencesDataStore(name = "musicpro_preferences")
 
@@ -36,6 +43,9 @@ class UserPreferencesRepository(private val context: Context) {
         val KEY_KARAOKE_FONT_SIZE = stringPreferencesKey("karaoke_font_size")
         val KEY_KARAOKE_ACTIVE_COLOR = stringPreferencesKey("karaoke_active_color")
         val KEY_KARAOKE_OFFSET = stringPreferencesKey("karaoke_offset")
+        val KEY_LAST_PLAYED_TRACK_ID = longPreferencesKey("last_played_track_id")
+        val KEY_LAST_PLAYED_POSITION_MS = longPreferencesKey("last_played_position_ms")
+        val KEY_LAST_PLAYED_WAS_PLAYING = booleanPreferencesKey("last_played_was_playing")
     }
 
     val isOnboardingCompleted: Flow<Boolean> = context.musicProDataStore.data
@@ -138,6 +148,17 @@ class UserPreferencesRepository(private val context: Context) {
         .catch { exception -> if (exception is IOException) emit(emptyPreferences()) else throw exception }
         .map { it[KEY_KARAOKE_OFFSET]?.toLongOrNull() ?: 0L }
 
+    val savedPlaybackState: Flow<SavedPlaybackState?> = context.musicProDataStore.data
+        .catch { exception -> if (exception is IOException) emit(emptyPreferences()) else throw exception }
+        .map { preferences ->
+            val trackId = preferences[KEY_LAST_PLAYED_TRACK_ID] ?: return@map null
+            SavedPlaybackState(
+                trackId = trackId,
+                positionMs = (preferences[KEY_LAST_PLAYED_POSITION_MS] ?: 0L).coerceAtLeast(0L),
+                wasPlaying = preferences[KEY_LAST_PLAYED_WAS_PLAYING] ?: false
+            )
+        }
+
     suspend fun setDynamicColor(enabled: Boolean) {
         context.musicProDataStore.edit { preferences ->
             preferences[KEY_DYNAMIC_COLOR] = enabled
@@ -183,5 +204,13 @@ class UserPreferencesRepository(private val context: Context) {
 
     suspend fun setKaraokeOffsetMs(value: Long) {
         context.musicProDataStore.edit { preferences -> preferences[KEY_KARAOKE_OFFSET] = value.toString() }
+    }
+
+    suspend fun setSavedPlaybackState(trackId: Long, positionMs: Long, wasPlaying: Boolean) {
+        context.musicProDataStore.edit { preferences ->
+            preferences[KEY_LAST_PLAYED_TRACK_ID] = trackId
+            preferences[KEY_LAST_PLAYED_POSITION_MS] = positionMs.coerceAtLeast(0L)
+            preferences[KEY_LAST_PLAYED_WAS_PLAYING] = wasPlaying
+        }
     }
 }
