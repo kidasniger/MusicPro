@@ -579,7 +579,7 @@ fun HomeScreen(
                         track = track,
                         currentTitle = title,
                         currentArtist = artist,
-                        durationSec = track.duration.takeIf { it > 0 }?.div(1000)
+                        durationSec = track.duration.takeIf { it > 0 }?.div(1000)?.toInt()
                     )
                 }
             }
