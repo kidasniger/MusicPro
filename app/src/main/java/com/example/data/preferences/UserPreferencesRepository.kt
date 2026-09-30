@@ -18,7 +18,8 @@ import java.io.IOException
 data class SavedPlaybackState(
     val trackId: Long,
     val positionMs: Long,
-    val wasPlaying: Boolean
+    val wasPlaying: Boolean,
+    val shuffleEnabled: Boolean
 )
 
 val Context.musicProDataStore: DataStore<Preferences> by preferencesDataStore(name = "musicpro_preferences")
@@ -46,6 +47,7 @@ class UserPreferencesRepository(private val context: Context) {
         val KEY_LAST_PLAYED_TRACK_ID = longPreferencesKey("last_played_track_id")
         val KEY_LAST_PLAYED_POSITION_MS = longPreferencesKey("last_played_position_ms")
         val KEY_LAST_PLAYED_WAS_PLAYING = booleanPreferencesKey("last_played_was_playing")
+        val KEY_SHUFFLE_ENABLED = booleanPreferencesKey("shuffle_enabled")
     }
 
     val isOnboardingCompleted: Flow<Boolean> = context.musicProDataStore.data
@@ -155,7 +157,8 @@ class UserPreferencesRepository(private val context: Context) {
             SavedPlaybackState(
                 trackId = trackId,
                 positionMs = (preferences[KEY_LAST_PLAYED_POSITION_MS] ?: 0L).coerceAtLeast(0L),
-                wasPlaying = preferences[KEY_LAST_PLAYED_WAS_PLAYING] ?: false
+                wasPlaying = preferences[KEY_LAST_PLAYED_WAS_PLAYING] ?: false,
+                shuffleEnabled = preferences[KEY_SHUFFLE_ENABLED] ?: false
             )
         }
 
@@ -206,11 +209,23 @@ class UserPreferencesRepository(private val context: Context) {
         context.musicProDataStore.edit { preferences -> preferences[KEY_KARAOKE_OFFSET] = value.toString() }
     }
 
-    suspend fun setSavedPlaybackState(trackId: Long, positionMs: Long, wasPlaying: Boolean) {
+    suspend fun setSavedPlaybackState(
+        trackId: Long,
+        positionMs: Long,
+        wasPlaying: Boolean,
+        shuffleEnabled: Boolean
+    ) {
         context.musicProDataStore.edit { preferences ->
             preferences[KEY_LAST_PLAYED_TRACK_ID] = trackId
             preferences[KEY_LAST_PLAYED_POSITION_MS] = positionMs.coerceAtLeast(0L)
             preferences[KEY_LAST_PLAYED_WAS_PLAYING] = wasPlaying
+            preferences[KEY_SHUFFLE_ENABLED] = shuffleEnabled
+        }
+    }
+
+    suspend fun setShuffleEnabled(enabled: Boolean) {
+        context.musicProDataStore.edit { preferences ->
+            preferences[KEY_SHUFFLE_ENABLED] = enabled
         }
     }
 }
