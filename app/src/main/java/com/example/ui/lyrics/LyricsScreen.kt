@@ -448,7 +448,7 @@ fun LyricsScreen(
                         Text(
                             text = "Afficher les contrôles",
                             color = MusicProTextSecondary,
-                            fontSize = 11.sp
+                            fontSize = 12.sp
                         )
                     }
                 }
@@ -584,7 +584,7 @@ fun LyricsScreen(
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = "Découpage automatique si fichier > 25 Mo",
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         color = MusicProTextMuted,
                         textAlign = TextAlign.Center
                     )
@@ -684,7 +684,7 @@ private fun LyricsTopBar(
         IconButton(
             onClick = onBack,
             modifier = Modifier
-                .size(40.dp)
+                .size(48.dp)
                 .clip(CircleShape)
                 .background(MusicProSurfaceElevated)
                 .testTag("lyrics_back_button")
@@ -720,14 +720,14 @@ private fun LyricsTopBar(
                 if (!track?.artist.isNullOrBlank()) {
                     Text(
                         text = track.artist,
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         color = MusicProTextSecondary,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = " • ",
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         color = MusicProTextMuted
                     )
                 }
@@ -740,7 +740,7 @@ private fun LyricsTopBar(
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = lyricsSource.label,
-                    fontSize = 10.sp,
+                    fontSize = 12.sp,
                     color = MusicProCyanNeon,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1
@@ -754,7 +754,7 @@ private fun LyricsTopBar(
             IconButton(
                 onClick = onStartGroqTranscription,
                 modifier = Modifier
-                    .size(38.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .background(MusicProVioletPrimary.copy(alpha = 0.25f))
                     .testTag("lyrics_whisper_button")
@@ -773,7 +773,7 @@ private fun LyricsTopBar(
             IconButton(
                 onClick = onOpenLrclibSearch,
                 modifier = Modifier
-                    .size(38.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
                     .background(MusicProSurfaceElevated)
                     .testTag("lyrics_lrclib_search_button")
@@ -793,7 +793,7 @@ private fun LyricsTopBar(
                 IconButton(
                     onClick = { showMenu = true },
                     modifier = Modifier
-                        .size(38.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
                         .background(MusicProSurfaceElevated)
                         .testTag("lyrics_more_options_button")
@@ -1131,13 +1131,13 @@ private fun LyricsBottomControlBar(
             ) {
                 Text(
                     text = formatTimestamp(effectivePos),
-                    fontSize = 11.sp,
+                    fontSize = 12.sp,
                     color = MusicProCyanNeon,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
                     text = formatTimestamp(durationMs),
-                    fontSize = 11.sp,
+                    fontSize = 12.sp,
                     color = MusicProTextMuted,
                     fontWeight = FontWeight.Medium
                 )
@@ -1154,7 +1154,7 @@ private fun LyricsBottomControlBar(
                 IconButton(
                     onClick = onPrevious,
                     modifier = Modifier
-                        .size(42.dp)
+                        .size(48.dp)
                         .testTag("lyrics_prev_button")
                 ) {
                     Icon(
@@ -1188,7 +1188,7 @@ private fun LyricsBottomControlBar(
                 IconButton(
                     onClick = onNext,
                     modifier = Modifier
-                        .size(42.dp)
+                        .size(48.dp)
                         .testTag("lyrics_next_button")
                 ) {
                     Icon(
