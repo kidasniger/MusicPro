@@ -275,6 +275,9 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
             if (controller.mediaItemCount > 0) return@launch
 
             val track = audioRepository.getTrackById(saved.trackId) ?: return@launch
+            controller.shuffleModeEnabled = saved.shuffleEnabled
+            _isShuffleEnabled.value = saved.shuffleEnabled
+
             val maxPosition = (track.duration - 250L).coerceAtLeast(0L)
             val position = saved.positionMs.coerceIn(0L, maxPosition)
 
@@ -428,6 +431,9 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
         val newShuffle = !controller.shuffleModeEnabled
         controller.shuffleModeEnabled = newShuffle
         _isShuffleEnabled.value = newShuffle
+        scope.launch {
+            preferencesRepository.setShuffleEnabled(newShuffle)
+        }
     }
 
     fun addToQueue(track: AudioTrackEntity, playNext: Boolean = false) {
