@@ -156,7 +156,7 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     var currentSectionName by rememberSaveable { mutableStateOf(NavigationSection.HOME.name) }
-    val currentSectionName = NavigationSection.valueOf(currentSectionName)
+    val currentSection = NavigationSection.valueOf(currentSectionName)
     var isNowPlayingOpen by rememberSaveable { mutableStateOf(initialOpenNowPlaying) }
     var isLyricsOpen by rememberSaveable { mutableStateOf(false) }
     var isLrclibSearchOpen by rememberSaveable { mutableStateOf(false) }
