@@ -15,6 +15,8 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.example.data.local.AudioTrackEntity
+import com.example.data.preferences.UserPreferencesRepository
+import com.example.data.repository.AudioRepository
 import androidx.core.content.ContextCompat
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -25,6 +27,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.File
@@ -36,6 +39,8 @@ import java.io.File
 class MusicPlaybackManager private constructor(private val appContext: Context) {
 
     private val scope = CoroutineScope(Dispatchers.Main)
+    private val preferencesRepository by lazy { UserPreferencesRepository(appContext) }
+    private val audioRepository by lazy { AudioRepository.getInstance(appContext) }
     private var controllerFuture: ListenableFuture<MediaController>? = null
     private var mediaController: MediaController? = null
 
@@ -133,6 +138,8 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
                     pendingTrackToPlay = null
                     pendingPlaylistToPlay = emptyList()
                     playTrack(pendingTrack, pendingList)
+                } else {
+                    restoreSavedPlayback(controller)
                 }
             } catch (e: Exception) {
                 _errorMessage.value = "Impossible de se connecter au service audio: ${e.message}"
@@ -257,6 +264,37 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
                 albumArtUri = metadata.artworkUri?.toString()
             )
             _currentTrack.value = fallbackTrack
+        }
+    }
+
+    private fun restoreSavedPlayback(controller: MediaController) {
+        if (controller.mediaItemCount > 0) return
+
+        scope.launch {
+            val saved = preferencesRepository.savedPlaybackState.first() ?: return@launch
+            if (controller.mediaItemCount > 0) return@launch
+
+            val track = audioRepository.getTrackById(saved.trackId) ?: return@launch
+            val maxPosition = (track.duration - 250L).coerceAtLeast(0L)
+            val position = saved.positionMs.coerceIn(0L, maxPosition)
+
+            currentPlaylist = listOf(track)
+            _queue.value = currentPlaylist
+            _queueIndex.value = 0
+            _currentTrack.value = track
+            _currentPositionMs.value = position
+            _durationMs.value = track.duration
+
+            controller.setMediaItem(track.toMediaItem(), 0, position)
+            controller.prepare()
+            if (saved.wasPlaying) {
+                controller.play()
+                _isPlaying.value = true
+                startPositionTicker()
+            } else {
+                controller.pause()
+                _isPlaying.value = false
+            }
         }
     }
 
@@ -510,7 +548,7 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
                         }
                     }
                 }
-                delay(180)
+                delay(80)
             }
         }
     }
