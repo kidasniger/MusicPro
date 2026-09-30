@@ -17,6 +17,8 @@ import com.example.data.local.PlaylistSummary
 import com.example.data.repository.AudioRepository
 import com.example.data.repository.PlaylistRepository
 import com.example.data.preferences.UserPreferencesRepository
+import com.example.data.security.GroqApiKeyStore
+import com.example.groq.GroqLyricsQueryAssistant
 import com.example.groq.GroqTranscriptionResult
 import com.example.lyrics.LrcParser
 import com.example.lyrics.LyricsData
@@ -48,6 +50,7 @@ sealed class PendingLyricsWrite {
 sealed class LrclibSearchUiState {
     data object Idle : LrclibSearchUiState()
     data object Loading : LrclibSearchUiState()
+    data object AiLoading : LrclibSearchUiState()
     data class Success(val results: List<LrclibSearchResult>) : LrclibSearchUiState()
     data class Empty(val queryTitle: String, val queryArtist: String) : LrclibSearchUiState()
     data class Error(val message: String) : LrclibSearchUiState()
@@ -205,6 +208,11 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     // Recherche en ligne lrclib.net
     private val _lrclibSearchState = MutableStateFlow<LrclibSearchUiState>(LrclibSearchUiState.Idle)
     val lrclibSearchState: StateFlow<LrclibSearchUiState> = _lrclibSearchState.asStateFlow()
+
+    private val _aiLyricsQuerySuggestion = MutableStateFlow<Pair<String, String>?>(null)
+    val aiLyricsQuerySuggestion: StateFlow<Pair<String, String>?> = _aiLyricsQuerySuggestion.asStateFlow()
+
+    private val groqApiKeyStore = GroqApiKeyStore.getInstance(application)
 
     private val _saveFeedbackMessage = MutableStateFlow<String?>(null)
     val saveFeedbackMessage: StateFlow<String?> = _saveFeedbackMessage.asStateFlow()
@@ -512,6 +520,68 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
+     * Demande à l'IA de nettoyer le titre/artiste pour améliorer la recherche LRCLIB,
+     * puis relance automatiquement la recherche avec les métadonnées proposées.
+     */
+    fun suggestLrclibQueryWithAi(
+        track: AudioTrackEntity,
+        currentTitle: String,
+        currentArtist: String,
+        durationSec: Int?
+    ) {
+        viewModelScope.launch {
+            _lrclibSearchState.value = LrclibSearchUiState.AiLoading
+
+            val result = GroqLyricsQueryAssistant.suggest(
+                apiKeyStore = groqApiKeyStore,
+                track = track,
+                currentTitle = currentTitle,
+                currentArtist = currentArtist
+            )
+
+            result.fold(
+                onSuccess = { suggestion ->
+                    _lrclibSearchState.value = LrclibSearchUiState.Loading
+                    val searchResult = lyricsRepository.searchLyricsOnline(
+                        suggestion.title,
+                        suggestion.artist,
+                        durationSec
+                    )
+                    searchResult.fold(
+                        onSuccess = { list ->
+                            if (list.isEmpty()) {
+                                _lrclibSearchState.value = LrclibSearchUiState.Empty(
+                                    suggestion.title,
+                                    suggestion.artist
+                                )
+                            } else {
+                                _lrclibSearchState.value = LrclibSearchUiState.Success(list)
+                            }
+                        },
+                        onFailure = { error ->
+                            _lrclibSearchState.value = LrclibSearchUiState.Error(
+                                error.message ?: "Erreur après la recherche assistée par IA."
+                            )
+                        }
+                    )
+                    _lrclibSearchState.value = when (val state = _lrclibSearchState.value) {
+                        is LrclibSearchUiState.Success -> state
+                        is LrclibSearchUiState.Empty -> state
+                        is LrclibSearchUiState.Error -> state
+                        else -> LrclibSearchUiState.Idle
+                    }
+                    _aiLyricsQuerySuggestion.value = suggestion.title to suggestion.artist
+                },
+                onFailure = { error ->
+                    _lrclibSearchState.value = LrclibSearchUiState.Error(
+                        error.message ?: "Impossible d'utiliser l'aide IA."
+                    )
+                }
+            )
+        }
+    }
+
+    /**
      * Lance la recherche de paroles sur lrclib.net avec titre, artiste et durée.
      * Gère les états d'erreur réseau, timeout et aucun résultat.
      */
@@ -585,6 +655,7 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
 
     fun resetLrclibSearch() {
         _lrclibSearchState.value = LrclibSearchUiState.Idle
+        _aiLyricsQuerySuggestion.value = null
     }
 
     fun hasGroqApiKey(): Boolean = groqController.hasGroqApiKey()
