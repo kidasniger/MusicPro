@@ -182,7 +182,7 @@ fun PermissionScreen(
                     Text(
                         text = "LECTEUR AUDIO 100% HORS LIGNE",
                         color = MusicProCyanNeon,
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                         letterSpacing = 1.sp,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)
@@ -407,7 +407,7 @@ fun PermissionScreen(
 
                 Text(
                     text = "🔒 Aucune donnée audio n'est transférée ni partagée sur Internet",
-                    fontSize = 11.sp,
+                    fontSize = 12.sp,
                     color = MusicProTextMuted,
                     textAlign = TextAlign.Center
                 )
@@ -514,7 +514,7 @@ private fun PermissionDetailCard(
 
                 Text(
                     text = permissionTag,
-                    fontSize = 10.sp,
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     color = MusicProCyanNeon,
                     letterSpacing = 0.4.sp
