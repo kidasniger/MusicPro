@@ -45,6 +45,10 @@ class AudioRepository(
         audioTrackDao.getTrackCount()
     }
 
+    suspend fun getTrackById(id: Long): AudioTrackEntity? = withContext(Dispatchers.IO) {
+        audioTrackDao.getTrackById(id)
+    }
+
     /**
      * Synchronise MediaStore avec Room sans recréer les lignes existantes.
      *
@@ -72,8 +76,11 @@ class AudioRepository(
 
         val mergedTracks = scannedTracks.map { scanned ->
             val previous = existingTracks[scanned.id]
-            if (previous != null && previous.hasSyncedLyrics && !scanned.hasSyncedLyrics) {
-                scanned.copy(hasSyncedLyrics = true)
+            if (previous != null) {
+                scanned.copy(
+                    hasSyncedLyrics = previous.hasSyncedLyrics || scanned.hasSyncedLyrics,
+                    lastPlayed = maxOf(previous.lastPlayed, scanned.lastPlayed)
+                )
             } else {
                 scanned
             }
