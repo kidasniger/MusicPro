@@ -36,6 +36,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Album
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.CloudOff
@@ -109,11 +110,20 @@ fun LrclibSearchScreen(
     onSearch: (title: String, artist: String, durationSec: Int?) -> Unit,
     onSelectAndSave: (LrclibSearchResult) -> Unit,
     onClearFeedback: () -> Unit,
+    aiQuerySuggestion: Pair<String, String>? = null,
+    onAiAssist: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var titleQuery by remember(track) { mutableStateOf(track?.title ?: "") }
     var artistQuery by remember(track) { mutableStateOf(track?.artist ?: "") }
     val trackDurationSec = track?.duration?.takeIf { it > 0 }?.let { (it / 1000).toInt() }
+
+    LaunchedEffect(aiQuerySuggestion) {
+        aiQuerySuggestion?.let { (suggestedTitle, suggestedArtist) ->
+            if (suggestedTitle.isNotBlank()) titleQuery = suggestedTitle
+            if (suggestedArtist.isNotBlank()) artistQuery = suggestedArtist
+        }
+    }
 
     // Déclenchement automatique de la première recherche à l'ouverture de l'écran
     LaunchedEffect(track) {
@@ -164,11 +174,14 @@ fun LrclibSearchScreen(
                 durationSec = trackDurationSec,
                 audioPath = track?.path,
                 isLoading = searchState is LrclibSearchUiState.Loading,
+                isAiLoading = searchState is LrclibSearchUiState.AiLoading,
+                aiQuerySuggestion = aiQuerySuggestion,
                 onTitleChange = { titleQuery = it },
                 onArtistChange = { artistQuery = it },
                 onPerformSearch = {
                     onSearch(titleQuery, artistQuery, trackDurationSec)
-                }
+                },
+                onAiAssist = onAiAssist
             )
 
             // 4. Zone de résultats / états
@@ -186,8 +199,15 @@ fun LrclibSearchScreen(
                         )
                     }
 
-                    is LrclibSearchUiState.Loading -> {
-                        LoadingResultsView()
+                    is LrclibSearchUiState.Loading,
+                    is LrclibSearchUiState.AiLoading -> {
+                        LoadingResultsView(
+                            message = if (searchState is LrclibSearchUiState.AiLoading) {
+                                "Analyse IA du titre avant la recherche LRCLIB..."
+                            } else {
+                                "Recherche des paroles..."
+                            }
+                        )
                     }
 
                     is LrclibSearchUiState.Empty -> {
@@ -346,9 +366,12 @@ private fun SearchFormCard(
     durationSec: Int?,
     audioPath: String?,
     isLoading: Boolean,
+    isAiLoading: Boolean,
+    aiQuerySuggestion: Pair<String, String>?,
     onTitleChange: (String) -> Unit,
     onArtistChange: (String) -> Unit,
-    onPerformSearch: () -> Unit
+    onPerformSearch: () -> Unit,
+    onAiAssist: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -456,6 +479,49 @@ private fun SearchFormCard(
             }
 
             Spacer(modifier = Modifier.height(12.dp))
+
+            // L'IA nettoie la requête, met à jour les champs ci-dessus puis lance LRCLIB.
+            TextButton(
+                onClick = onAiAssist,
+                enabled = !isLoading && !isAiLoading && (title.isNotBlank() || artist.isNotBlank()),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+                    .testTag("lrclib_ai_assist_button")
+            ) {
+                if (isAiLoading) {
+                    CircularProgressIndicator(
+                        color = MusicProCyanNeon,
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.AutoAwesome,
+                        contentDescription = "Aide IA",
+                        tint = MusicProCyanNeon,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = if (isAiLoading) "L'IA analyse le titre..." else "Aide IA : améliorer la recherche",
+                    color = MusicProCyanNeon,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp
+                )
+            }
+
+            aiQuerySuggestion?.let { (suggestedTitle, suggestedArtist) ->
+                Text(
+                    text = "Requête IA : $suggestedTitle — $suggestedArtist",
+                    fontSize = 11.sp,
+                    color = MusicProTextSecondary,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+            }
 
             // Bouton de recherche
             Button(
@@ -830,7 +896,7 @@ private fun LyricsPreviewContent(
 }
 
 @Composable
-private fun LoadingResultsView() {
+private fun LoadingResultsView(message: String = "Recherche des paroles...") {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -845,7 +911,7 @@ private fun LoadingResultsView() {
         )
         Spacer(modifier = Modifier.height(20.dp))
         Text(
-            text = "Recherche des paroles...",
+            text = message,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             color = MusicProTextPrimary
