@@ -325,7 +325,7 @@ fun HomeScreen(
                 audioViewModel.setSearchQuery("")
             }
             currentSection != NavigationSection.HOME -> {
-                currentSectionName = NavigationSection.HOME
+                currentSectionName = NavigationSection.HOME.name
             }
             else -> {
                 val currentTime = System.currentTimeMillis()
@@ -363,7 +363,7 @@ fun HomeScreen(
                     // Bottom Navigation Bar with neon accents
                     MusicProBottomNavBar(
                         currentSection = currentSection,
-                        onSelectSection = { currentSection = it }
+                        onSelectSection = { currentSectionName = it.name }
                     )
                 }
             }
@@ -389,8 +389,8 @@ fun HomeScreen(
                         favorites = favorites,
                         onOpenSettings = onOpenSettings,
                         onOpenOnboarding = onOpenOnboarding,
-                        onNavigateToLibrary = { currentSectionName = NavigationSection.LIBRARY },
-                        onNavigateToSearch = { currentSectionName = NavigationSection.SEARCH },
+                        onNavigateToLibrary = { currentSectionName = NavigationSection.LIBRARY.name },
+                        onNavigateToSearch = { currentSectionName = NavigationSection.SEARCH.name },
                         onOpenFavorites = { isFavoritesOpen = true },
                         onTrackClick = { audioViewModel.playTrack(it) },
                         onToggleFavorite = { audioViewModel.toggleFavorite(it) },
@@ -440,7 +440,7 @@ fun HomeScreen(
                         playlists = playlists,
                         onPlaylistClick = { playlist ->
                             audioViewModel.selectPlaylist(playlist.id)
-                            currentSectionName = NavigationSection.LIBRARY
+                            currentSectionName = NavigationSection.LIBRARY.name
                             audioViewModel.selectTab(LibraryTab.PLAYLISTS)
                         }
                     )
