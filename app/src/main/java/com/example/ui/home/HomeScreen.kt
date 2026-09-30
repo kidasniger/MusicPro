@@ -289,7 +289,9 @@ fun HomeScreen(
         }
     }
 
-    val activeTrack = currentTrack ?: tracks.firstOrNull()
+    // Le mini-player et le popup doivent refléter exclusivement le dernier morceau connu du lecteur.
+    // Ne jamais retomber sur le premier morceau indexé pendant la restauration au démarrage.
+    val activeTrack = currentTrack
 
     // Gestion intelligente du retour arrière :
     // 1. Fermer les dialogues / sous-écrans ouverts (Paroles, Recherche Lrclib, Plein écran Now Playing, Détail Playlist)
