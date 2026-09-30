@@ -325,17 +325,11 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
             val count = repository.getTrackCount()
             if (count > 0) {
                 _statusMessage.value = "$count morceaux chargés depuis la bibliothèque locale"
-                if (currentTrack.value == null) {
-                    tracks.value.firstOrNull()?.let { playbackManager.setCurrentTrackOnly(it) }
-                }
             } else {
                 // Scan initial discret si la base locale est vide
                 val scanned = repository.refreshMediaStoreScan()
                 if (scanned > 0) {
                     _statusMessage.value = "$scanned morceaux trouvés"
-                    if (currentTrack.value == null) {
-                        tracks.value.firstOrNull()?.let { playbackManager.setCurrentTrackOnly(it) }
-                    }
                 }
             }
         }
@@ -363,9 +357,6 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
                 val count = repository.refreshMediaStoreScan()
                 if (count > 0) {
                     _statusMessage.value = "$count morceau(x) trouvé(s) et synchronisé(s)"
-                    if (currentTrack.value == null) {
-                        tracks.value.firstOrNull()?.let { playbackManager.setCurrentTrackOnly(it) }
-                    }
                 } else {
                     _statusMessage.value = "Aucun nouveau fichier audio détecté"
                 }
