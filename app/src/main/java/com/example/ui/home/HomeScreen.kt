@@ -553,6 +553,7 @@ fun HomeScreen(
         exit = fadeOut()
     ) {
         val searchState by audioViewModel.lrclibSearchState.collectAsStateWithLifecycle()
+        val aiQuerySuggestion by audioViewModel.aiLyricsQuerySuggestion.collectAsStateWithLifecycle()
 
         LrclibSearchScreen(
             track = activeTrack,
@@ -570,7 +571,18 @@ fun HomeScreen(
                     audioViewModel.requestApplyLrclib(track, result)
                 }
             },
-            onClearFeedback = { audioViewModel.clearSaveFeedback() }
+            onClearFeedback = { audioViewModel.clearSaveFeedback() },
+            aiQuerySuggestion = aiQuerySuggestion,
+            onAiAssist = {
+                activeTrack?.let { track ->
+                    audioViewModel.suggestLrclibQueryWithAi(
+                        track = track,
+                        currentTitle = track.title,
+                        currentArtist = track.artist,
+                        durationSec = track.duration.takeIf { it > 0 }?.div(1000)
+                    )
+                }
+            }
         )
     }
 
