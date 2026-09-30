@@ -49,6 +49,10 @@ class AudioRepository(
         audioTrackDao.getTrackById(id)
     }
 
+    suspend fun getAllTracksSnapshot(): List<AudioTrackEntity> = withContext(Dispatchers.IO) {
+        audioTrackDao.getAllTracksSnapshot()
+    }
+
     /**
      * Synchronise MediaStore avec Room sans recréer les lignes existantes.
      *
