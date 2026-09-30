@@ -275,20 +275,26 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
             if (controller.mediaItemCount > 0) return@launch
 
             val track = audioRepository.getTrackById(saved.trackId) ?: return@launch
+            val library = audioRepository.getAllTracksSnapshot()
+                .ifEmpty { listOf(track) }
+            val restoredPlaylist = if (library.any { it.id == track.id }) library else listOf(track)
+            val targetIndex = restoredPlaylist.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
+
             controller.shuffleModeEnabled = saved.shuffleEnabled
             _isShuffleEnabled.value = saved.shuffleEnabled
 
             val maxPosition = (track.duration - 250L).coerceAtLeast(0L)
             val position = saved.positionMs.coerceIn(0L, maxPosition)
 
-            currentPlaylist = listOf(track)
-            _queue.value = currentPlaylist
-            _queueIndex.value = 0
+            currentPlaylist = restoredPlaylist
+            _queue.value = restoredPlaylist
+            _queueIndex.value = targetIndex
             _currentTrack.value = track
             _currentPositionMs.value = position
             _durationMs.value = track.duration
 
-            controller.setMediaItem(track.toMediaItem(), position)
+            val mediaItems = restoredPlaylist.map { it.toMediaItem() }
+            controller.setMediaItems(mediaItems, targetIndex, position)
             controller.prepare()
             if (saved.wasPlaying) {
                 controller.play()
