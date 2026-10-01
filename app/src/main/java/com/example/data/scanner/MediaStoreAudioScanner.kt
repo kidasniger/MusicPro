@@ -2,6 +2,7 @@ package com.example.data.scanner
 
 import android.content.ContentUris
 import android.content.Context
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
@@ -10,12 +11,44 @@ import com.example.data.local.AudioTrackEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileOutputStream
 
 class MediaStoreAudioScanner(private val context: Context) : AudioScanner {
 
     companion object {
         private const val TAG = "MediaStoreAudioScanner"
     }
+
+    /**
+     * Extrait la jaquette intégrée au fichier audio dans un cache unique par morceau.
+     * Cela évite qu'un même ALBUM_ID MediaStore associe par erreur la jaquette d'un autre fichier.
+     */
+    private fun extractEmbeddedArtwork(path: String, trackId: Long, size: Long): String? {
+        if (path.isBlank()) return null
+        val source = File(path)
+        if (!source.exists()) return null
+
+        val cacheDir = File(context.cacheDir, "musicpro_artwork").apply { mkdirs() }
+        val cacheFile = File(cacheDir, trackId.toString() + "_" + size.toString() + ".jpg")
+        if (cacheFile.exists() && cacheFile.length() > 0L) {
+            return cacheFile.toURI().toString()
+        }
+
+        return try {
+            val retriever = MediaMetadataRetriever()
+            retriever.setDataSource(path)
+            val picture = retriever.embeddedPicture
+            retriever.release()
+            if (picture == null || picture.isEmpty()) return null
+
+            FileOutputStream(cacheFile).use { it.write(picture) }
+            cacheFile.toURI().toString()
+        } catch (exception: Exception) {
+            Log.d(TAG, "Jaquette intégrée indisponible pour " + path + ": " + exception.message)
+            null
+        }
+    }
+
 
     override suspend fun scanAudioFiles(): List<AudioTrackEntity> = withContext(Dispatchers.IO) {
         val tracksList = mutableListOf<AudioTrackEntity>()
@@ -90,14 +123,17 @@ class MediaStoreAudioScanner(private val context: Context) : AudioScanner {
                         "Album Inconnu"
                     } else rawAlbum
 
-                    // Construct Album Art Uri
+                    // Priorité à la jaquette intégrée au fichier, avec une clé unique par morceau.
+                    // Fallback MediaStore seulement si aucune image embarquée n'est disponible.
                     val albumId = if (albumIdIdx != -1 && !cursor.isNull(albumIdIdx)) cursor.getLong(albumIdIdx) else -1L
-                    val albumArtUri = if (albumId > 0) {
+                    val embeddedArtwork = extractEmbeddedArtwork(path, id, size)
+                    val mediaStoreArtwork = if (albumId > 0) {
                         ContentUris.withAppendedId(
                             Uri.parse("content://media/external/audio/albumart"),
                             albumId
-                        ).toString()
+                        ).toString() + "?track_id=" + id
                     } else null
+                    val albumArtUri = embeddedArtwork ?: mediaStoreArtwork
 
                     // Content URI for playback
                     val contentUri = ContentUris.withAppendedId(
