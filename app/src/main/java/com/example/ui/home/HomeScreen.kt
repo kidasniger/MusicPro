@@ -391,7 +391,10 @@ fun HomeScreen(
                         favorites = favorites,
                         onOpenSettings = onOpenSettings,
                         onOpenOnboarding = onOpenOnboarding,
-                        onNavigateToLibrary = { currentSectionName = NavigationSection.LIBRARY.name },
+                        onNavigateToLibrary = {
+                            currentSectionName = NavigationSection.LIBRARY.name
+                            audioViewModel.selectTab(LibraryTab.RECENT)
+                        },
                         onNavigateToSearch = { currentSectionName = NavigationSection.SEARCH.name },
                         onOpenFavorites = { isFavoritesOpen = true },
                         onTrackClick = { audioViewModel.playTrack(it) },
@@ -402,6 +405,7 @@ fun HomeScreen(
                 NavigationSection.LIBRARY -> {
                     LibraryScreen(
                         tracks = tracks,
+                        recentTracks = recentTracks,
                         albums = albums,
                         artists = artists,
                         folders = folders,
