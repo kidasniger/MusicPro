@@ -203,7 +203,7 @@ fun LrclibSearchScreen(
                     is LrclibSearchUiState.AiLoading -> {
                         LoadingResultsView(
                             message = if (searchState is LrclibSearchUiState.AiLoading) {
-                                "Analyse IA du titre avant la recherche LRCLIB..."
+                                "Recherche Web par l'IA, puis recherche LRCLIB..."
                             } else {
                                 "Recherche des paroles..."
                             }
@@ -505,7 +505,7 @@ private fun SearchFormCard(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = if (isAiLoading) "L'IA analyse le titre..." else "Aide IA : améliorer la recherche",
+                    text = if (isAiLoading) "L'IA recherche sur Internet..." else "Aide IA + recherche Internet",
                     color = MusicProCyanNeon,
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp
