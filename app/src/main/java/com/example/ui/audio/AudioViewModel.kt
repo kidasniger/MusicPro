@@ -414,8 +414,8 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     fun addToQueue(track: AudioTrackEntity, playNext: Boolean = false) =
         playbackManager.addToQueue(track, playNext)
 
-    fun playQueuedTrack(index: Int) =
-        playbackManager.playQueuedTrack(index)
+    fun playQueuedTrack(track: AudioTrackEntity) =
+        playbackManager.playQueuedTrack(track)
 
     fun removeFromQueue(index: Int) =
         playbackManager.removeFromQueue(index)
