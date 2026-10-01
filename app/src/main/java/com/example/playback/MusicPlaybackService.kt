@@ -94,16 +94,30 @@ class MusicPlaybackService : MediaSessionService() {
             .setWakeMode(C.WAKE_MODE_LOCAL)
             .build()
 
-        try {
-            val sessionId = exoPlayer.audioSessionId
-            if (sessionId != androidx.media3.common.C.AUDIO_SESSION_ID_UNSET) {
-                equalizer = Equalizer(0, sessionId)
-            }
-        } catch (error: Exception) {
-            android.util.Log.w("MusicPlaybackService", "Égaliseur matériel indisponible: ${error.message}")
-        }
+        ensureEqualizer(exoPlayer)
 
         player = exoPlayer
+
+    private fun ensureEqualizer(exoPlayer: ExoPlayer) {
+        if (equalizer != null) return
+
+        try {
+            val sessionId = exoPlayer.audioSessionId
+            if (sessionId == androidx.media3.common.C.AUDIO_SESSION_ID_UNSET || sessionId == 0) {
+                return
+            }
+
+            equalizer = Equalizer(0, sessionId).apply {
+                enabled = false
+            }
+        } catch (exception: Exception) {
+            android.util.Log.w(
+                "MusicPlaybackService",
+                "Égaliseur matériel indisponible: " + exception.message
+            )
+            equalizer = null
+        }
+    }
 
         // Synchronisation des favoris avec le bouton cœur de la notification.
         serviceScope.launch {
@@ -179,13 +193,18 @@ class MusicPlaybackService : MediaSessionService() {
                     return try {
                         when (customCommand.customAction) {
                             AudioEffectCommands.ACTION_SET_ENABLED -> {
+                                ensureEqualizer(exoPlayer)
                                 equalizer?.enabled = args.getBoolean(AudioEffectCommands.KEY_ENABLED, true)
                             }
                             AudioEffectCommands.ACTION_SET_PRESET -> {
+                                ensureEqualizer(exoPlayer)
                                 equalizer?.enabled = true
-                                equalizer?.usePreset(args.getShort(AudioEffectCommands.KEY_PRESET, 0.toShort()))
+                                equalizer?.usePreset(
+                                    args.getShort(AudioEffectCommands.KEY_PRESET, 0.toShort())
+                                )
                             }
                             AudioEffectCommands.ACTION_SET_BAND -> {
+                                ensureEqualizer(exoPlayer)
                                 val eq = equalizer
                                 if (eq != null) {
                                     eq.enabled = true
@@ -195,7 +214,9 @@ class MusicPlaybackService : MediaSessionService() {
                                         (requested.toFloat() * (count - 1) / 4f).toInt()
                                     val range = eq.bandLevelRange
                                     val level = args.getShort(AudioEffectCommands.KEY_LEVEL, 0.toShort())
-                                        .coerceIn(range[0], range[1])
+                                        .toInt()
+                                        .coerceIn(range[0].toInt(), range[1].toInt())
+                                        .toShort()
                                     eq.setBandLevel(actual.toShort(), level)
                                 }
                             }
@@ -237,6 +258,9 @@ class MusicPlaybackService : MediaSessionService() {
             }
 
             override fun onPlaybackStateChanged(playbackState: Int) {
+                if (playbackState == androidx.media3.common.Player.STATE_READY) {
+                    ensureEqualizer(exoPlayer)
+                }
                 notifyWidgetUpdate(exoPlayer, exoPlayer.isPlaying)
                 if (playbackState == androidx.media3.common.Player.STATE_ENDED) {
                     persistPlaybackState(exoPlayer, forcePositionMs = 0L, forcePlaying = false)
