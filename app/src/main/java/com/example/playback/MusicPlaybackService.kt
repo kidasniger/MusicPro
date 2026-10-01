@@ -98,27 +98,6 @@ class MusicPlaybackService : MediaSessionService() {
 
         player = exoPlayer
 
-    private fun ensureEqualizer(exoPlayer: ExoPlayer) {
-        if (equalizer != null) return
-
-        try {
-            val sessionId = exoPlayer.audioSessionId
-            if (sessionId == androidx.media3.common.C.AUDIO_SESSION_ID_UNSET || sessionId == 0) {
-                return
-            }
-
-            equalizer = Equalizer(0, sessionId).apply {
-                enabled = false
-            }
-        } catch (exception: Exception) {
-            android.util.Log.w(
-                "MusicPlaybackService",
-                "Égaliseur matériel indisponible: " + exception.message
-            )
-            equalizer = null
-        }
-    }
-
         // Synchronisation des favoris avec le bouton cœur de la notification.
         serviceScope.launch {
             preferencesRepository.favoriteTrackIds.collectLatest { ids ->
@@ -406,6 +385,27 @@ class MusicPlaybackService : MediaSessionService() {
                 "MediaSession: requête de session refusée pour ${controllerInfo.packageName}"
             )
             null
+        }
+    }
+
+    private fun ensureEqualizer(exoPlayer: ExoPlayer) {
+        if (equalizer != null) return
+
+        try {
+            val sessionId = exoPlayer.audioSessionId
+            if (sessionId == androidx.media3.common.C.AUDIO_SESSION_ID_UNSET || sessionId == 0) {
+                return
+            }
+
+            equalizer = Equalizer(0, sessionId).apply {
+                enabled = false
+            }
+        } catch (exception: Exception) {
+            android.util.Log.w(
+                "MusicPlaybackService",
+                "Égaliseur matériel indisponible: " + exception.message
+            )
+            equalizer = null
         }
     }
 
