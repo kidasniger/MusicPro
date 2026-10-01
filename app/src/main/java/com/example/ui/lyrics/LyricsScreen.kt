@@ -190,6 +190,16 @@ fun LyricsScreen(
         }
     }
 
+    // À chaque nouveau morceau, repartir immédiatement au début de la liste.
+    // Les anciennes paroles peuvent rester brièvement en mémoire pendant leur chargement :
+    // le reset par identifiant évite de conserver la position visuelle du morceau précédent.
+    LaunchedEffect(track?.id) {
+        isUserScrollingManually = false
+        if (lyricsData.lines.isNotEmpty()) {
+            listState.scrollToItem(0)
+        }
+    }
+
     // Calcul de l'index actif à partir de la position fournie par ExoPlayer.
     // La recherche est dichotomique et reste légère même avec beaucoup de lignes.
     val effectiveKaraokePosition = (currentPositionMs - karaokeOffsetMs).coerceAtLeast(0L)
