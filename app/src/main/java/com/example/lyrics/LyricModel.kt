@@ -36,7 +36,11 @@ data class LyricsData(
                 high = mid - 1
             }
         }
-        return result
+
+        // Avant le premier timestamp, la première ligne reste la référence visuelle.
+        // Cela permet à l'écran paroles de repartir immédiatement au début d'un nouveau
+        // morceau au lieu d'attendre l'arrivée de son premier timestamp synchronisé.
+        return result.coerceAtLeast(0)
     }
 }
 
