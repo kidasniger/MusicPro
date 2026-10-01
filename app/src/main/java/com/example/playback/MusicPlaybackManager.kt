@@ -46,6 +46,10 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
 
     private var currentPlaylist: List<AudioTrackEntity> = emptyList()
 
+    // File d'attente réellement choisie par l'utilisateur. La bibliothèque/playlist de
+    // lecture reste indépendante et ne doit pas apparaître comme "À suivre".
+    private val userQueue = mutableListOf<AudioTrackEntity>()
+
     private val _queue = MutableStateFlow<List<AudioTrackEntity>>(emptyList())
     val queue: StateFlow<List<AudioTrackEntity>> = _queue.asStateFlow()
 
@@ -162,14 +166,19 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 val previousTrackId = _currentTrack.value?.id
                 updateCurrentTrackFromMediaItem(mediaItem)
-                _queue.value = currentPlaylist
-                _queueIndex.value = currentPlaylist.indexOfFirst { it.id == _currentTrack.value?.id }.coerceAtLeast(0)
 
-                // Une nouvelle piste commence toujours à sa position de lecture réelle.
-                // Media3 remet normalement la nouvelle piste à 0 ms lors d'une transition
-                // automatique/manuelle. Mettre immédiatement ce changement dans le StateFlow
-                // évite que l'écran des paroles conserve quelques instants la position du
-                // morceau précédent.
+                val currentMediaIndex = mediaController?.currentMediaItemIndex ?: 0
+                if (currentMediaIndex > 0 && userQueue.isNotEmpty()) {
+                    val currentId = _currentTrack.value?.id
+                    val queuedIndex = userQueue.indexOfFirst { it.id == currentId }
+                    if (queuedIndex >= 0) {
+                        userQueue.removeAt(queuedIndex)
+                        _queue.value = userQueue.toList()
+                    }
+                }
+                _queueIndex.value = currentMediaIndex
+
+                // Toujours publier immédiatement la position du nouveau morceau.
                 if (_currentTrack.value?.id != previousTrackId) {
                     _currentPositionMs.value = mediaController?.currentPosition?.coerceAtLeast(0L) ?: 0L
                     _durationMs.value = _currentTrack.value?.duration?.coerceAtLeast(0L)
@@ -301,7 +310,8 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
             val position = saved.positionMs.coerceIn(0L, maxPosition)
 
             currentPlaylist = restoredPlaylist
-            _queue.value = restoredPlaylist
+            userQueue.clear()
+            _queue.value = emptyList()
             _queueIndex.value = targetIndex
             _currentTrack.value = track
             _currentPositionMs.value = position
@@ -456,43 +466,103 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
         }
     }
 
+    /** File d'attente utilisateur, distincte de la bibliothèque/playlist de lecture. */
     fun addToQueue(track: AudioTrackEntity, playNext: Boolean = false) {
-        val controller = mediaController
-        val current = currentPlaylist.toMutableList()
-        if (current.any { it.id == track.id }) return
-        val insertAt = if (playNext) (_queueIndex.value + 1).coerceAtMost(current.size) else current.size
-        current.add(insertAt, track)
-        currentPlaylist = current
-        _queue.value = current
-        if (controller != null) controller.addMediaItem(insertAt, track.toMediaItem())
+        if (userQueue.any { it.id == track.id }) return
+        if (_currentTrack.value?.id == track.id) return
+
+        if (playNext) {
+            userQueue.add(0, track)
+        } else {
+            userQueue.add(track)
+        }
+        _queue.value = userQueue.toList()
+
+        val controller = mediaController ?: return
+        val current = _currentTrack.value ?: return
+        val wasPlaying = controller.isPlaying
+        val position = controller.currentPosition.coerceAtLeast(0L)
+
+        currentPlaylist = listOf(current) + userQueue
+        _queueIndex.value = 0
+
+        controller.setMediaItems(currentPlaylist.map { it.toMediaItem() }, 0, position)
+        controller.prepare()
+        if (wasPlaying) controller.play()
+    }
+
+    /** Lit une entrée de la file puis conserve toutes les entrées suivantes. */
+    fun playQueuedTrack(index: Int) {
+        if (index !in userQueue.indices) return
+
+        val selected = userQueue.removeAt(index)
+        val remaining = userQueue.toList()
+        _queue.value = remaining
+
+        currentPlaylist = listOf(selected) + remaining
+        _queueIndex.value = 0
+        _currentTrack.value = selected
+
+        val controller = mediaController ?: return
+        controller.setMediaItems(currentPlaylist.map { it.toMediaItem() }, 0, 0L)
+        controller.prepare()
+        controller.play()
+
+        _currentPositionMs.value = 0L
+        _durationMs.value = selected.duration
+        _isPlaying.value = true
+        startPositionTicker()
     }
 
     fun removeFromQueue(index: Int) {
-        val current = currentPlaylist
-        if (index !in current.indices) return
-        if (index == _queueIndex.value) return
-        mediaController?.removeMediaItem(index)
-        currentPlaylist = current.toMutableList().also { it.removeAt(index) }
-        _queue.value = currentPlaylist
-        _queueIndex.value = currentPlaylist.indexOfFirst { it.id == _currentTrack.value?.id }.coerceAtLeast(0)
+        if (index !in userQueue.indices) return
+
+        userQueue.removeAt(index)
+        _queue.value = userQueue.toList()
+
+        val controller = mediaController ?: return
+        val mediaIndex = index + 1
+        if (mediaIndex in 1 until controller.mediaItemCount) {
+            controller.removeMediaItem(mediaIndex)
+            if (mediaIndex in currentPlaylist.indices) {
+                currentPlaylist = currentPlaylist.toMutableList().also { it.removeAt(mediaIndex) }
+            }
+        }
     }
 
     fun moveQueueItem(from: Int, to: Int) {
-        val current = currentPlaylist.toMutableList()
-        if (from !in current.indices || to !in current.indices || from == to) return
-        mediaController?.moveMediaItem(from, to)
-        val item = current.removeAt(from)
-        current.add(to, item)
-        currentPlaylist = current
-        _queue.value = current
-        _queueIndex.value = current.indexOfFirst { it.id == _currentTrack.value?.id }.coerceAtLeast(0)
+        if (from !in userQueue.indices || to !in userQueue.indices || from == to) return
+
+        val item = userQueue.removeAt(from)
+        userQueue.add(to, item)
+        _queue.value = userQueue.toList()
+
+        val controller = mediaController
+        val mediaFrom = from + 1
+        val mediaTo = to + 1
+        if (controller != null &&
+            mediaFrom in 1 until controller.mediaItemCount &&
+            mediaTo in 1 until controller.mediaItemCount
+        ) {
+            controller.moveMediaItem(mediaFrom, mediaTo)
+        }
+
+        if (mediaFrom in currentPlaylist.indices && mediaTo in currentPlaylist.indices) {
+            val updated = currentPlaylist.toMutableList()
+            val moved = updated.removeAt(mediaFrom)
+            updated.add(mediaTo, moved)
+            currentPlaylist = updated
+        }
     }
 
     fun clearQueue() {
+        userQueue.clear()
+        _queue.value = emptyList()
+
         val current = _currentTrack.value ?: return
         currentPlaylist = listOf(current)
-        _queue.value = listOf(current)
         _queueIndex.value = 0
+
         val controller = mediaController ?: return
         if (controller.mediaItemCount > 1) {
             controller.removeMediaItems(1, controller.mediaItemCount)
@@ -508,22 +578,30 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
 
     fun setEqualizerPreset(name: String) {
         val presets = mapOf(
-            "Flat" to -1,
-            "Bass Boost" to 0,
-            "Vocal" to 1,
-            "Rock" to 2,
-            "Classical" to 3,
-            "Hip-Hop" to 4
+            "Flat" to listOf(0, 0, 0, 0, 0),
+            "Bass Boost" to listOf(650, 450, 150, -100, 250),
+            "Vocal" to listOf(-250, 50, 500, 350, -100),
+            "Rock" to listOf(550, 350, -150, 400, 550),
+            "Classical" to listOf(350, 150, -100, 250, 450),
+            "Hip-Hop" to listOf(600, 350, 100, 350, 600)
         )
-        val preset = presets[name] ?: -1
+        val levels = presets[name] ?: presets.getValue("Flat")
+
         _eqPreset.value = name
-        if (preset >= 0) {
-            sendAudioEffect(AudioEffectCommands.SET_PRESET, Bundle().apply {
-                putShort(AudioEffectCommands.KEY_PRESET, preset.toShort())
+        _eqLevels.value = levels
+
+        sendAudioEffect(AudioEffectCommands.SET_ENABLED, Bundle().apply {
+            putBoolean(AudioEffectCommands.KEY_ENABLED, name != "Flat")
+        })
+
+        levels.forEachIndexed { index, level ->
+            sendAudioEffect(AudioEffectCommands.SET_BAND, Bundle().apply {
+                putInt(AudioEffectCommands.KEY_BAND, index)
+                putShort(
+                    AudioEffectCommands.KEY_LEVEL,
+                    level.coerceIn(-1500, 1500).toShort()
+                )
             })
-        } else {
-            _eqLevels.value = listOf(0, 0, 0, 0, 0)
-            sendAudioEffect(AudioEffectCommands.RESET, Bundle.EMPTY)
         }
     }
 
