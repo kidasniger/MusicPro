@@ -691,7 +691,9 @@ fun HomeScreen(
     if (isQueueOpen) {
         QueueSheet(
             queue = queue,
-            onPlayTrack = { index, _ -> audioViewModel.playQueuedTrack(index) },
+            currentIndex = queueIndex,
+            isPlaying = isPlaying,
+            onPlayTrack = { track -> audioViewModel.playQueuedTrack(track) },
             onRemove = { audioViewModel.removeFromQueue(it) },
             onMove = { from, to -> audioViewModel.moveQueueItem(from, to) },
             onClear = { audioViewModel.clearQueue() },
