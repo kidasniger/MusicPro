@@ -391,7 +391,8 @@ fun HomeScreen(
                         favorites = favorites,
                         onOpenSettings = onOpenSettings,
                         onOpenOnboarding = onOpenOnboarding,
-                        onNavigateToLibrary = {
+                        onNavigateToLibrary = { currentSectionName = NavigationSection.LIBRARY.name },
+                        onNavigateToRecent = {
                             currentSectionName = NavigationSection.LIBRARY.name
                             audioViewModel.selectTab(LibraryTab.RECENT)
                         },
@@ -766,6 +767,7 @@ private fun HomeExplorerContent(
     onOpenSettings: () -> Unit,
     onOpenOnboarding: () -> Unit,
     onNavigateToLibrary: () -> Unit,
+    onNavigateToRecent: () -> Unit,
     onNavigateToSearch: () -> Unit,
     onOpenFavorites: () -> Unit = {},
     onTrackClick: (AudioTrackEntity) -> Unit,
@@ -1048,7 +1050,7 @@ private fun HomeExplorerContent(
                         fontWeight = FontWeight.SemiBold,
                         color = MusicProCyanNeon,
                         modifier = Modifier
-                            .clickable(onClick = onNavigateToLibrary)
+                            .clickable(onClick = onNavigateToRecent)
                             .padding(4.dp)
                     )
                 }
