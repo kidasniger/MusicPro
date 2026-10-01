@@ -102,6 +102,7 @@ import com.example.ui.theme.MusicProVioletVibrant
 @Composable
 fun LibraryScreen(
     tracks: List<AudioTrackEntity>,
+    recentTracks: List<AudioTrackEntity> = emptyList(),
     albums: List<AlbumSummary>,
     artists: List<ArtistSummary>,
     folders: List<FolderSummary>,
@@ -222,6 +223,7 @@ fun LibraryScreen(
                 val tab = LibraryTab.entries[index]
                 val isSelected = tab == selectedTab
                 val countLabel = when (tab) {
+                    LibraryTab.RECENT -> "(${recentTracks.size})"
                     LibraryTab.TRACKS -> "(${tracks.size})"
                     LibraryTab.FAVORITES -> "(${favorites.size})"
                     LibraryTab.PLAYLISTS -> "(${playlists.size})"
@@ -267,13 +269,30 @@ fun LibraryScreen(
         Spacer(modifier = Modifier.height(4.dp))
 
         // Contenu principal selon l'onglet
-        if (tracks.isEmpty() && !isScanning && selectedTab != LibraryTab.PLAYLISTS && selectedTab != LibraryTab.FAVORITES) {
+        if (
+            ((selectedTab == LibraryTab.TRACKS && tracks.isEmpty()) ||
+             (selectedTab == LibraryTab.RECENT && recentTracks.isEmpty())) &&
+            !isScanning &&
+            selectedTab != LibraryTab.PLAYLISTS &&
+            selectedTab != LibraryTab.FAVORITES
+        ) {
             EmptyAudioStateView(
                 onRefreshScan = onRefreshScan,
                 modifier = Modifier.fillMaxSize()
             )
         } else {
             when (selectedTab) {
+                LibraryTab.RECENT -> {
+                    TracksList(
+                        tracks = recentTracks,
+                        currentPlayingTrack = currentPlayingTrack,
+                        isPlaying = isPlaying,
+                        favorites = favorites,
+                        onTrackClick = onTrackClick,
+                        onToggleFavorite = onToggleFavorite,
+                        onAddToQueue = onAddToQueue
+                    )
+                }
                 LibraryTab.TRACKS -> {
                     TracksList(
                         tracks = tracks,
