@@ -920,7 +920,7 @@ private fun NowPlayingOptionsSheetContent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Options & Détails Audio",
+                text = "Options de lecture",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = MusicProTextPrimary
@@ -1001,13 +1001,22 @@ private fun NowPlayingOptionsSheetContent(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            SecondaryActionButton(Icons.AutoMirrored.Filled.QueueMusic, "File", onOpenQueue)
+            SecondaryActionButton(Icons.AutoMirrored.Filled.QueueMusic, "File d'attente", onOpenQueue)
             SecondaryActionButton(Icons.Default.Equalizer, "Égaliseur", onOpenEqualizer)
             SecondaryActionButton(Icons.Default.Tune, "Karaoké", onOpenKaraokeSettings)
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
             SecondaryActionButton(Icons.Default.Add, "Playlist", onAddToPlaylist)
             SecondaryActionButton(Icons.Default.Share, "Partager", onShare)
+            Spacer(modifier = Modifier.weight(1f))
         }
 
         Spacer(modifier = Modifier.height(18.dp))
@@ -1082,7 +1091,7 @@ private fun RowScope.SecondaryActionButton(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(icon, contentDescription = label, tint = MusicProCyanNeon, modifier = Modifier.size(17.dp))
-            Text(label, fontSize = 8.sp, color = MusicProTextSecondary, maxLines = 1)
+            Text(label, fontSize = 10.sp, color = MusicProTextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
