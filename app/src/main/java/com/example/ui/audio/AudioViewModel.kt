@@ -536,7 +536,8 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
                 apiKeyStore = groqApiKeyStore,
                 track = track,
                 currentTitle = currentTitle,
-                currentArtist = currentArtist
+                currentArtist = currentArtist,
+                durationSec = durationSec
             )
 
             result.fold(
@@ -673,13 +674,39 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun needsWritePermission(track: AudioTrackEntity): Boolean {
         if (track.path.isBlank()) return false
+
+        // Android 11+ : une modification d'un média partagé doit repasser par
+        // createWriteRequest(). Ne pas utiliser File.canWrite() comme raccourci :
+        // après un premier accord, ce test peut rester vrai et empêcher la
+        // boîte de dialogue de réapparaître pour une nouvelle modification.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val file = File(track.path)
+            val app = getApplication<Application>()
+
+            // Les fichiers privés de l'application n'ont pas besoin de MediaStore.
+            val privateRoots = listOfNotNull(
+                app.filesDir,
+                app.cacheDir,
+                app.getExternalFilesDir(null),
+                app.externalCacheDir
+            ).map { it.absolutePath.trimEnd(File.separatorChar) }
+
+            val isPrivateFile = privateRoots.any { root ->
+                val path = file.absolutePath
+                path == root || path.startsWith(root + File.separator)
+            }
+
+            // Une URI MediaStore explicite confirme un média partagé.
+            // Pour les anciennes entrées sans URI, triggerWritePermissionRequest()
+            // reconstruit l'URI à partir de track.id.
+            return track.contentUri.isNotBlank() || !isPrivateFile
+        }
+
         val file = File(track.path)
         if (file.exists() && file.canWrite()) {
             return false
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            return true
-        }
+
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
             return ContextCompat.checkSelfPermission(
                 getApplication(),
