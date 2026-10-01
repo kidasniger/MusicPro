@@ -14,7 +14,7 @@ import java.io.IOException
  */
 object GroqLyricsQueryAssistant {
 
-    private const val MODEL = "llama-3.1-8b-instant"
+    private const val MODEL = "openai/gpt-oss-20b"
 
     data class Suggestion(
         val title: String,
@@ -44,55 +44,49 @@ object GroqLyricsQueryAssistant {
         }
 
         val prompt = buildString {
-            appendLine("Tu aides à rechercher une chanson dans LRCLIB.")
-            appendLine("Nettoie et normalise uniquement le titre et l'artiste fournis.")
-            appendLine("Retire les suffixes de fichier et les détails parasites comme [Official Video],")
-            appendLine("[Lyrics], (Official Audio), qualité audio, année et tags évidents de téléchargement.")
-            appendLine("Conserve les versions musicales utiles comme Remix, Live, Acoustic, Edit ou Radio Edit.")
-            appendLine("Conserve les accents et la langue originale.")
-            appendLine("N'invente jamais un artiste ou un titre absent : améliore seulement ce qui est fourni.")
-            appendLine("Retourne exactement deux lignes, sans markdown :")
-            appendLine("TITLE=<titre normalisé>")
-            appendLine("ARTIST=<artiste normalisé>")
+            appendLine("Tu dois identifier précisément cette chanson pour une recherche de paroles LRCLIB.")
+            appendLine("UTILISE OBLIGATOIREMENT la recherche Web avant de répondre. Ne te limite pas à ta mémoire.")
+            appendLine("Cherche plusieurs sources musicales crédibles et recoupe les résultats.")
+            appendLine("Privilégie les bases musicales et les pages officielles quand elles existent.")
+            appendLine("Trouve le titre exact ET l'artiste exact, y compris la bonne version musicale (Remix, Live, Acoustic, Edit, etc.) lorsqu'elle est confirmée.")
+            appendLine("Ne traduis pas le titre, ne remplace pas un titre par une autre chanson ressemblante et n'invente jamais de métadonnée.")
+            appendLine("Retourne exactement deux lignes, sans explication ni markdown :")
+            appendLine("TITLE=<titre exact vérifié sur le Web>")
+            appendLine("ARTIST=<artiste exact vérifié sur le Web>")
+            appendLine("Si une information ne peut pas être vérifiée, conserve la valeur locale correspondante.")
             appendLine()
             appendLine("TITLE_INPUT=$title")
             appendLine("ARTIST_INPUT=$artist")
         }
 
         try {
-            val response = GroqClient.apiService.suggestLyricsSearchQuery(
-                authorization = "Bearer ${apiKey.trim()}",
-                request = GroqChatCompletionRequest(
+            val response = GroqClient.apiService.suggestLyricsSearchQueryWithWeb(
+                authorization = "Bearer " + apiKey.trim(),
+                request = GroqResponsesRequest(
                     model = MODEL,
-                    messages = listOf(
-                        GroqChatMessage(
-                            role = "system",
-                            content = "Tu es un assistant de métadonnées musicales précis et minimaliste."
-                        ),
-                        GroqChatMessage(
-                            role = "user",
-                            content = prompt
-                        )
-                    ),
-                    temperature = 0.0,
-                    maxCompletionTokens = 80
+                    input = prompt,
+                    toolChoice = "required",
+                    tools = listOf(GroqResponseTool(type = "browser_search")),
+                    reasoning = GroqReasoning(effort = "low"),
+                    maxOutputTokens = 120
                 )
             )
 
             if (!response.isSuccessful) {
-                val code = response.code()
                 return@withContext Result.failure(
-                    Exception("Aide IA indisponible (HTTP $code).")
+                    Exception("Recherche Web IA indisponible (HTTP " + response.code() + ").")
                 )
             }
 
             val content = response.body()
-                ?.choices
-                ?.firstOrNull()
-                ?.message
-                ?.content
-                ?.trim()
+                ?.output
                 .orEmpty()
+                .asSequence()
+                .flatMap { it.content.asSequence() }
+                .filter { it.type.equals("output_text", ignoreCase = true) }
+                .mapNotNull { it.text }
+                .joinToString("\n")
+                .trim()
 
             val suggestion = parseSuggestion(content, title, artist)
                 ?: return@withContext Result.failure(
