@@ -341,8 +341,10 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
             return
         }
 
+        userQueue.clear()
+        _queue.value = emptyList()
+
         currentPlaylist = playlist
-        _queue.value = playlist
         _queueIndex.value = playlist.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
         _currentTrack.value = track
 
