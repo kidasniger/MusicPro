@@ -82,6 +82,7 @@ class AudioRepository(
             val previous = existingTracks[scanned.id]
             if (previous != null) {
                 scanned.copy(
+                    albumArtUri = scanned.albumArtUri ?: previous.albumArtUri,
                     hasSyncedLyrics = previous.hasSyncedLyrics || scanned.hasSyncedLyrics,
                     lastPlayed = maxOf(previous.lastPlayed, scanned.lastPlayed)
                 )
