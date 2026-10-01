@@ -456,19 +456,32 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
 
     fun addToQueue(track: AudioTrackEntity, playNext: Boolean = false) {
         val controller = mediaController ?: return
-        if (_currentTrack.value?.id == track.id) return
-        if (currentPlaylist.any { it.id == track.id }) return
+        val currentTrack = _currentTrack.value ?: return
+        if (track.id == currentTrack.id) return
 
         val current = currentPlaylist.toMutableList()
-        val currentIndex = _queueIndex.value.coerceIn(0, current.size.coerceAtLeast(1) - 1)
-        val insertAt = if (playNext) (currentIndex + 1).coerceAtMost(current.size) else current.size
+        val oldIndex = current.indexOfFirst { it.id == track.id }
+        if (oldIndex >= 0) current.removeAt(oldIndex)
+
+        val currentIndexAfterRemoval = current.indexOfFirst { it.id == currentTrack.id }.coerceAtLeast(0)
+        val insertAt = if (playNext) {
+            (currentIndexAfterRemoval + 1).coerceAtMost(current.size)
+        } else {
+            current.size
+        }
         current.add(insertAt, track)
 
+        val position = controller.currentPosition.coerceAtLeast(0L)
+        val wasPlaying = controller.isPlaying
         currentPlaylist = current
         _queue.value = current
-        _queueIndex.value = current.indexOfFirst { it.id == _currentTrack.value?.id }.coerceAtLeast(0)
+        _queueIndex.value = current.indexOfFirst { it.id == currentTrack.id }.coerceAtLeast(0)
 
-        controller.addMediaItem(insertAt, track.toMediaItem())
+        // Rebuild the timeline so an existing library item can become an explicit upcoming item.
+        val currentIndex = _queueIndex.value
+        controller.setMediaItems(current.map { it.toMediaItem() }, currentIndex, position)
+        controller.prepare()
+        if (wasPlaying) controller.play()
     }
 
     fun playQueuedTrack(track: AudioTrackEntity) {
@@ -516,14 +529,16 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
     fun clearQueue() {
         val current = _currentTrack.value ?: return
         val controller = mediaController ?: return
-
-        if (controller.mediaItemCount > 1) {
-            controller.removeMediaItems(1, controller.mediaItemCount)
-        }
+        val position = controller.currentPosition.coerceAtLeast(0L)
+        val wasPlaying = controller.isPlaying
 
         currentPlaylist = listOf(current)
         _queue.value = currentPlaylist
         _queueIndex.value = 0
+
+        controller.setMediaItem(current.toMediaItem(), position)
+        controller.prepare()
+        if (wasPlaying) controller.play()
     }
 
     fun setEqualizerEnabled(enabled: Boolean) {
