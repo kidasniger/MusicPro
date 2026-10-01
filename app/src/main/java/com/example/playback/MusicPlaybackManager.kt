@@ -160,9 +160,23 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                val previousTrackId = _currentTrack.value?.id
                 updateCurrentTrackFromMediaItem(mediaItem)
                 _queue.value = currentPlaylist
                 _queueIndex.value = currentPlaylist.indexOfFirst { it.id == _currentTrack.value?.id }.coerceAtLeast(0)
+
+                // Une nouvelle piste commence toujours à sa position de lecture réelle.
+                // Media3 remet normalement la nouvelle piste à 0 ms lors d'une transition
+                // automatique/manuelle. Mettre immédiatement ce changement dans le StateFlow
+                // évite que l'écran des paroles conserve quelques instants la position du
+                // morceau précédent.
+                if (_currentTrack.value?.id != previousTrackId) {
+                    _currentPositionMs.value = mediaController?.currentPosition?.coerceAtLeast(0L) ?: 0L
+                    _durationMs.value = _currentTrack.value?.duration?.coerceAtLeast(0L)
+                        ?: mediaController?.duration?.coerceAtLeast(0L)
+                        ?: 0L
+                }
+
                 com.example.widget.MusicWidgetUpdater.update(appContext, _currentTrack.value, _isPlaying.value)
             }
 
