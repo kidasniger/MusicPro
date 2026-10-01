@@ -42,14 +42,11 @@ import androidx.compose.material.icons.automirrored.filled.VolumeDown
 import androidx.compose.material.icons.automirrored.filled.VolumeMute
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Album
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.GraphicEq
-import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Repeat
@@ -1063,71 +1060,7 @@ private fun NowPlayingOptionsSheetContent(
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Section 3 : Caractéristiques techniques et moteur audio (proprement rangées)
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = Color(0x14FFFFFF)),
-            border = BorderStroke(1.dp, Color(0x22FFFFFF)),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Column(modifier = Modifier.padding(14.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(MusicProGreenEmerald)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Moteur Haute Fidélité Media3 Actif",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MusicProTextPrimary
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    StatusFeatureChip(
-                        icon = Icons.Default.NotificationsActive,
-                        text = "Service Media3 Arrière-plan",
-                        modifier = Modifier.weight(1f)
-                    )
-                    StatusFeatureChip(
-                        icon = Icons.Default.Headphones,
-                        text = "Pause si déconnexion",
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    StatusFeatureChip(
-                        icon = Icons.Default.Equalizer,
-                        text = "Gestion prioritaire appels",
-                        modifier = Modifier.weight(1f)
-                    )
-                    StatusFeatureChip(
-                        icon = Icons.Default.CheckCircle,
-                        text = "WakeLock anti-coupure",
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -1150,41 +1083,6 @@ private fun RowScope.SecondaryActionButton(
         ) {
             Icon(icon, contentDescription = label, tint = MusicProCyanNeon, modifier = Modifier.size(17.dp))
             Text(label, fontSize = 8.sp, color = MusicProTextSecondary, maxLines = 1)
-        }
-    }
-}
-
-@Composable
-private fun StatusFeatureChip(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    text: String,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(8.dp),
-        color = Color(0x14FFFFFF),
-        border = BorderStroke(1.dp, Color(0x1AFFFFFF))
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MusicProCyanNeon,
-                modifier = Modifier.size(13.dp)
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(
-                text = text,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium,
-                color = MusicProTextSecondary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
         }
     }
 }
