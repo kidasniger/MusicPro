@@ -25,7 +25,8 @@ object GroqLyricsQueryAssistant {
         apiKeyStore: GroqApiKeyStore,
         track: AudioTrackEntity,
         currentTitle: String,
-        currentArtist: String
+        currentArtist: String,
+        durationSec: Int? = null
     ): Result<Suggestion> = withContext(Dispatchers.IO) {
         val apiKey = apiKeyStore.getApiKey()
         if (apiKey.isBlank()) {
@@ -49,6 +50,7 @@ object GroqLyricsQueryAssistant {
             appendLine("Cherche plusieurs sources musicales crédibles et recoupe les résultats.")
             appendLine("Privilégie les bases musicales et les pages officielles quand elles existent.")
             appendLine("Trouve le titre exact ET l'artiste exact, y compris la bonne version musicale (Remix, Live, Acoustic, Edit, etc.) lorsqu'elle est confirmée.")
+            appendLine("Utilise aussi la durée du fichier pour départager les homonymes lorsque la durée est disponible.")
             appendLine("Ne traduis pas le titre, ne remplace pas un titre par une autre chanson ressemblante et n'invente jamais de métadonnée.")
             appendLine("Retourne exactement deux lignes, sans explication ni markdown :")
             appendLine("TITLE=<titre exact vérifié sur le Web>")
@@ -57,6 +59,7 @@ object GroqLyricsQueryAssistant {
             appendLine()
             appendLine("TITLE_INPUT=$title")
             appendLine("ARTIST_INPUT=$artist")
+            appendLine("DURATION_INPUT=" + (durationSec?.takeIf { it > 0 }?.toString() ?: "inconnue") + " secondes")
         }
 
         try {
