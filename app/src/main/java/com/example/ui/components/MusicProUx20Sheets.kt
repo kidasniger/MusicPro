@@ -100,7 +100,9 @@ fun FavoritesScreen(
 @Composable
 fun QueueSheet(
     queue: List<AudioTrackEntity>,
-    onPlayTrack: (Int, AudioTrackEntity) -> Unit,
+    currentIndex: Int,
+    isPlaying: Boolean,
+    onPlayTrack: (AudioTrackEntity) -> Unit,
     onRemove: (Int) -> Unit,
     onMove: (Int, Int) -> Unit,
     onClear: () -> Unit,
@@ -113,12 +115,22 @@ fun QueueSheet(
                 .navigationBarsPadding()
                 .padding(horizontal = 18.dp, vertical = 8.dp)
         ) {
+            val safeCurrentIndex = currentIndex.coerceIn(0, (queue.size - 1).coerceAtLeast(0))
+            val startIndex = (safeCurrentIndex - 4).coerceAtLeast(0)
+            val endIndex = (safeCurrentIndex + 8).coerceAtMost(queue.lastIndex)
+            val visibleQueue = if (queue.isEmpty()) emptyList() else queue.subList(startIndex, endIndex + 1)
+
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text("À suivre", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
-                    Text(queue.size.toString() + " morceau(s)", fontSize = 12.sp, color = MusicProCyanNeon)
+                    Text(
+                        if (queue.isEmpty()) "Aucun morceau"
+                        else "Position " + (safeCurrentIndex + 1) + "/" + queue.size,
+                        fontSize = 12.sp,
+                        color = MusicProCyanNeon
+                    )
                 }
-                TextButton(onClick = onClear, enabled = queue.isNotEmpty()) {
+                TextButton(onClick = onClear, enabled = queue.size > 1) {
                     Text("Vider", color = MusicProTextSecondary)
                 }
             }
@@ -135,23 +147,35 @@ fun QueueSheet(
                         modifier = Modifier.size(48.dp)
                     )
                     Text(
-                        "La file d'attente est vide",
+                        "Aucune file de lecture",
                         color = MusicProTextPrimary,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.padding(top = 10.dp)
                     )
                     Text(
-                        "Ajoutez des morceaux avec l'icône de file.",
+                        "Les morceaux suivants apparaîtront ici.",
                         color = MusicProTextSecondary,
                         fontSize = 12.sp
                     )
                 }
             } else {
                 LazyColumn(contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp)) {
-                    itemsIndexed(queue, key = { index, item -> index.toString() + "_" + item.id.toString() }) { index, track ->
+                    itemsIndexed(
+                        visibleQueue,
+                        key = { localIndex, item -> (startIndex + localIndex).toString() + "_" + item.id.toString() }
+                    ) { localIndex, track ->
+                        val index = startIndex + localIndex
+                        val isCurrent = index == safeCurrentIndex
+
                         Row(
-                            Modifier.fillMaxWidth().padding(6.dp),
+                            Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    if (isCurrent) MusicProSurfaceElevated else Color.Transparent,
+                                    RoundedCornerShape(10.dp)
+                                )
+                                .padding(6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Surface(
@@ -170,10 +194,10 @@ fun QueueSheet(
 
                             Column(Modifier.weight(1f)) {
                                 Text(
-                                    track.title,
-                                    color = MusicProTextPrimary,
+                                    text = if (isCurrent && isPlaying) "▶ " + track.title else track.title,
+                                    color = if (isCurrent) MusicProCyanNeon else MusicProTextPrimary,
                                     fontSize = 13.sp,
-                                    fontWeight = FontWeight.SemiBold,
+                                    fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.SemiBold,
                                     maxLines = 1
                                 )
                                 Text(
@@ -184,26 +208,26 @@ fun QueueSheet(
                                 )
                             }
 
-                            IconButton(onClick = { onPlayTrack(index, track) }) {
-                                Icon(Icons.Default.PlayArrow, "Lire maintenant", tint = MusicProCyanNeon)
-                            }
-
-                            IconButton(
-                                onClick = {
-                                    if (index > 0) onMove(index, index - 1)
-                                    else if (index < queue.lastIndex) onMove(index, index + 1)
-                                },
-                                enabled = queue.size > 1
-                            ) {
-                                Icon(
-                                    if (index > 0) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                    "Déplacer",
-                                    tint = MusicProTextSecondary
-                                )
-                            }
-
-                            IconButton(onClick = { onRemove(index) }) {
-                                Icon(Icons.Default.DeleteOutline, "Retirer", tint = MusicProTextSecondary)
+                            if (!isCurrent) {
+                                IconButton(onClick = { onPlayTrack(track) }) {
+                                    Icon(Icons.Default.PlayArrow, "Lire maintenant", tint = MusicProCyanNeon)
+                                }
+                                IconButton(
+                                    onClick = {
+                                        if (index > safeCurrentIndex) onMove(index, index - 1)
+                                        else onMove(index, index + 1)
+                                    },
+                                    enabled = queue.size > 1
+                                ) {
+                                    Icon(
+                                        if (index > safeCurrentIndex) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                        "Déplacer",
+                                        tint = MusicProTextSecondary
+                                    )
+                                }
+                                IconButton(onClick = { onRemove(index) }) {
+                                    Icon(Icons.Default.DeleteOutline, "Retirer", tint = MusicProTextSecondary)
+                                }
                             }
                         }
                     }
