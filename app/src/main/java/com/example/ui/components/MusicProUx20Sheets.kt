@@ -99,27 +99,113 @@ fun FavoritesScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QueueSheet(
-    queue: List<AudioTrackEntity>, currentIndex: Int, isPlaying: Boolean,
-    onPlayTrack: (AudioTrackEntity) -> Unit, onRemove: (Int) -> Unit,
-    onMove: (Int, Int) -> Unit, onClear: () -> Unit, onClose: () -> Unit
+    queue: List<AudioTrackEntity>,
+    onPlayTrack: (Int, AudioTrackEntity) -> Unit,
+    onRemove: (Int) -> Unit,
+    onMove: (Int, Int) -> Unit,
+    onClear: () -> Unit,
+    onClose: () -> Unit
 ) {
     ModalBottomSheet(onDismissRequest = onClose, containerColor = MusicProCardBackground) {
-        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 18.dp, vertical = 8.dp)) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 18.dp, vertical = 8.dp)
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) { Text("À suivre", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary); Text(queue.size.toString() + " morceau(s)", fontSize = 12.sp, color = MusicProCyanNeon) }
-                TextButton(onClick = onClear, enabled = queue.size > 1) { Text("Vider", color = MusicProTextSecondary) }
+                Column(Modifier.weight(1f)) {
+                    Text("À suivre", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
+                    Text(queue.size.toString() + " morceau(s)", fontSize = 12.sp, color = MusicProCyanNeon)
+                }
+                TextButton(onClick = onClear, enabled = queue.isNotEmpty()) {
+                    Text("Vider", color = MusicProTextSecondary)
+                }
             }
-            LazyColumn(contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp)) {
-                itemsIndexed(queue, key = { _, it -> it.id }) { index, track ->
-                    val current = index == currentIndex
-                    Row(Modifier.fillMaxWidth().background(if (current) MusicProSurfaceElevated else Color.Transparent, RoundedCornerShape(10.dp)).padding(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Surface(Modifier.size(42.dp), shape = RoundedCornerShape(8.dp), color = MusicProSurface) {
-                            if (!track.albumArtUri.isNullOrBlank()) AsyncImage(track.albumArtUri, null, contentScale = ContentScale.Crop) else Icon(Icons.Default.MusicNote, null, tint = MusicProVioletLight)
+
+            if (queue.isEmpty()) {
+                Column(
+                    Modifier.fillMaxWidth().padding(vertical = 42.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.QueueMusic,
+                        contentDescription = null,
+                        tint = MusicProVioletLight,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Text(
+                        "La file d'attente est vide",
+                        color = MusicProTextPrimary,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(top = 10.dp)
+                    )
+                    Text(
+                        "Ajoutez des morceaux avec l'icône de file.",
+                        color = MusicProTextSecondary,
+                        fontSize = 12.sp
+                    )
+                }
+            } else {
+                LazyColumn(contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp)) {
+                    itemsIndexed(queue, key = { index, item -> index.toString() + "_" + item.id.toString() }) { index, track ->
+                        Row(
+                            Modifier.fillMaxWidth().padding(6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Surface(
+                                Modifier.size(42.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                color = MusicProSurface
+                            ) {
+                                if (!track.albumArtUri.isNullOrBlank()) {
+                                    AsyncImage(track.albumArtUri, null, contentScale = ContentScale.Crop)
+                                } else {
+                                    Icon(Icons.Default.MusicNote, null, tint = MusicProVioletLight)
+                                }
+                            }
+
+                            Spacer(Modifier.width(10.dp))
+
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    track.title,
+                                    color = MusicProTextPrimary,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1
+                                )
+                                Text(
+                                    track.artist,
+                                    color = MusicProTextSecondary,
+                                    fontSize = 11.sp,
+                                    maxLines = 1
+                                )
+                            }
+
+                            IconButton(onClick = { onPlayTrack(index, track) }) {
+                                Icon(Icons.Default.PlayArrow, "Lire maintenant", tint = MusicProCyanNeon)
+                            }
+
+                            IconButton(
+                                onClick = {
+                                    if (index > 0) onMove(index, index - 1)
+                                    else if (index < queue.lastIndex) onMove(index, index + 1)
+                                },
+                                enabled = queue.size > 1
+                            ) {
+                                Icon(
+                                    if (index > 0) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                    "Déplacer",
+                                    tint = MusicProTextSecondary
+                                )
+                            }
+
+                            IconButton(onClick = { onRemove(index) }) {
+                                Icon(Icons.Default.DeleteOutline, "Retirer", tint = MusicProTextSecondary)
+                            }
                         }
-                        Spacer(Modifier.width(10.dp)); Column(Modifier.weight(1f)) { Text(track.title, color = if (current) MusicProCyanNeon else MusicProTextPrimary, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1); Text(track.artist, color = MusicProTextSecondary, fontSize = 11.sp, maxLines = 1) }
-                        IconButton(onClick = { onPlayTrack(track) }) { Icon(if (current && isPlaying) Icons.Default.MusicNote else Icons.Default.PlayArrow, "Lire", tint = MusicProCyanNeon) }
-                        IconButton(onClick = { if (index > currentIndex) onMove(index, index - 1) else if (index < currentIndex) onMove(index, index + 1) }) { Icon(if (index > currentIndex) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown, "Déplacer", tint = MusicProTextSecondary) }
-                        IconButton(onClick = { onRemove(index) }, enabled = !current) { Icon(Icons.Default.DeleteOutline, "Retirer", tint = MusicProTextSecondary) }
                     }
                 }
             }
