@@ -35,4 +35,15 @@ interface GroqApiService {
         @Header("Authorization") authorization: String,
         @Body request: GroqChatCompletionRequest
     ): Response<GroqChatCompletionResponse>
+
+    
+    /**
+     * Recherche sur le Web via l'outil navigateur intégré de Groq pour identifier
+     * le titre et l'artiste exacts avant la recherche LRCLIB.
+     */
+    @POST("openai/v1/responses")
+    suspend fun suggestLyricsSearchQueryWithWeb(
+        @Header("Authorization") authorization: String,
+        @Body request: GroqResponsesRequest
+    ): Response<GroqResponsesResponse>
 }
