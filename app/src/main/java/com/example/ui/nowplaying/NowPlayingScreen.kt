@@ -116,6 +116,7 @@ import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPrimary
 import kotlinx.coroutines.delay
+import kotlin.math.roundToInt
 import java.util.Locale
 
 /**
