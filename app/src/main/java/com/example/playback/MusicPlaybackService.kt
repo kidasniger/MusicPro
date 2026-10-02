@@ -54,6 +54,8 @@ class MusicPlaybackService : MediaSessionService() {
     private var player: ExoPlayer? = null
     private var mediaSession: MediaSession? = null
     private var equalizer: Equalizer? = null
+    private var desiredEqualizerEnabled = false
+    private val desiredEqualizerLevels = IntArray(5)
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val preferencesRepository by lazy { UserPreferencesRepository(applicationContext) }
     private var favoriteTrackIds: Set<Long> = emptySet()
@@ -172,10 +174,13 @@ class MusicPlaybackService : MediaSessionService() {
                     return try {
                         when (customCommand.customAction) {
                             AudioEffectCommands.ACTION_SET_ENABLED -> {
+                                desiredEqualizerEnabled = args.getBoolean(AudioEffectCommands.KEY_ENABLED, true)
                                 ensureEqualizer(exoPlayer)
-                                equalizer?.enabled = args.getBoolean(AudioEffectCommands.KEY_ENABLED, true)
+                                equalizer?.enabled = desiredEqualizerEnabled
+                                if (desiredEqualizerEnabled) applyDesiredEqualizerLevels()
                             }
                             AudioEffectCommands.ACTION_SET_PRESET -> {
+                                desiredEqualizerEnabled = true
                                 ensureEqualizer(exoPlayer)
                                 equalizer?.enabled = true
                                 equalizer?.usePreset(
@@ -183,30 +188,23 @@ class MusicPlaybackService : MediaSessionService() {
                                 )
                             }
                             AudioEffectCommands.ACTION_SET_BAND -> {
+                                val requested = args.getInt(AudioEffectCommands.KEY_BAND, 0).coerceIn(0, 4)
+                                val requestedLevel = args.getShort(AudioEffectCommands.KEY_LEVEL, 0.toShort()).toInt()
+                                desiredEqualizerEnabled = true
+                                desiredEqualizerLevels[requested] = requestedLevel
                                 ensureEqualizer(exoPlayer)
-                                val eq = equalizer
-                                if (eq != null) {
-                                    eq.enabled = true
-                                    val count = eq.numberOfBands.toInt().coerceAtLeast(1)
-                                    val requested = args.getInt(AudioEffectCommands.KEY_BAND, 0).coerceIn(0, 4)
-                                    val actual = if (count == 1) 0 else
-                                        (requested.toFloat() * (count - 1) / 4f).toInt()
-                                    val range = eq.bandLevelRange
-                                    val level = args.getShort(AudioEffectCommands.KEY_LEVEL, 0.toShort())
-                                        .toInt()
-                                        .coerceIn(range[0].toInt(), range[1].toInt())
-                                        .toShort()
-                                    eq.setBandLevel(actual.toShort(), level)
-                                }
+                                applyDesiredEqualizerLevels()
                             }
                             AudioEffectCommands.ACTION_RESET -> {
-                                equalizer?.enabled = false
+                                desiredEqualizerEnabled = false
+                                desiredEqualizerLevels.fill(0)
                                 equalizer?.let { eq ->
                                     val range = eq.bandLevelRange
                                     val neutral = 0.coerceIn(range[0].toInt(), range[1].toInt()).toShort()
                                     for (band in 0 until eq.numberOfBands) {
                                         eq.setBandLevel(band.toShort(), neutral)
                                     }
+                                    eq.enabled = false
                                 }
                             }
                             ACTION_TOGGLE_FAVORITE -> toggleCurrentFavorite()
@@ -398,7 +396,10 @@ class MusicPlaybackService : MediaSessionService() {
             }
 
             equalizer = Equalizer(0, sessionId).apply {
-                enabled = false
+                enabled = desiredEqualizerEnabled
+            }
+            if (desiredEqualizerEnabled) {
+                applyDesiredEqualizerLevels()
             }
         } catch (exception: Exception) {
             android.util.Log.w(
@@ -407,6 +408,23 @@ class MusicPlaybackService : MediaSessionService() {
             )
             equalizer = null
         }
+    }
+
+    private fun applyDesiredEqualizerLevels() {
+        val eq = equalizer ?: return
+        val count = eq.numberOfBands.toInt().coerceAtLeast(1)
+        val range = eq.bandLevelRange
+
+        desiredEqualizerLevels.forEachIndexed { requestedBand, requestedLevel ->
+            val actualBand = if (count == 1) 0 else {
+                (requestedBand.toFloat() * (count - 1) / 4f).toInt()
+            }
+            val level = requestedLevel
+                .coerceIn(range[0].toInt(), range[1].toInt())
+                .toShort()
+            eq.setBandLevel(actualBand.toShort(), level)
+        }
+        eq.enabled = desiredEqualizerEnabled
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
