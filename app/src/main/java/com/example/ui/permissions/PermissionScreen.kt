@@ -400,7 +400,7 @@ fun PermissionScreen(
                 }
 
                 Text(
-                    text = "🔒 Aucune donnée audio n'est transférée ni partagée sur Internet",
+                    text = "Aucune donnée audio n'est transférée ni partagée sur Internet",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
