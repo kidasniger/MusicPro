@@ -233,9 +233,12 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
                 }
 
                 hasRetriedFallback = false
-                _errorMessage.value = "Erreur de lecture: fichier introuvable ou source audio inaccessible"
+                _errorMessage.value = "Erreur de lecture : fichier introuvable ou source audio inaccessible"
                 _isPlaying.value = false
                 stopPositionTicker()
+                scope.launch(Dispatchers.IO) {
+                    audioRepository.pruneUnavailableTracks()
+                }
             }
         })
     }
