@@ -305,7 +305,7 @@ fun LyricsScreen(
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                text = "Recherche des balises ID3 SYLT & LRC...",
+                                text = "Recherche de paroles intégrées…",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 13.sp
                             )
@@ -467,7 +467,7 @@ fun LyricsScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Importer des paroles LRC",
+                        text = "Importer des paroles",
                         color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
@@ -477,7 +477,7 @@ fun LyricsScreen(
             text = {
                 Column {
                     Text(
-                        text = "Collez votre texte au format LRC standard [mm:ss.xx]paroles :",
+                        text = "Collez votre texte de paroles synchronisées :",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 13.sp
                     )
@@ -552,7 +552,7 @@ fun LyricsScreen(
                     }
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = "Groq Whisper large-v3",
+                        text = "Génération assistée",
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
@@ -610,7 +610,7 @@ fun LyricsScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Transcription Whisper",
+                        text = "Transcription assistée",
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
@@ -758,7 +758,7 @@ private fun LyricsTopBar(
             ) {
                 Icon(
                     imageVector = Icons.Default.AutoAwesome,
-                    contentDescription = "Transcrire avec Groq Whisper (IA)",
+                    contentDescription = "Générer les paroles",
                     tint = MusicProCyanNeon,
                     modifier = Modifier.size(19.dp)
                 )
@@ -836,7 +836,7 @@ private fun LyricsTopBar(
                     DropdownMenuItem(
                         text = {
                             Text(
-                                text = "Coller / Importer un texte LRC",
+                                text = "Coller / Importer des paroles",
                                 color = MaterialTheme.colorScheme.onBackground,
                                 fontSize = 13.sp
                             )
@@ -974,7 +974,7 @@ private fun EmptyLyricsView(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Générez les paroles avec Whisper IA ou recherchez instantanément sur lrclib.net pour les sauvegarder dans vos fichiers.",
+            text = "Générez ou recherchez les paroles pour les associer à votre morceau.",
             fontSize = 13.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -1002,7 +1002,7 @@ private fun EmptyLyricsView(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Transcrire avec Groq Whisper (IA)",
+                text = "Générer les paroles",
                 color = Color.Black,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold
@@ -1058,7 +1058,7 @@ private fun EmptyLyricsView(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Coller un texte / fichier .LRC manuel",
+                text = "Coller un texte de paroles",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
