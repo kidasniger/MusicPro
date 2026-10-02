@@ -120,13 +120,13 @@ fun GroqPreviewDialog(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = "Aperçu Whisper large-v3",
+                                text = "Aperçu des paroles générées",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MusicProTextPrimary
                             )
                             Text(
-                                text = "Transcription IA terminée avec succès",
+                                text = "Création des paroles terminée",
                                 fontSize = 11.sp,
                                 color = MusicProCyanLight
                             )
@@ -285,7 +285,7 @@ fun GroqPreviewDialog(
                         onClick = {
                             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                             clipboard.setPrimaryClip(ClipData.newPlainText("LRC Lyrics", result.fullLrcContent))
-                            Toast.makeText(context, "Paroles LRC copiées dans le presse-papiers !", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Paroles synchronisées copiées dans le presse-papiers.", Toast.LENGTH_SHORT).show()
                         },
                         modifier = Modifier
                             .height(48.dp)

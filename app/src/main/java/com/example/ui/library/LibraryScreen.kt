@@ -46,6 +46,7 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material3.Badge
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
@@ -968,7 +969,7 @@ private fun AlbumDetailView(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("🔀", fontSize = 14.sp)
+                    Icon(Icons.Default.Shuffle, contentDescription = null, tint = MusicProCyanNeon, modifier = Modifier.size(17.dp))
                     Spacer(Modifier.width(6.dp))
                     Text("Aléatoire", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
@@ -1094,7 +1095,7 @@ private fun ArtistDetailView(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("🔀 Aléatoire", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.Shuffle, contentDescription = null, tint = MusicProCyanNeon, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(5.dp)); Text("Aléatoire", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
                 }
             }
         }
@@ -1223,7 +1224,7 @@ private fun FolderDetailView(
                     onClick = onShuffle,
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp)
-                ) { Text("🔀 Aléatoire", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
+                ) { Text("Aléatoire", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
             }
         }
 

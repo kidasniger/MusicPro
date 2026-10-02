@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CloudDownload
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -338,7 +339,7 @@ private fun SaveFeedbackBanner(
                 onClick = onDismiss,
                 modifier = Modifier.size(24.dp)
             ) {
-                Text("✕", color = MusicProTextMuted, fontSize = 12.sp)
+                Icon(Icons.Default.Close, contentDescription = "Fermer", tint = MusicProTextMuted, modifier = Modifier.size(16.dp))
             }
         }
     }
@@ -694,7 +695,7 @@ private fun LrclibResultCard(
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                         ) {
                             Text(
-                                text = "⚡ Paroles synchronisées",
+                                text = "Paroles synchronisées",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MusicProCyanNeon
@@ -707,7 +708,7 @@ private fun LrclibResultCard(
                         color = MusicProVioletPrimary.copy(alpha = 0.2f)
                     ) {
                         Text(
-                            text = "📄 Texte brut",
+                            text = "Texte brut",
                             fontSize = 11.sp,
                             color = MusicProVioletPastel,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
@@ -855,7 +856,7 @@ private fun LyricsPreviewContent(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = lyricText.ifBlank { "♪" },
+                            text = lyricText.ifBlank { "…" },
                             fontSize = 11.sp,
                             color = MusicProTextPrimary
                         )
@@ -917,6 +918,7 @@ private fun cleanLyricsSearchError(message: String): String {
         .replace("API REST", "service en ligne", ignoreCase = true)
         .replace("API", "service en ligne", ignoreCase = true)
         .replace("LRC", "paroles synchronisées", ignoreCase = true)
+        .replace(Regex("""[\x{1F1E6}-\x{1F1FF}\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}]"""), "")
         .trim()
 }
 

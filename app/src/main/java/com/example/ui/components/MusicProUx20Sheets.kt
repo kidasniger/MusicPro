@@ -55,7 +55,7 @@ fun FavoritesScreen(
         Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Retour", tint = MaterialTheme.colorScheme.onBackground) }
             Column(Modifier.weight(1f)) {
-                Text("❤️ Favoris", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.Favorite, contentDescription = null, tint = MusicProCyanNeon, modifier = Modifier.size(24.dp)); Spacer(Modifier.width(8.dp)); Text("Favoris", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) }
                 Text(favoriteTracks.size.toString() + " morceau(s) • " + formatDuration(totalDuration), fontSize = 12.sp, color = MusicProCyanNeon)
             }
         }
@@ -78,7 +78,7 @@ fun FavoritesScreen(
                 itemsIndexed(favoriteTracks, key = { _, it -> it.id }) { index, track ->
                     Surface(onClick = { onTrackClick(track) }, color = if (currentTrack?.id == track.id) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent, modifier = Modifier.fillMaxWidth()) {
                         Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text(if (isPlaying && currentTrack?.id == track.id) "▶" else (index + 1).toString(), color = MusicProCyanNeon, fontSize = 11.sp, modifier = Modifier.width(24.dp))
+                            if (isPlaying && currentTrack?.id == track.id) { Icon(Icons.Default.PlayArrow, contentDescription = "Lecture en cours", tint = MusicProCyanNeon, modifier = Modifier.size(18.dp)) } else { Text((index + 1).toString(), color = MusicProCyanNeon, fontSize = 11.sp, modifier = Modifier.width(24.dp)) }
                             Surface(Modifier.size(46.dp), shape = RoundedCornerShape(9.dp), color = MaterialTheme.colorScheme.surface) {
                                 if (!track.albumArtUri.isNullOrBlank()) AsyncImage(track.albumArtUri, null, contentScale = ContentScale.Crop) else Icon(Icons.Default.MusicNote, null, tint = MusicProVioletLight)
                             }
@@ -195,7 +195,7 @@ fun QueueSheet(
 
                             Column(Modifier.weight(1f)) {
                                 Text(
-                                    text = if (isCurrent && isPlaying) "▶ " + track.title else track.title,
+                                    text = track.title,
                                     color = if (isCurrent) MusicProCyanNeon else MaterialTheme.colorScheme.onBackground,
                                     fontSize = 13.sp,
                                     fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.SemiBold,
