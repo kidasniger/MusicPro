@@ -427,7 +427,7 @@ private fun OnboardingPageView(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "♪ I look around and Sin City's cold and empty",
+                            text = "I look around and Sin City's cold and empty",
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
@@ -439,7 +439,7 @@ private fun OnboardingPageView(
                             border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.5f))
                         ) {
                             Text(
-                                text = "I said, ooh, I'm blinded by the lights ♪",
+                                text = "I said, ooh, I'm blinded by the lights",
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MusicProCyanNeon,
