@@ -355,7 +355,7 @@ fun SearchScreen(
                         }
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "Les requêtes interrogent directement la base Room locale sans aucune connexion Internet ni latence réseau.",
+                            text = "Votre recherche consulte directement votre bibliothèque, sans connexion Internet.",
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             lineHeight = 18.sp
