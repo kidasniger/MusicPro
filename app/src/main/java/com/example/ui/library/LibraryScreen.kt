@@ -1094,7 +1094,7 @@ private fun ArtistDetailView(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("🔀 Aléatoire", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.Shuffle, contentDescription = null, tint = MusicProCyanNeon, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(5.dp)); Text("Aléatoire", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
                 }
             }
         }
