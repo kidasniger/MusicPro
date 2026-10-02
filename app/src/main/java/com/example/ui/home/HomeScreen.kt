@@ -62,6 +62,10 @@ import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
@@ -116,20 +120,20 @@ import com.example.ui.lyrics.LrclibSearchScreen
 import com.example.ui.lyrics.LyricsScreen
 import com.example.ui.nowplaying.NowPlayingScreen
 import com.example.ui.search.SearchScreen
-import com.example.ui.theme.MusicProBackground
-import com.example.ui.theme.MusicProCardBackground
+import com.example.ui.theme.MaterialTheme.colorScheme.background
+import com.example.ui.theme.MaterialTheme.colorScheme.surface
 import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProCyanVibrant
 import com.example.ui.theme.MusicProGreenEmerald
 import com.example.ui.theme.MusicProPrimaryGradient
 import com.example.ui.theme.MusicProSuccess
-import com.example.ui.theme.MusicProSurface
-import com.example.ui.theme.MusicProSurfaceElevated
-import com.example.ui.theme.MusicProSurfaceVariant
-import com.example.ui.theme.MusicProTextMuted
-import com.example.ui.theme.MusicProTextPrimary
-import com.example.ui.theme.MusicProTextSecondary
+import com.example.ui.theme.MaterialTheme.colorScheme.surface
+import com.example.ui.theme.MaterialTheme.colorScheme.surfaceVariant
+import com.example.ui.theme.MaterialTheme.colorScheme.surfaceVariant
+import com.example.ui.theme.MaterialTheme.colorScheme.onSurfaceVariant
+import com.example.ui.theme.MaterialTheme.colorScheme.onBackground
+import com.example.ui.theme.MaterialTheme.colorScheme.onSurfaceVariant
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPastel
@@ -344,9 +348,9 @@ fun HomeScreen(
     Box(modifier = modifier.fillMaxSize()) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            containerColor = MusicProBackground,
+            containerColor = MaterialTheme.colorScheme.background,
             bottomBar = {
-                Column(modifier = Modifier.navigationBarsPadding()) {
+                Column {
                     // Persistent Mini Player if there is a track
                     if (activeTrack != null) {
                         MiniPlayerBar(
@@ -806,7 +810,7 @@ private fun HomeExplorerContent(
                         modifier = Modifier
                             .size(42.dp)
                             .shadow(8.dp, CircleShape, spotColor = MusicProVioletGlow)
-                            .background(MusicProSurfaceElevated, CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
                             .border(1.5.dp, MusicProVioletPrimary, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
@@ -824,7 +828,7 @@ private fun HomeExplorerContent(
                             text = "MusicPro",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MusicProTextPrimary
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 }
@@ -835,7 +839,7 @@ private fun HomeExplorerContent(
                         enabled = !isScanning,
                         modifier = Modifier
                             .clip(CircleShape)
-                            .background(MusicProSurfaceElevated)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                             .testTag("home_refresh_scan_action")
                     ) {
                         Icon(
@@ -854,7 +858,7 @@ private fun HomeExplorerContent(
                         onClick = onOpenOnboarding,
                         modifier = Modifier
                             .clip(CircleShape)
-                            .background(MusicProSurfaceElevated)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                             .testTag("home_onboarding_button")
                     ) {
                         Icon(
@@ -871,7 +875,7 @@ private fun HomeExplorerContent(
                         onClick = onOpenSettings,
                         modifier = Modifier
                             .clip(CircleShape)
-                            .background(MusicProSurfaceElevated)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                             .testTag("home_settings_button")
                     ) {
                         Icon(
@@ -890,7 +894,7 @@ private fun HomeExplorerContent(
             Surface(
                 onClick = onNavigateToLibrary,
                 shape = RoundedCornerShape(16.dp),
-                color = MusicProSurfaceElevated,
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.28f)),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -914,11 +918,11 @@ private fun HomeExplorerContent(
                         }
                         Spacer(Modifier.width(10.dp))
                         Column {
-                            Text("Votre bibliothèque", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
-                            Text("${tracks.size} morceaux • $albumsCount albums • $artistsCount artistes", fontSize = 12.sp, color = MusicProTextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text("Votre bibliothèque", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                            Text("${tracks.size} morceaux • $albumsCount albums • $artistsCount artistes", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
-                    Icon(Icons.Default.Search, contentDescription = "Ouvrir la recherche", tint = MusicProTextSecondary, modifier = Modifier.size(20.dp))
+                    Icon(Icons.AutoMirrored.Filled.QueueMusic, contentDescription = "Ouvrir la bibliothèque", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
                 }
             }
         }
@@ -931,7 +935,7 @@ private fun HomeExplorerContent(
                 Surface(
                     onClick = onOpenFavorites,
                     shape = RoundedCornerShape(14.dp),
-                    color = MusicProSurfaceElevated,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.35f)),
                     modifier = Modifier.weight(1f)
                 ) {
@@ -939,15 +943,15 @@ private fun HomeExplorerContent(
                         Text("♥", fontSize = 20.sp, color = Color(0xFFFF4081))
                         Spacer(Modifier.width(8.dp))
                         Column {
-                            Text("Favoris", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
-                            Text(favorites.size.toString() + " titres", fontSize = 12.sp, color = MusicProTextSecondary)
+                            Text("Favoris", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                            Text(favorites.size.toString() + " titres", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
                 Surface(
                     onClick = onNavigateToLibrary,
                     shape = RoundedCornerShape(14.dp),
-                    color = MusicProSurfaceElevated,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     border = BorderStroke(1.dp, MusicProCyanNeon.copy(alpha = 0.25f)),
                     modifier = Modifier.weight(1f)
                 ) {
@@ -955,8 +959,8 @@ private fun HomeExplorerContent(
                         Icon(Icons.AutoMirrored.Filled.QueueMusic, null, tint = MusicProCyanNeon, modifier = Modifier.size(19.dp))
                         Spacer(Modifier.width(8.dp))
                         Column {
-                            Text("Bibliothèque", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
-                            Text(tracks.size.toString() + " titres", fontSize = 12.sp, color = MusicProTextSecondary)
+                            Text("Bibliothèque", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                            Text(tracks.size.toString() + " titres", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
@@ -969,7 +973,7 @@ private fun HomeExplorerContent(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Collections", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
+                    Text("Collections", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                     Spacer(Modifier.width(8.dp))
                     Text("Albums ${albums.size}", fontSize = 12.sp, color = MusicProVioletLight)
                     Spacer(Modifier.width(6.dp))
@@ -986,18 +990,18 @@ private fun HomeExplorerContent(
                             Surface(
                                 onClick = onNavigateToLibrary,
                                 shape = RoundedCornerShape(14.dp),
-                                color = MusicProCardBackground,
+                                color = MaterialTheme.colorScheme.surface,
                                 border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.24f)),
                                 modifier = Modifier.width(150.dp)
                             ) {
                                 Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Box(Modifier.size(48.dp).clip(RoundedCornerShape(10.dp)).background(MusicProSurfaceVariant), contentAlignment = Alignment.Center) {
+                                    Box(Modifier.size(48.dp).clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
                                         if (!album.coverUri.isNullOrBlank()) AsyncImage(model = album.coverUri, contentDescription = album.name, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()) else Icon(Icons.Default.Album, null, tint = MusicProVioletLight)
                                     }
                                     Spacer(Modifier.width(8.dp))
                                     Column(Modifier.weight(1f)) {
-                                        Text(album.name, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                                        Text(album.artist, fontSize = 12.sp, color = MusicProTextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        Text(album.name, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                        Text(album.artist, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                     }
                                 }
                             }
@@ -1009,8 +1013,8 @@ private fun HomeExplorerContent(
                 item {
                     LazyRow(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(playlists.take(6), key = { it.id }) { playlist ->
-                            Surface(onClick = onNavigateToLibrary, shape = RoundedCornerShape(12.dp), color = MusicProSurfaceElevated, border = BorderStroke(1.dp, MusicProCyanNeon.copy(alpha = 0.20f))) {
-                                Text("♫ ${playlist.name}", modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp), fontSize = 12.sp, color = MusicProTextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Surface(onClick = onNavigateToLibrary, shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceVariant, border = BorderStroke(1.dp, MusicProCyanNeon.copy(alpha = 0.20f))) {
+                                Text("♫ ${playlist.name}", modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp), fontSize = 12.sp, color = MaterialTheme.colorScheme.onBackground, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
                         }
                     }
@@ -1043,17 +1047,19 @@ private fun HomeExplorerContent(
                         text = sectionTitle,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MusicProTextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
-                    Text(
-                        text = "Voir tout",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MusicProCyanNeon,
-                        modifier = Modifier
-                            .clickable(onClick = onNavigateToRecent)
-                            .padding(4.dp)
-                    )
+                    TextButton(
+                        onClick = onNavigateToRecent,
+                        modifier = Modifier.heightIn(min = 48.dp)
+                    ) {
+                        Text(
+                            text = "Voir tout",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MusicProCyanNeon
+                        )
+                    }
                 }
             }
 
@@ -1088,7 +1094,7 @@ private fun StatCard(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(14.dp))
-            .background(MusicProSurfaceElevated)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .border(1.dp, color.copy(alpha = 0.25f), RoundedCornerShape(14.dp))
             .clickable(onClick = onClick)
             .padding(vertical = 12.dp, horizontal = 10.dp),
@@ -1105,12 +1111,12 @@ private fun StatCard(
             text = count,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = MusicProTextPrimary
+            color = MaterialTheme.colorScheme.onBackground
         )
         Text(
             text = title,
             fontSize = 12.sp,
-            color = MusicProTextSecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -1120,40 +1126,40 @@ private fun MusicProBottomNavBar(
     currentSection: NavigationSection,
     onSelectSection: (NavigationSection) -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MusicProSurface)
-            .border(1.dp, Color(0x1AFFFFFF))
-            .padding(vertical = 6.dp),
-        horizontalArrangement = Arrangement.SpaceAround,
-        verticalAlignment = Alignment.CenterVertically
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp
     ) {
         NavigationSection.entries.forEach { section ->
             val isSelected = section == currentSection
-            Column(
+            NavigationBarItem(
+                selected = isSelected,
+                onClick = { onSelectSection(section) },
+                icon = {
+                    Icon(
+                        imageVector = section.icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(22.dp)
+                    )
+                },
+                label = {
+                    Text(
+                        text = section.label,
+                        fontSize = 12.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                    )
+                },
+                colors = androidx.compose.material3.NavigationBarItemDefaults.colors(
+                    selectedIconColor = MusicProCyanNeon,
+                    selectedTextColor = MusicProCyanNeon,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    indicatorColor = MusicProVioletPrimary.copy(alpha = 0.18f)
+                ),
                 modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable { onSelectSection(section) }
-                    .padding(horizontal = 16.dp, vertical = 6.dp)
                     .heightIn(min = 48.dp)
-                    .testTag("nav_tab_${section.name.lowercase()}"),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    imageVector = section.icon,
-                    contentDescription = section.label,
-                    tint = if (isSelected) MusicProCyanNeon else MusicProTextMuted,
-                    modifier = Modifier.size(22.dp)
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = section.label,
-                    fontSize = 11.sp,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                    color = if (isSelected) MusicProCyanNeon else MusicProTextMuted
-                )
-            }
+                    .testTag("nav_tab_"+section.name.lowercase())
+            )
         }
     }
 }
@@ -1198,7 +1204,7 @@ private fun MiniPlayerBar(
             }
             .clickable(onClick = onClick)
             .shadow(16.dp, spotColor = MusicProVioletGlow),
-        color = MusicProSurfaceElevated,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.35f))
     ) {
         Column {
@@ -1228,7 +1234,7 @@ private fun MiniPlayerBar(
                     modifier = Modifier
                         .size(42.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(MusicProSurfaceVariant)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(8.dp)),
                     contentAlignment = Alignment.Center
                 ) {
@@ -1256,7 +1262,7 @@ private fun MiniPlayerBar(
                         text = track.title,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MusicProTextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -1275,7 +1281,7 @@ private fun MiniPlayerBar(
                     Icon(
                         imageVector = Icons.Default.SkipPrevious,
                         contentDescription = "Précédent",
-                        tint = MusicProTextSecondary,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -1303,7 +1309,7 @@ private fun MiniPlayerBar(
                     Icon(
                         imageVector = Icons.Default.SkipNext,
                         contentDescription = "Suivant",
-                        tint = MusicProTextSecondary,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -1312,7 +1318,7 @@ private fun MiniPlayerBar(
                     IconButton(
                         onClick = onOpenLyrics,
                         modifier = Modifier
-                            .size(34.dp)
+                            .size(48.dp)
                             .testTag("mini_player_lyrics_button")
                     ) {
                         Icon(
