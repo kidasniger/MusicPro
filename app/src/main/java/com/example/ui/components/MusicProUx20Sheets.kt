@@ -248,10 +248,43 @@ fun EqualizerSheet(
     val labels = listOf("60 Hz", "230 Hz", "910 Hz", "3.6 kHz", "14 kHz")
     ModalBottomSheet(onDismissRequest = onClose, containerColor = MusicProCardBackground) {
         Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(20.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.Equalizer, null, tint = MusicProCyanNeon); Spacer(Modifier.width(10.dp)); Column(Modifier.weight(1f)) { Text("Égaliseur", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary); Text("Effet appliqué au moteur audio", fontSize = 12.sp, color = MusicProTextSecondary) }; Switch(checked = enabled, onCheckedChange = onEnabledChange) }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Equalizer, null, tint = MusicProCyanNeon)
+                Spacer(Modifier.width(10.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("Égaliseur", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
+                    Text(
+                        if (enabled) "Effet activé" else "Effet désactivé",
+                        fontSize = 12.sp,
+                        color = if (enabled) MusicProCyanNeon else MusicProTextSecondary
+                    )
+                }
+                OutlinedButton(onClick = { onEnabledChange(!enabled) }, shape = RoundedCornerShape(12.dp)) {
+                    Text(if (enabled) "Désactiver" else "Activer", fontSize = 12.sp)
+                }
+            }
             Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)) { presets.forEach { item -> FilterChip(selected = preset == item, onClick = { onPresetChange(item) }, label = { Text(item, fontSize = 9.sp) }) } }
-            labels.forEachIndexed { index, label -> Column(Modifier.fillMaxWidth().padding(top = 8.dp)) { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text(label, color = MusicProTextPrimary, fontSize = 11.sp); Text((levels.getOrElse(index) { 0 } / 100f).roundToInt().toString() + " dB", color = MusicProCyanNeon, fontSize = 11.sp) }; Slider(value = levels.getOrElse(index) { 0 }.toFloat(), onValueChange = { onBandChange(index, it.roundToInt()) }, valueRange = -1500f..1500f) } }
-            OutlinedButton(onClick = onReset, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) { Icon(Icons.Default.Refresh, null); Spacer(Modifier.width(6.dp)); Text("Réinitialiser") }
+            labels.forEachIndexed { index, label ->
+                val level = levels.getOrElse(index) { 0 }
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(label, color = MusicProTextPrimary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        Text((level / 100f).roundToInt().toString() + " dB", color = MusicProCyanNeon, fontSize = 11.sp)
+                    }
+                    IconButton(
+                        onClick = { onBandChange(index, (level - 100).coerceIn(-1500, 1500)) },
+                        modifier = Modifier.size(44.dp)
+                    ) { Text("−", color = MusicProTextPrimary, fontSize = 22.sp) }
+                    IconButton(
+                        onClick = { onBandChange(index, (level + 100).coerceIn(-1500, 1500)) },
+                        modifier = Modifier.size(44.dp)
+                    ) { Text("+", color = MusicProTextPrimary, fontSize = 20.sp) }
+                }
+            }
+            OutlinedButton(onClick = onReset, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) { Icon(Icons.Default.Refresh, null); Spacer(Modifier.width(6.dp)); Text("Tout rétablir") }
             Spacer(Modifier.height(8.dp))
         }
     }
