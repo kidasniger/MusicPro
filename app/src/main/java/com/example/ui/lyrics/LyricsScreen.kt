@@ -55,6 +55,7 @@ import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.SubtitlesOff
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -100,16 +101,16 @@ import com.example.data.local.AudioTrackEntity
 import com.example.lyrics.LyricLine
 import com.example.lyrics.LyricsData
 import com.example.lyrics.LyricsSource
-import com.example.ui.theme.MusicProBackground
-import com.example.ui.theme.MusicProCardBackground
+import com.example.ui.theme.MaterialTheme.colorScheme.background
+import com.example.ui.theme.MaterialTheme.colorScheme.surface
 import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProPrimaryGradient
-import com.example.ui.theme.MusicProSurfaceElevated
-import com.example.ui.theme.MusicProSurfaceVariant
-import com.example.ui.theme.MusicProTextMuted
-import com.example.ui.theme.MusicProTextPrimary
-import com.example.ui.theme.MusicProTextSecondary
+import com.example.ui.theme.MaterialTheme.colorScheme.surfaceVariant
+import com.example.ui.theme.MaterialTheme.colorScheme.surfaceVariant
+import com.example.ui.theme.MaterialTheme.colorScheme.onSurfaceVariant
+import com.example.ui.theme.MaterialTheme.colorScheme.onBackground
+import com.example.ui.theme.MaterialTheme.colorScheme.onSurfaceVariant
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPastel
@@ -214,7 +215,7 @@ fun LyricsScreen(
 
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = MusicProBackground
+        color = MaterialTheme.colorScheme.background
     ) {
         Box(
             modifier = Modifier
@@ -248,9 +249,9 @@ fun LyricsScreen(
                     .background(
                         Brush.verticalGradient(
                             listOf(
-                                MusicProBackground.copy(alpha = 0.82f),
-                                MusicProBackground.copy(alpha = 0.94f),
-                                MusicProBackground
+                                MaterialTheme.colorScheme.background.copy(alpha = 0.82f),
+                                MaterialTheme.colorScheme.background.copy(alpha = 0.94f),
+                                MaterialTheme.colorScheme.background
                             )
                         )
                     )
@@ -312,7 +313,7 @@ fun LyricsScreen(
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
                                 text = "Recherche des balises ID3 SYLT & LRC...",
-                                color = MusicProTextSecondary,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 13.sp
                             )
                         }
@@ -365,8 +366,8 @@ fun LyricsScreen(
                                 .background(
                                     Brush.verticalGradient(
                                         listOf(
-                                            MusicProBackground,
-                                            MusicProBackground.copy(alpha = 0.75f),
+                                            MaterialTheme.colorScheme.background,
+                                            MaterialTheme.colorScheme.background.copy(alpha = 0.75f),
                                             Color.Transparent
                                         )
                                     )
@@ -381,8 +382,8 @@ fun LyricsScreen(
                                     Brush.verticalGradient(
                                         listOf(
                                             Color.Transparent,
-                                            MusicProBackground.copy(alpha = 0.75f),
-                                            MusicProBackground
+                                            MaterialTheme.colorScheme.background.copy(alpha = 0.75f),
+                                            MaterialTheme.colorScheme.background
                                         )
                                     )
                                 )
@@ -433,7 +434,7 @@ fun LyricsScreen(
                 Surface(
                     onClick = { registerInteraction() },
                     shape = RoundedCornerShape(20.dp),
-                    color = MusicProSurfaceElevated.copy(alpha = 0.85f),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f),
                     border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.4f)),
                     modifier = Modifier.shadow(8.dp)
                 ) {
@@ -450,7 +451,7 @@ fun LyricsScreen(
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = "Afficher les contrôles",
-                            color = MusicProTextSecondary,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 12.sp
                         )
                     }
@@ -463,7 +464,7 @@ fun LyricsScreen(
     if (showImportDialog) {
         AlertDialog(
             onDismissRequest = { showImportDialog = false },
-            containerColor = MusicProSurfaceElevated,
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
@@ -474,7 +475,7 @@ fun LyricsScreen(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Importer des paroles LRC",
-                        color = MusicProTextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -484,7 +485,7 @@ fun LyricsScreen(
                 Column {
                     Text(
                         text = "Collez votre texte au format LRC standard [mm:ss.xx]paroles :",
-                        color = MusicProTextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 13.sp
                     )
                     Spacer(modifier = Modifier.height(10.dp))
@@ -498,15 +499,15 @@ fun LyricsScreen(
                         placeholder = {
                             Text(
                                 "[00:12.50]Première ligne des paroles\n[00:24.00]Deuxième ligne synchronisée",
-                                color = MusicProTextMuted,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 12.sp
                             )
                         },
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = MusicProCyanNeon,
                             unfocusedBorderColor = MusicProVioletPrimary.copy(alpha = 0.5f),
-                            focusedTextColor = MusicProTextPrimary,
-                            unfocusedTextColor = MusicProTextPrimary
+                            focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onBackground
                         ),
                         shape = RoundedCornerShape(12.dp)
                     )
@@ -529,7 +530,7 @@ fun LyricsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showImportDialog = false }) {
-                    Text("Annuler", color = MusicProTextSecondary)
+                    Text("Annuler", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         )
@@ -539,7 +540,7 @@ fun LyricsScreen(
     if (isGroqTranscribing) {
         AlertDialog(
             onDismissRequest = { /* Empêcher la fermeture accidentelle pendant la transcription */ },
-            containerColor = MusicProBackground,
+            containerColor = MaterialTheme.colorScheme.background,
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
@@ -561,7 +562,7 @@ fun LyricsScreen(
                         text = "Groq Whisper large-v3",
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MusicProTextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
             },
@@ -588,7 +589,7 @@ fun LyricsScreen(
                     Text(
                         text = "Découpage automatique si fichier > 25 Mo",
                         fontSize = 12.sp,
-                        color = MusicProTextMuted,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
                 }
@@ -605,7 +606,7 @@ fun LyricsScreen(
 
         AlertDialog(
             onDismissRequest = onClearGroqError,
-            containerColor = MusicProSurfaceElevated,
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
@@ -619,7 +620,7 @@ fun LyricsScreen(
                         text = "Transcription Whisper",
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MusicProTextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
             },
@@ -627,7 +628,7 @@ fun LyricsScreen(
                 Text(
                     text = groqErrorMessage,
                     fontSize = 13.sp,
-                    color = MusicProTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 18.sp
                 )
             },
@@ -656,7 +657,7 @@ fun LyricsScreen(
             dismissButton = {
                 if (isApiKeyIssue) {
                     TextButton(onClick = onClearGroqError) {
-                        Text("Fermer", color = MusicProTextSecondary)
+                        Text("Fermer", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -689,7 +690,7 @@ private fun LyricsTopBar(
             modifier = Modifier
                 .size(48.dp)
                 .clip(CircleShape)
-                .background(MusicProSurfaceElevated)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .testTag("lyrics_back_button")
         ) {
             Icon(
@@ -711,7 +712,7 @@ private fun LyricsTopBar(
                 text = track?.title ?: "Paroles",
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
-                color = MusicProTextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -724,21 +725,21 @@ private fun LyricsTopBar(
                     Text(
                         text = track.artist,
                         fontSize = 12.sp,
-                        color = MusicProTextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = " • ",
                         fontSize = 12.sp,
-                        color = MusicProTextMuted
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Box(
                     modifier = Modifier
                         .size(6.dp)
                         .clip(CircleShape)
-                        .background(if (lyricsSource != LyricsSource.NONE) MusicProCyanNeon else MusicProTextMuted)
+                        .background(if (lyricsSource != LyricsSource.NONE) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
@@ -778,7 +779,7 @@ private fun LyricsTopBar(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(MusicProSurfaceElevated)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .testTag("lyrics_lrclib_search_button")
             ) {
                 Icon(
@@ -798,13 +799,13 @@ private fun LyricsTopBar(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                        .background(MusicProSurfaceElevated)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .testTag("lyrics_more_options_button")
                 ) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,
                         contentDescription = "Plus d'options",
-                        tint = MusicProTextPrimary,
+                        tint = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.size(19.dp)
                     )
                 }
@@ -812,7 +813,7 @@ private fun LyricsTopBar(
                 DropdownMenu(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false },
-                    modifier = Modifier.background(MusicProSurfaceElevated)
+                    modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     if (hasLyrics && lyricsSource != LyricsSource.ID3_SYLT) {
                         DropdownMenuItem(
@@ -843,7 +844,7 @@ private fun LyricsTopBar(
                         text = {
                             Text(
                                 text = "Coller / Importer un texte LRC",
-                                color = MusicProTextPrimary,
+                                color = MaterialTheme.colorScheme.onBackground,
                                 fontSize = 13.sp
                             )
                         },
@@ -955,7 +956,7 @@ private fun EmptyLyricsView(
             modifier = Modifier
                 .size(90.dp)
                 .clip(CircleShape)
-                .background(MusicProSurfaceElevated)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .border(2.dp, MusicProVioletPrimary.copy(alpha = 0.5f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
@@ -973,7 +974,7 @@ private fun EmptyLyricsView(
             text = "Aucune parole synchronisée",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            color = MusicProTextPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center
         )
 
@@ -982,7 +983,7 @@ private fun EmptyLyricsView(
         Text(
             text = "Générez les paroles avec Whisper IA ou recherchez instantanément sur lrclib.net pour les sauvegarder dans vos fichiers.",
             fontSize = 13.sp,
-            color = MusicProTextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             lineHeight = 18.sp
         )
@@ -1051,7 +1052,7 @@ private fun EmptyLyricsView(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(44.dp)
-                .border(1.dp, MusicProSurfaceElevated, RoundedCornerShape(12.dp))
+                .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
                 .testTag("import_lrc_button"),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             shape = RoundedCornerShape(12.dp)
@@ -1059,13 +1060,13 @@ private fun EmptyLyricsView(
             Icon(
                 imageVector = Icons.Default.ContentPaste,
                 contentDescription = null,
-                tint = MusicProTextSecondary,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(16.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "Coller un texte / fichier .LRC manuel",
-                color = MusicProTextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -1087,7 +1088,7 @@ private fun LyricsBottomControlBar(
     val effectivePos = currentPositionMs.coerceAtLeast(0L)
 
     Surface(
-        color = MusicProSurfaceElevated.copy(alpha = 0.95f),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
         border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.35f)),
         modifier = Modifier
             .fillMaxWidth()
@@ -1113,7 +1114,7 @@ private fun LyricsBottomControlBar(
                 Text(
                     text = formatTimestamp(durationMs),
                     fontSize = 12.sp,
-                    color = MusicProTextMuted,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium
                 )
             }
@@ -1135,7 +1136,7 @@ private fun LyricsBottomControlBar(
                     Icon(
                         imageVector = Icons.Default.SkipPrevious,
                         contentDescription = "Précédent",
-                        tint = MusicProTextPrimary,
+                        tint = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.size(26.dp)
                     )
                 }
@@ -1169,7 +1170,7 @@ private fun LyricsBottomControlBar(
                     Icon(
                         imageVector = Icons.Default.SkipNext,
                         contentDescription = "Suivant",
-                        tint = MusicProTextPrimary,
+                        tint = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.size(26.dp)
                     )
                 }
