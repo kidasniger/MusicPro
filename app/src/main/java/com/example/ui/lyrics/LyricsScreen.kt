@@ -922,7 +922,7 @@ private fun LyricLineItem(
         contentAlignment = Alignment.CenterStart
     ) {
         Text(
-            text = line.text.ifBlank { "♪ ♪ ♪" },
+            text = line.text.ifBlank { "…" },
             fontSize = fontSize.sp,
             fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.SemiBold,
             color = textColor,
