@@ -117,7 +117,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             _isCleaningLibrary.value = true
             try {
                 val validCount = audioRepository.refreshMediaStoreScan()
-                _cacheClearMessage.value = "✓ Bibliothèque nettoyée : $validCount morceau(x) actif(s) sur le téléphone"
+                _cacheClearMessage.value = "Bibliothèque nettoyée : $validCount morceau(x) actif(s) sur le téléphone"
             } catch (e: Exception) {
                 _cacheClearMessage.value = "Erreur nettoyage bibliothèque : ${e.message}"
             } finally {
