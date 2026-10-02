@@ -68,6 +68,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -1079,6 +1081,17 @@ private fun LyricsBottomControlBar(
     onSeekTo: (Long) -> Unit
 ) {
     val effectivePos = currentPositionMs.coerceAtLeast(0L)
+    val safeDuration = durationMs.coerceAtLeast(1L)
+    var isSeeking by remember(track?.id) { mutableStateOf(false) }
+    var seekPositionMs by remember(track?.id) { mutableStateOf(effectivePos.coerceAtMost(safeDuration)) }
+
+    LaunchedEffect(effectivePos, safeDuration, isSeeking) {
+        if (!isSeeking) {
+            seekPositionMs = effectivePos.coerceAtMost(safeDuration)
+        }
+    }
+
+    val visiblePositionMs = if (isSeeking) seekPositionMs else effectivePos.coerceAtMost(safeDuration)
 
     Surface(
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
@@ -1092,28 +1105,70 @@ private fun LyricsBottomControlBar(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 10.dp)
         ) {
-            // Position audio affichée uniquement : le déplacement reste disponible
-            // dans l'écran principal "Lecture en cours".
+            // Progression de lecture tactile : appui ou glissement
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = formatTimestamp(effectivePos),
+                    text = formatTimestamp(visiblePositionMs),
                     fontSize = 12.sp,
                     color = MusicProCyanNeon,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = formatTimestamp(durationMs),
+                    text = formatTimestamp(durationMs.coerceAtLeast(0L)),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium
                 )
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Slider(
+                value = visiblePositionMs.toFloat().coerceIn(0f, safeDuration.toFloat()),
+                onValueChange = { value ->
+                    isSeeking = true
+                    seekPositionMs = value.toLong().coerceIn(0L, safeDuration)
+                },
+                onValueChangeFinished = {
+                    val target = seekPositionMs.coerceIn(0L, safeDuration)
+                    isSeeking = false
+                    onSeekTo(target)
+                },
+                valueRange = 0f..safeDuration.toFloat(),
+                enabled = durationMs > 0L,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 44.dp)
+                    .testTag("lyrics_progress_slider"),
+                colors = SliderDefaults.colors(
+                    thumbColor = MusicProCyanNeon,
+                    activeTrackColor = MusicProCyanNeon,
+                    inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)
+                )
+            )
 
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                TextButton(
+                    onClick = { onSeekTo((visiblePositionMs - 10_000L).coerceAtLeast(0L)) },
+                    modifier = Modifier.heightIn(min = 40.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp)
+                ) {
+                    Text("−10 s", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+                }
+                TextButton(
+                    onClick = { onSeekTo((visiblePositionMs + 10_000L).coerceAtMost(safeDuration)) },
+                    modifier = Modifier.heightIn(min = 40.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp)
+                ) {
+                    Text("+10 s", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
             // Boutons de contrôle média
             Row(
                 modifier = Modifier.fillMaxWidth(),
