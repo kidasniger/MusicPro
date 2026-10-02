@@ -518,7 +518,7 @@ fun GroqApiKeyCard(
                     .fillMaxWidth()
                     .testTag("groq_api_key_input"),
                 label = { Text("Clé d’accès") },
-                placeholder = { Text("gsk_xxxxxxxxxxxxxxxxxxxx") },
+                placeholder = { Text("Entrez votre clé d’accès") },
                 singleLine = true,
                 visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -1092,7 +1092,7 @@ fun AboutCard(currentVersion: String = "1.0") {
                         }
                     }
                     Text(
-                        text = "Lecteur Audio Haute Définition & IA Paroles",
+                        text = "Qualité audio et paroles",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
