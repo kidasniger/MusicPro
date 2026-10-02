@@ -46,6 +46,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Badge
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -80,20 +81,20 @@ import com.example.ui.audio.FolderSummary
 import com.example.ui.audio.LibraryTab
 import com.example.ui.components.EmptyAudioStateView
 import com.example.ui.playlist.PlaylistsScreen
-import com.example.ui.theme.MusicProBackground
-import com.example.ui.theme.MusicProCardBackground
+import com.example.ui.theme.MaterialTheme.colorScheme.background
+import com.example.ui.theme.MaterialTheme.colorScheme.surface
 import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProCyanVibrant
 import com.example.ui.theme.MusicProGreenEmerald
 import com.example.ui.theme.MusicProPrimaryGradient
-import com.example.ui.theme.MusicProSurface
-import com.example.ui.theme.MusicProSurfaceElevated
-import com.example.ui.theme.MusicProSurfaceVariant
-import com.example.ui.theme.MusicProTextMuted
-import com.example.ui.theme.MusicProTextPrimary
-import com.example.ui.theme.MusicProTextSecondary
-import com.example.ui.theme.MusicProTextTertiary
+import com.example.ui.theme.MaterialTheme.colorScheme.surface
+import com.example.ui.theme.MaterialTheme.colorScheme.surfaceVariant
+import com.example.ui.theme.MaterialTheme.colorScheme.surfaceVariant
+import com.example.ui.theme.MaterialTheme.colorScheme.onSurfaceVariant
+import com.example.ui.theme.MaterialTheme.colorScheme.onBackground
+import com.example.ui.theme.MaterialTheme.colorScheme.onSurfaceVariant
+import com.example.ui.theme.MaterialTheme.colorScheme.onSurfaceVariant
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPrimary
@@ -144,7 +145,7 @@ fun LibraryScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(MusicProBackground)
+            .background(MaterialTheme.colorScheme.background)
             .testTag("library_screen")
     ) {
         // En-tête Bibliothèque avec statut et bouton de rafraîchissement
@@ -160,7 +161,7 @@ fun LibraryScreen(
                     text = "Bibliothèque",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MusicProTextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -177,7 +178,7 @@ fun LibraryScreen(
                         text = if (isScanning) "Scan MediaStore en cours..." else "${tracks.size} titres • Cache Room actif",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = MusicProTextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -188,7 +189,7 @@ fun LibraryScreen(
                 enabled = !isScanning,
                 modifier = Modifier
                     .clip(CircleShape)
-                    .background(MusicProSurfaceElevated)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .testTag("library_refresh_button")
             ) {
                 Icon(
@@ -209,7 +210,7 @@ fun LibraryScreen(
                     .fillMaxWidth()
                     .height(3.dp),
                 color = MusicProCyanNeon,
-                trackColor = MusicProSurfaceElevated
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
         }
 
@@ -238,7 +239,7 @@ fun LibraryScreen(
                         .clip(RoundedCornerShape(12.dp))
                         .background(
                             if (isSelected) MusicProPrimaryGradient
-                            else Brush.linearGradient(listOf(MusicProSurfaceElevated, MusicProSurfaceElevated))
+                            else Brush.linearGradient(listOf(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.surfaceVariant))
                         )
                         .border(
                             1.dp,
@@ -259,7 +260,7 @@ fun LibraryScreen(
                         text = "${tab.label} $countLabel",
                         fontSize = 12.sp,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        color = if (isSelected) Color.White else MusicProTextSecondary,
+                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1
                     )
                 }
@@ -458,7 +459,7 @@ fun TrackRowItem(
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .background(
-                if (isCurrent) MusicProSurfaceElevated.copy(alpha = 0.9f)
+                if (isCurrent) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)
                 else Color.Transparent
             )
             .padding(horizontal = 16.dp, vertical = 10.dp)
@@ -481,7 +482,7 @@ fun TrackRowItem(
                 Text(
                     text = "%02d".format(index),
                     fontSize = 12.sp,
-                    color = if (isCurrent) MusicProCyanNeon else MusicProTextMuted,
+                    color = if (isCurrent) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium
                 )
             }
@@ -494,7 +495,7 @@ fun TrackRowItem(
             modifier = Modifier
                 .size(46.dp)
                 .clip(RoundedCornerShape(10.dp))
-                .background(MusicProSurfaceVariant)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .border(
                     1.dp,
                     if (isCurrent) MusicProCyanNeon else Color(0x1FFFFFFF),
@@ -528,7 +529,7 @@ fun TrackRowItem(
                 text = track.title,
                 fontSize = 14.sp,
                 fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.SemiBold,
-                color = if (isCurrent) MusicProCyanNeon else MusicProTextPrimary,
+                color = if (isCurrent) MusicProCyanNeon else MaterialTheme.colorScheme.onBackground,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -539,7 +540,7 @@ fun TrackRowItem(
                 Text(
                     text = track.artist,
                     fontSize = 12.sp,
-                    color = MusicProTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false)
@@ -590,7 +591,7 @@ fun TrackRowItem(
         Text(
             text = track.formatDuration(),
             fontSize = 12.sp,
-            color = MusicProTextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Medium
         )
 
@@ -604,7 +605,7 @@ fun TrackRowItem(
             Icon(
                 imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                 contentDescription = "Favori",
-                tint = if (isFavorite) Color(0xFFFF4081) else MusicProTextMuted,
+                tint = if (isFavorite) Color(0xFFFF4081) else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp)
             )
         }
@@ -639,7 +640,7 @@ private fun AlbumGridItem(
     Column(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(MusicProCardBackground)
+            .background(MaterialTheme.colorScheme.surface)
             .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
             .padding(10.dp)
@@ -681,7 +682,7 @@ private fun AlbumGridItem(
             text = album.name,
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
-            color = MusicProTextPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -691,7 +692,7 @@ private fun AlbumGridItem(
         Text(
             text = album.artist,
             fontSize = 12.sp,
-            color = MusicProTextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -754,13 +755,13 @@ private fun ArtistsList(
                         text = artist.name,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MusicProTextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = "${artist.trackCount} morceaux • ${artist.albumsCount} album(s)",
                         fontSize = 12.sp,
-                        color = MusicProTextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -798,7 +799,7 @@ private fun FoldersList(
                     modifier = Modifier
                         .size(46.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(MusicProSurfaceElevated)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .border(1.dp, Color(0x3300D4FF), RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
@@ -817,13 +818,13 @@ private fun FoldersList(
                         text = folder.name,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MusicProTextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = folder.samplePath,
                         fontSize = 12.sp,
-                        color = MusicProTextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -832,7 +833,7 @@ private fun FoldersList(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
-                        .background(MusicProSurfaceVariant)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Text(
@@ -884,7 +885,7 @@ private fun AlbumDetailView(
                     text = "Albums",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = MusicProTextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -901,7 +902,7 @@ private fun AlbumDetailView(
                     modifier = Modifier
                         .size(80.dp)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(MusicProSurfaceVariant)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .border(1.dp, MusicProVioletPrimary, RoundedCornerShape(14.dp)),
                     contentAlignment = Alignment.Center
                 ) {
@@ -930,7 +931,7 @@ private fun AlbumDetailView(
                         text = album.name,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MusicProTextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -944,7 +945,7 @@ private fun AlbumDetailView(
                     Text(
                         text = "${album.trackCount} titre(s) disponible(s)",
                         fontSize = 12.sp,
-                        color = MusicProTextMuted
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -1031,7 +1032,7 @@ private fun ArtistDetailView(
                     text = "Artistes",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = MusicProTextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -1066,7 +1067,7 @@ private fun ArtistDetailView(
                         text = artist.name,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MusicProTextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
@@ -1155,7 +1156,7 @@ private fun FolderDetailView(
                     text = "Dossiers",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = MusicProTextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -1171,7 +1172,7 @@ private fun FolderDetailView(
                     modifier = Modifier
                         .size(60.dp)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(MusicProSurfaceElevated)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .border(1.5.dp, MusicProCyanNeon, RoundedCornerShape(14.dp)),
                     contentAlignment = Alignment.Center
                 ) {
@@ -1190,13 +1191,13 @@ private fun FolderDetailView(
                         text = folder.name,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MusicProTextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = folder.samplePath,
                         fontSize = 12.sp,
-                        color = MusicProTextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
