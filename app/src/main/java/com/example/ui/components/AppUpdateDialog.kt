@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -46,22 +47,35 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.example.ui.theme.MusicProBackground
-import com.example.ui.theme.MusicProCardBackground
+import com.example.ui.theme.MaterialTheme.colorScheme.background
+import com.example.ui.theme.MaterialTheme.colorScheme.surface
 import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProError
 import com.example.ui.theme.MusicProSuccess
-import com.example.ui.theme.MusicProSurface
-import com.example.ui.theme.MusicProSurfaceElevated
-import com.example.ui.theme.MusicProTextMuted
-import com.example.ui.theme.MusicProTextPrimary
-import com.example.ui.theme.MusicProTextSecondary
+import com.example.ui.theme.MaterialTheme.colorScheme.surface
+import com.example.ui.theme.MaterialTheme.colorScheme.surfaceVariant
+import com.example.ui.theme.MaterialTheme.colorScheme.onSurfaceVariant
+import com.example.ui.theme.MaterialTheme.colorScheme.onBackground
+import com.example.ui.theme.MaterialTheme.colorScheme.onSurfaceVariant
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPrimary
 import com.example.updater.DownloadState
 import com.example.updater.UpdateCheckState
+
+private fun cleanUserReleaseNotes(raw: String): String {
+    return raw
+        .replace(Regex("(?i)GitHub"), "service de mise à jour")
+        .replace(Regex("(?i)Groq"), "service de transcription")
+        .replace(Regex("(?i)Whisper"), "transcription")
+        .replace(Regex("(?i)AndroidX|Media3|ExoPlayer|Jetpack|Compose|Material ?3|Material You|Room|SQLite|EncryptedSharedPreferences|AES-256|Firebase|Retrofit|Moshi|KSP"), "")
+        .replace(Regex("(?i)LRC|SYLT"), "paroles synchronisées")
+        .replace(Regex("(?im)^\s*[-•]*\s*$"), "")
+        .replace(Regex("\n{3,}"), "\n\n")
+        .trim()
+        .ifBlank { "Améliorations et corrections pour une expérience plus fluide." }
+}
 
 @Composable
 fun AppUpdateDialog(
@@ -98,7 +112,7 @@ fun AppUpdateDialog(
                 )
                 .testTag("app_update_dialog"),
             shape = RoundedCornerShape(24.dp),
-            color = MusicProCardBackground
+            color = MaterialTheme.colorScheme.surface
         ) {
             Column(
                 modifier = Modifier
@@ -121,7 +135,7 @@ fun AppUpdateDialog(
                     Icon(
                         imageVector = Icons.Default.SystemUpdate,
                         contentDescription = "Mise à jour disponible",
-                        tint = MusicProBackground,
+                        tint = MaterialTheme.colorScheme.background,
                         modifier = Modifier.size(36.dp)
                     )
                 }
@@ -133,7 +147,7 @@ fun AppUpdateDialog(
                     text = "Mise à jour disponible !",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MusicProTextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Center
                 )
 
@@ -142,7 +156,7 @@ fun AppUpdateDialog(
                 Text(
                     text = "Une nouvelle version de MusicPro est prête pour vous.",
                     fontSize = 13.sp,
-                    color = MusicProTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
 
@@ -152,8 +166,8 @@ fun AppUpdateDialog(
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
-                    color = MusicProSurface,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MusicProSurfaceElevated)
+                    color = MaterialTheme.colorScheme.surface,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     Row(
                         modifier = Modifier
@@ -166,13 +180,13 @@ fun AppUpdateDialog(
                             Text(
                                 text = "Actuelle",
                                 fontSize = 11.sp,
-                                color = MusicProTextMuted
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
                                 text = "v${updateInfo.currentVersion}",
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = MusicProTextSecondary
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
@@ -222,7 +236,7 @@ fun AppUpdateDialog(
                         text = "Ce qui a été réglé et amélioré :",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = MusicProTextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
 
@@ -232,14 +246,14 @@ fun AppUpdateDialog(
                         .fillMaxWidth()
                         .heightIn(max = 140.dp),
                     shape = RoundedCornerShape(12.dp),
-                    color = MusicProBackground.copy(alpha = 0.7f),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MusicProSurfaceElevated)
+                    color = MaterialTheme.colorScheme.background.copy(alpha = 0.7f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     Text(
-                        text = updateInfo.releaseNotes.ifBlank { "• Optimisations des performances audio et stabilité générale\n• Corrections de bugs et améliorations de l'interface" },
+                        text = cleanUserReleaseNotes(updateInfo.releaseNotes).ifBlank { "• Optimisations des performances audio et stabilité générale\n• Corrections de bugs et améliorations de l'interface" },
                         fontSize = 12.sp,
                         lineHeight = 18.sp,
-                        color = MusicProTextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier
                             .padding(12.dp)
                             .verticalScroll(scrollState)
@@ -258,7 +272,7 @@ fun AppUpdateDialog(
                             OutlinedButton(
                                 onClick = onDismiss,
                                 shape = RoundedCornerShape(12.dp),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, MusicProSurfaceElevated),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
                                 modifier = Modifier
                                     .weight(1f)
                                     .height(44.dp)
@@ -266,7 +280,7 @@ fun AppUpdateDialog(
                             ) {
                                 Text(
                                     text = "Plus tard",
-                                    color = MusicProTextSecondary,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 13.sp
                                 )
                             }
@@ -285,13 +299,13 @@ fun AppUpdateDialog(
                                 Icon(
                                     imageVector = Icons.Default.CloudDownload,
                                     contentDescription = null,
-                                    tint = MusicProBackground,
+                                    tint = MaterialTheme.colorScheme.background,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = "Mettre à jour",
-                                    color = MusicProBackground,
+                                    color = MaterialTheme.colorScheme.background,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 13.sp
                                 )
@@ -311,7 +325,7 @@ fun AppUpdateDialog(
                                 Text(
                                     text = "Téléchargement en cours...",
                                     fontSize = 12.sp,
-                                    color = MusicProTextPrimary
+                                    color = MaterialTheme.colorScheme.onBackground
                                 )
                                 Text(
                                     text = "${downloadState.progressPercent}%",
@@ -330,7 +344,7 @@ fun AppUpdateDialog(
                                     .height(8.dp)
                                     .clip(RoundedCornerShape(4.dp)),
                                 color = MusicProCyanNeon,
-                                trackColor = MusicProSurfaceElevated
+                                trackColor = MaterialTheme.colorScheme.surfaceVariant
                             )
 
                             val downloadedMb = (downloadState.downloadedBytes / (1024.0 * 1024.0))
@@ -339,7 +353,7 @@ fun AppUpdateDialog(
                             Text(
                                 text = "%.1f Mo / %.1f Mo".format(downloadedMb, totalMb),
                                 fontSize = 11.sp,
-                                color = MusicProTextMuted
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -378,14 +392,14 @@ fun AppUpdateDialog(
                                 OutlinedButton(
                                     onClick = onDismiss,
                                     shape = RoundedCornerShape(12.dp),
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, MusicProSurfaceElevated),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
                                     modifier = Modifier
                                         .weight(1f)
                                         .height(44.dp)
                                 ) {
                                     Text(
                                         text = "Plus tard",
-                                        color = MusicProTextSecondary,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         fontSize = 13.sp
                                     )
                                 }
@@ -404,13 +418,13 @@ fun AppUpdateDialog(
                                     Icon(
                                         imageVector = Icons.Default.SystemUpdate,
                                         contentDescription = null,
-                                        tint = MusicProBackground,
+                                        tint = MaterialTheme.colorScheme.background,
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         text = "Installer maintenant",
-                                        color = MusicProBackground,
+                                        color = MaterialTheme.colorScheme.background,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 13.sp
                                     )
@@ -452,7 +466,7 @@ fun AppUpdateDialog(
                                     shape = RoundedCornerShape(10.dp),
                                     modifier = Modifier.weight(1f)
                                 ) {
-                                    Text("Fermer", fontSize = 12.sp, color = MusicProTextSecondary)
+                                    Text("Fermer", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 Button(
                                     onClick = { onDownloadAndInstall(updateInfo.downloadUrl) },
