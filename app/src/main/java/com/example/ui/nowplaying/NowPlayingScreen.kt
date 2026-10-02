@@ -364,11 +364,10 @@ fun NowPlayingScreen(
                                     gestureDy += dragAmount.y
                                 },
                                 onDragEnd = {
+                                    val horizontal = kotlin.math.abs(gestureDx) >= kotlin.math.abs(gestureDy)
                                     when {
-                                        gestureDy < -90f -> onOpenQueue()
-                                        gestureDy > 90f -> onBack()
-                                        gestureDx > 90f -> onPrevious()
-                                        gestureDx < -90f -> onNext()
+                                        horizontal && gestureDx < -90f -> onNext()
+                                        horizontal && gestureDx > 90f -> onPrevious()
                                         else -> onPlayPause()
                                     }
                                     gestureDx = 0f
