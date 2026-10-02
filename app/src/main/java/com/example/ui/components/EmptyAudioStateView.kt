@@ -136,7 +136,7 @@ fun EmptyAudioStateView(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Scanner l'appareil (MediaStore)",
+                    text = "Analyser la bibliothèque",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White
