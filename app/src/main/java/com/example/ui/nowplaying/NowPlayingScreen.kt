@@ -17,7 +17,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -31,7 +30,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
@@ -41,6 +39,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeDown
+import androidx.compose.material.icons.automirrored.filled.VolumeMute
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.Equalizer
@@ -68,6 +67,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -116,7 +117,6 @@ import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPrimary
 import kotlinx.coroutines.delay
-import kotlin.math.roundToInt
 import java.util.Locale
 
 /**
@@ -164,6 +164,8 @@ fun NowPlayingScreen(
         mutableFloatStateOf(audioManager?.getStreamVolume(AudioManager.STREAM_MUSIC)?.toFloat() ?: 10f)
     }
 
+    var isUserDraggingSlider by remember { mutableStateOf(false) }
+    var sliderDragPositionMs by remember { mutableFloatStateOf(0f) }
 
     var showOptionsSheet by remember { mutableStateOf(false) }
     var sleepTimerMinutes by remember { mutableStateOf<Int?>(null) }
@@ -191,7 +193,7 @@ fun NowPlayingScreen(
     }
 
     val effectiveDuration = if (durationMs > 0) durationMs else (track?.duration ?: 1L).coerceAtLeast(1L)
-    val displayPositionMs = progressMs.coerceIn(0L, effectiveDuration)
+    val displayPositionMs = if (isUserDraggingSlider) sliderDragPositionMs.toLong() else progressMs
 
     // Animation infinie de rotation pour la platine vinyle lors de la lecture
     val infiniteTransition = rememberInfiniteTransition(label = "vinyl_rotation")
@@ -567,97 +569,272 @@ fun NowPlayingScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 4. Barre de progression tactile, sans curseur musical
+                // 4. Scrubber / Slider personnalisé avec curseur néon circulaire à halo
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        TextButton(
-                            onClick = { onSeekTo((displayPositionMs - 10_000L).coerceAtLeast(0L)) },
-                            modifier = Modifier.size(width = 58.dp, height = 40.dp),
-                            contentPadding = PaddingValues(0.dp)
-                        ) {
-                            Text("−10 s", color = MusicProTextSecondary, fontSize = 11.sp)
-                        }
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(8.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0x28FFFFFF))
-                                .pointerInput(effectiveDuration) {
-                                    detectTapGestures { offset ->
-                                        val fraction = (offset.x / size.width.toFloat()).coerceIn(0f, 1f)
-                                        onSeekTo((effectiveDuration * fraction).toLong())
-                                    }
-                                }
-                        ) {
+                    Slider(
+                        value = displayPositionMs.coerceIn(0L, effectiveDuration).toFloat(),
+                        onValueChange = { newPos ->
+                            isUserDraggingSlider = true
+                            sliderDragPositionMs = newPos
+                        },
+                        onValueChangeFinished = {
+                            isUserDraggingSlider = false
+                            onSeekTo(sliderDragPositionMs.toLong())
+                        },
+                        valueRange = 0f..effectiveDuration.toFloat(),
+                        thumb = {
                             Box(
                                 modifier = Modifier
-                                    .fillMaxWidth(
-                                        (displayPositionMs.toFloat() / effectiveDuration.toFloat()).coerceIn(0f, 1f)
-                                    )
-                                    .fillMaxSize()
-                                    .background(MusicProCyanNeon)
+                                    .size(16.dp)
+                                    .shadow(6.dp, CircleShape, spotColor = MusicProCyanNeon)
+                                    .background(MusicProCyanNeon, CircleShape)
+                                    .border(2.dp, Color.White, CircleShape)
                             )
-                        }
-                        TextButton(
-                            onClick = { onSeekTo((displayPositionMs + 10_000L).coerceAtMost(effectiveDuration)) },
-                            modifier = Modifier.size(width = 58.dp, height = 40.dp),
-                            contentPadding = PaddingValues(0.dp)
-                        ) {
-                            Text("+10 s", color = MusicProTextSecondary, fontSize = 11.sp)
-                        }
-                    }
+                        },
+                        track = { sliderState ->
+                            SliderDefaults.Track(
+                                sliderState = sliderState,
+                                colors = SliderDefaults.colors(
+                                    activeTrackColor = MusicProCyanNeon,
+                                    inactiveTrackColor = Color(0x28FFFFFF)
+                                ),
+                                modifier = Modifier.height(4.dp)
+                            )
+                        },
+                        colors = SliderDefaults.colors(
+                            thumbColor = MusicProCyanNeon,
+                            activeTrackColor = MusicProCyanNeon,
+                            inactiveTrackColor = Color(0x28FFFFFF)
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("now_playing_scrubber_slider")
+                    )
+
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(formatTime(displayPositionMs), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = MusicProCyanLight)
-                        Text(formatTime(effectiveDuration), fontSize = 12.sp, fontWeight = FontWeight.Medium, color = MusicProTextMuted)
+                        Text(
+                            text = formatTime(displayPositionMs),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MusicProCyanLight
+                        )
+                        Text(
+                            text = formatTime(effectiveDuration),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MusicProTextMuted
+                        )
                     }
                 }
 
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // 5. Commandes de lecture principales
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    // Volume : commandes + / −, sans curseur
+                    // Aléatoire (Shuffle)
+                    IconButton(
+                        onClick = onToggleShuffle,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .testTag("now_playing_shuffle_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Shuffle,
+                            contentDescription = "Lecture aléatoire",
+                            tint = if (isShuffleEnabled) MusicProCyanNeon else MusicProTextMuted,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+
+                    // Morceau précédent
+                    IconButton(
+                        onClick = onPrevious,
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(CircleShape)
+                            .background(MusicProSurfaceElevated)
+                            .testTag("now_playing_prev_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.SkipPrevious,
+                            contentDescription = "Morceau précédent",
+                            tint = MusicProTextPrimary,
+                            modifier = Modifier.size(26.dp)
+                        )
+                    }
+
+                    // Bouton géant Play / Pause avec gradient et halo néon
+                    Box(
+                        modifier = Modifier
+                            .size(68.dp)
+                            .shadow(16.dp, CircleShape, spotColor = MusicProVioletGlow)
+                            .clip(CircleShape)
+                            .background(MusicProPrimaryGradient)
+                            .border(1.5.dp, MusicProCyanNeon, CircleShape)
+                            .clickable(onClick = onPlayPause)
+                            .testTag("now_playing_play_pause_button"),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = if (isPlaying) "Pause" else "Lecture",
+                            tint = Color.White,
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
+
+                    // Morceau suivant
+                    IconButton(
+                        onClick = onNext,
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(CircleShape)
+                            .background(MusicProSurfaceElevated)
+                            .testTag("now_playing_next_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.SkipNext,
+                            contentDescription = "Morceau suivant",
+                            tint = MusicProTextPrimary,
+                            modifier = Modifier.size(26.dp)
+                        )
+                    }
+
+                    // Répétition (OFF / ALL / ONE)
+                    IconButton(
+                        onClick = onToggleRepeat,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .testTag("now_playing_repeat_button")
+                    ) {
+                        val isRepeatActive = repeatMode != Player.REPEAT_MODE_OFF
+                        Icon(
+                            imageVector = if (repeatMode == Player.REPEAT_MODE_ONE) Icons.Default.RepeatOne else Icons.Default.Repeat,
+                            contentDescription = "Mode de répétition",
+                            tint = if (isRepeatActive) MusicProCyanNeon else MusicProTextMuted,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // 6. Barre d'outils secondaire compacte : Vitesse, Contrôle du volume & Options
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MusicProSurfaceElevated)
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // Sélecteur rapide de vitesse (tap pour faire défiler)
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color(0x1AFFFFFF))
+                            .border(1.dp, MusicProVioletLight.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                            .heightIn(min = 48.dp)
+                            .clickable {
+                                val speeds = listOf(0.8f, 1.0f, 1.25f, 1.5f)
+                                val nextIndex = (speeds.indexOf(playbackSpeed) + 1).let {
+                                    if (it in speeds.indices) it else 0
+                                }
+                                onSetSpeed(speeds[nextIndex])
+                            }
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Speed,
+                                contentDescription = "Changer la vitesse",
+                                tint = MusicProCyanNeon,
+                                modifier = Modifier.size(13.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "${playbackSpeed}x",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                    }
+
+                    // Curseur de volume compact
                     Row(
-                        modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(
                             onClick = {
-                                val newVol = (currentVolume - 1f).coerceAtLeast(0f)
+                                val newVol = if (currentVolume > 0f) 0f else (maxVolume * 0.5f)
                                 currentVolume = newVol
                                 audioManager?.setStreamVolume(AudioManager.STREAM_MUSIC, newVol.toInt(), 0)
                             },
-                            modifier = Modifier.size(44.dp)
+                            modifier = Modifier.size(48.dp)
                         ) {
-                            Icon(Icons.AutoMirrored.Filled.VolumeDown, "Baisser le volume", tint = MusicProTextSecondary, modifier = Modifier.size(18.dp))
-                        }
-                        Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                ((currentVolume / maxVolume.toFloat()) * 100f).roundToInt().toString() + "%",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MusicProCyanNeon
+                            Icon(
+                                imageVector = if (currentVolume == 0f) Icons.AutoMirrored.Filled.VolumeMute else Icons.AutoMirrored.Filled.VolumeDown,
+                                contentDescription = "Muet / Rétablir volume",
+                                tint = if (currentVolume == 0f) MusicProTextMuted else MusicProTextSecondary,
+                                modifier = Modifier.size(16.dp)
                             )
-                            Text(if (currentVolume == 0f) "Muet" else "Volume", fontSize = 10.sp, color = MusicProTextMuted)
                         }
-                        IconButton(
-                            onClick = {
-                                val newVol = (currentVolume + 1f).coerceAtMost(maxVolume.toFloat())
+
+                        Slider(
+                            value = currentVolume,
+                            onValueChange = { newVol ->
                                 currentVolume = newVol
                                 audioManager?.setStreamVolume(AudioManager.STREAM_MUSIC, newVol.toInt(), 0)
                             },
-                            modifier = Modifier.size(44.dp)
-                        ) {
-                            Icon(Icons.AutoMirrored.Filled.VolumeUp, "Augmenter le volume", tint = MusicProCyanNeon, modifier = Modifier.size(18.dp))
-                        }
+                            valueRange = 0f..maxVolume.toFloat(),
+                            thumb = {
+                                Box(
+                                    modifier = Modifier
+                                        .size(12.dp)
+                                        .background(MusicProVioletLight, CircleShape)
+                                        .border(1.5.dp, Color.White, CircleShape)
+                                )
+                            },
+                            track = { sliderState ->
+                                SliderDefaults.Track(
+                                    sliderState = sliderState,
+                                    colors = SliderDefaults.colors(
+                                        activeTrackColor = MusicProVioletLight,
+                                        inactiveTrackColor = Color(0x1FFFFFFF)
+                                    ),
+                                    modifier = Modifier.height(3.dp)
+                                )
+                            },
+                            colors = SliderDefaults.colors(
+                                thumbColor = MusicProVioletLight,
+                                activeTrackColor = MusicProVioletLight,
+                                inactiveTrackColor = Color(0x1FFFFFFF)
+                            ),
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 2.dp)
+                        )
+
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                            contentDescription = null,
+                            tint = MusicProCyanNeon,
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
 
                     // Bouton Options audio & Minuterie de mise en veille
