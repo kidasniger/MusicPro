@@ -56,15 +56,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.local.PlaylistSummary
-import com.example.ui.theme.MaterialTheme.colorScheme.surface
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProError
 import com.example.ui.theme.MusicProPrimaryGradient
-import com.example.ui.theme.MaterialTheme.colorScheme.surface
-import com.example.ui.theme.MaterialTheme.colorScheme.surfaceVariant
-import com.example.ui.theme.MaterialTheme.colorScheme.onSurfaceVariant
-import com.example.ui.theme.MaterialTheme.colorScheme.onBackground
-import com.example.ui.theme.MaterialTheme.colorScheme.onSurfaceVariant
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPrimary
