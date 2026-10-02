@@ -1223,7 +1223,7 @@ private fun FolderDetailView(
                     onClick = onShuffle,
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp)
-                ) { Text("🔀 Aléatoire", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
+                ) { Text("Aléatoire", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
             }
         }
 
