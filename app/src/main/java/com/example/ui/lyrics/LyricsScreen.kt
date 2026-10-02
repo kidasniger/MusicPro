@@ -69,8 +69,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -1106,7 +1104,7 @@ private fun LyricsBottomControlBar(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 10.dp)
         ) {
-            // Progression de lecture tactile : appui ou glissement
+            // Barre de progression fine et tactile
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -1125,29 +1123,60 @@ private fun LyricsBottomControlBar(
                 )
             }
 
-            Slider(
-                value = visiblePositionMs.toFloat().coerceIn(0f, safeDuration.toFloat()),
-                onValueChange = { value ->
-                    isSeeking = true
-                    seekPositionMs = value.toLong().coerceIn(0L, safeDuration)
-                },
-                onValueChangeFinished = {
-                    val target = seekPositionMs.coerceIn(0L, safeDuration)
-                    isSeeking = false
-                    onSeekTo(target)
-                },
-                valueRange = 0f..safeDuration.toFloat(),
-                enabled = durationMs > 0L,
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 44.dp)
-                    .testTag("lyrics_progress_slider"),
-                colors = SliderDefaults.colors(
-                    thumbColor = MusicProCyanNeon,
-                    activeTrackColor = MusicProCyanNeon,
-                    inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)
+                    .height(36.dp)
+                    .semantics {
+                        val fraction = (visiblePositionMs.toFloat() / safeDuration.toFloat()).coerceIn(0f, 1f)
+                        progressBarRangeInfo = ProgressBarRangeInfo(fraction, 0f..1f)
+                        contentDescription = "Position de lecture"
+                        stateDescription = "${formatTimestamp(visiblePositionMs)} sur ${formatTimestamp(safeDuration)}"
+                    }
+                    .pointerInput(safeDuration) {
+                        detectTapGestures { offset ->
+                            val fraction = (offset.x / size.width.toFloat()).coerceIn(0f, 1f)
+                            onSeekTo((safeDuration * fraction).toLong())
+                        }
+                    }
+                    .pointerInput(safeDuration) {
+                        detectHorizontalDragGestures(
+                            onDragStart = { offset ->
+                                isSeeking = true
+                                seekPositionMs = (safeDuration * (offset.x / size.width.toFloat()).coerceIn(0f, 1f)).toLong()
+                            },
+                            onHorizontalDrag = { change, _ ->
+                                change.consume()
+                                seekPositionMs = (safeDuration * (change.position.x / size.width.toFloat()).coerceIn(0f, 1f)).toLong()
+                            },
+                            onDragEnd = {
+                                val target = seekPositionMs.coerceIn(0L, safeDuration)
+                                isSeeking = false
+                                onSeekTo(target)
+                            },
+                            onDragCancel = {
+                                isSeeking = false
+                            }
+                        )
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.14f))
                 )
-            )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth((visiblePositionMs.toFloat() / safeDuration.toFloat()).coerceIn(0f, 1f))
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(MusicProCyanNeon)
+                        .align(Alignment.CenterStart)
+                )
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -1168,7 +1197,6 @@ private fun LyricsBottomControlBar(
                     Text("+10 s", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                 }
             }
-
             Spacer(modifier = Modifier.height(4.dp))
             // Boutons de contrôle média
             Row(
