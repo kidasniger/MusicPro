@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material3.*
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,11 +51,11 @@ fun FavoritesScreen(
 ) {
     val favoriteTracks = tracks.filter { favorites.contains(it.id) }
     val totalDuration = favoriteTracks.sumOf { it.duration }
-    Column(modifier.fillMaxWidth().background(MusicProBackground).navigationBarsPadding()) {
+    Column(modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background).navigationBarsPadding()) {
         Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Retour", tint = MusicProTextPrimary) }
+            IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Retour", tint = MaterialTheme.colorScheme.onBackground) }
             Column(Modifier.weight(1f)) {
-                Text("❤️ Favoris", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
+                Text("❤️ Favoris", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                 Text(favoriteTracks.size.toString() + " morceau(s) • " + formatDuration(totalDuration), fontSize = 12.sp, color = MusicProCyanNeon)
             }
         }
@@ -69,24 +70,24 @@ fun FavoritesScreen(
         if (favoriteTracks.isEmpty()) {
             Column(Modifier.fillMaxWidth().padding(40.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(Icons.Default.FavoriteBorder, null, tint = MusicProVioletLight, modifier = Modifier.size(56.dp))
-                Text("Aucun favori", color = MusicProTextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 10.dp))
-                Text("Touchez le cœur sur un morceau pour le retrouver ici.", color = MusicProTextSecondary, fontSize = 13.sp, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 8.dp))
+                Text("Aucun favori", color = MaterialTheme.colorScheme.onBackground, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 10.dp))
+                Text("Touchez le cœur sur un morceau pour le retrouver ici.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 8.dp))
             }
         } else {
             LazyColumn(Modifier.fillMaxWidth(), contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp)) {
                 itemsIndexed(favoriteTracks, key = { _, it -> it.id }) { index, track ->
-                    Surface(onClick = { onTrackClick(track) }, color = if (currentTrack?.id == track.id) MusicProSurfaceElevated else Color.Transparent, modifier = Modifier.fillMaxWidth()) {
+                    Surface(onClick = { onTrackClick(track) }, color = if (currentTrack?.id == track.id) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent, modifier = Modifier.fillMaxWidth()) {
                         Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text(if (isPlaying && currentTrack?.id == track.id) "▶" else (index + 1).toString(), color = MusicProCyanNeon, fontSize = 11.sp, modifier = Modifier.width(24.dp))
-                            Surface(Modifier.size(46.dp), shape = RoundedCornerShape(9.dp), color = MusicProSurface) {
+                            Surface(Modifier.size(46.dp), shape = RoundedCornerShape(9.dp), color = MaterialTheme.colorScheme.surface) {
                                 if (!track.albumArtUri.isNullOrBlank()) AsyncImage(track.albumArtUri, null, contentScale = ContentScale.Crop) else Icon(Icons.Default.MusicNote, null, tint = MusicProVioletLight)
                             }
                             Spacer(Modifier.width(10.dp))
                             Column(Modifier.weight(1f)) {
-                                Text(track.title, color = if (currentTrack?.id == track.id) MusicProCyanNeon else MusicProTextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
-                                Text(track.artist + " • " + track.formatDuration(), color = MusicProTextSecondary, fontSize = 11.sp, maxLines = 1)
+                                Text(track.title, color = if (currentTrack?.id == track.id) MusicProCyanNeon else MaterialTheme.colorScheme.onBackground, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                                Text(track.artist + " • " + track.formatDuration(), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, maxLines = 1)
                             }
-                            IconButton(onClick = { onAddToQueue(track) }) { Icon(Icons.AutoMirrored.Filled.QueueMusic, "File", tint = MusicProTextSecondary) }
+                            IconButton(onClick = { onAddToQueue(track) }) { Icon(Icons.AutoMirrored.Filled.QueueMusic, "File", tint = MaterialTheme.colorScheme.onSurfaceVariant) }
                             IconButton(onClick = { onToggleFavorite(track.id) }) { Icon(Icons.Default.Favorite, "Retirer", tint = Color(0xFFFF4081)) }
                         }
                     }
@@ -108,7 +109,7 @@ fun QueueSheet(
     onClear: () -> Unit,
     onClose: () -> Unit
 ) {
-    ModalBottomSheet(onDismissRequest = onClose, containerColor = MusicProCardBackground) {
+    ModalBottomSheet(onDismissRequest = onClose, containerColor = MaterialTheme.colorScheme.surface) {
         Column(
             Modifier
                 .fillMaxWidth()
@@ -122,7 +123,7 @@ fun QueueSheet(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("À suivre", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
+                    Text("À suivre", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                     Text(
                         if (queue.isEmpty()) "Aucun morceau"
                         else "Position " + (safeCurrentIndex + 1) + "/" + queue.size,
@@ -131,7 +132,7 @@ fun QueueSheet(
                     )
                 }
                 TextButton(onClick = onClear, enabled = queue.size > 1) {
-                    Text("Vider", color = MusicProTextSecondary)
+                    Text("Vider", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
@@ -148,14 +149,14 @@ fun QueueSheet(
                     )
                     Text(
                         "Aucune file de lecture",
-                        color = MusicProTextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.padding(top = 10.dp)
                     )
                     Text(
                         "Les morceaux suivants apparaîtront ici.",
-                        color = MusicProTextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
                     )
                 }
@@ -172,7 +173,7 @@ fun QueueSheet(
                             Modifier
                                 .fillMaxWidth()
                                 .background(
-                                    if (isCurrent) MusicProSurfaceElevated else Color.Transparent,
+                                    if (isCurrent) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent,
                                     RoundedCornerShape(10.dp)
                                 )
                                 .padding(6.dp),
@@ -181,7 +182,7 @@ fun QueueSheet(
                             Surface(
                                 Modifier.size(42.dp),
                                 shape = RoundedCornerShape(8.dp),
-                                color = MusicProSurface
+                                color = MaterialTheme.colorScheme.surface
                             ) {
                                 if (!track.albumArtUri.isNullOrBlank()) {
                                     AsyncImage(track.albumArtUri, null, contentScale = ContentScale.Crop)
@@ -195,14 +196,14 @@ fun QueueSheet(
                             Column(Modifier.weight(1f)) {
                                 Text(
                                     text = if (isCurrent && isPlaying) "▶ " + track.title else track.title,
-                                    color = if (isCurrent) MusicProCyanNeon else MusicProTextPrimary,
+                                    color = if (isCurrent) MusicProCyanNeon else MaterialTheme.colorScheme.onBackground,
                                     fontSize = 13.sp,
                                     fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.SemiBold,
                                     maxLines = 1
                                 )
                                 Text(
                                     track.artist,
-                                    color = MusicProTextSecondary,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 11.sp,
                                     maxLines = 1
                                 )
@@ -222,11 +223,11 @@ fun QueueSheet(
                                     Icon(
                                         if (index > safeCurrentIndex) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                                         "Déplacer",
-                                        tint = MusicProTextSecondary
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                                 IconButton(onClick = { onRemove(index) }) {
-                                    Icon(Icons.Default.DeleteOutline, "Retirer", tint = MusicProTextSecondary)
+                                    Icon(Icons.Default.DeleteOutline, "Retirer", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
                         }
@@ -246,17 +247,17 @@ fun EqualizerSheet(
 ) {
     val presets = listOf("Flat", "Bass Boost", "Vocal", "Rock", "Classical", "Hip-Hop")
     val labels = listOf("60 Hz", "230 Hz", "910 Hz", "3.6 kHz", "14 kHz")
-    ModalBottomSheet(onDismissRequest = onClose, containerColor = MusicProCardBackground) {
+    ModalBottomSheet(onDismissRequest = onClose, containerColor = MaterialTheme.colorScheme.surface) {
         Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Equalizer, null, tint = MusicProCyanNeon)
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text("Égaliseur", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MusicProTextPrimary)
+                    Text("Égaliseur", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                     Text(
                         if (enabled) "Effet activé" else "Effet désactivé",
                         fontSize = 12.sp,
-                        color = if (enabled) MusicProCyanNeon else MusicProTextSecondary
+                        color = if (enabled) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 OutlinedButton(onClick = { onEnabledChange(!enabled) }, shape = RoundedCornerShape(12.dp)) {
@@ -271,17 +272,17 @@ fun EqualizerSheet(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(Modifier.weight(1f)) {
-                        Text(label, color = MusicProTextPrimary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        Text(label, color = MaterialTheme.colorScheme.onBackground, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                         Text((level / 100f).roundToInt().toString() + " dB", color = MusicProCyanNeon, fontSize = 11.sp)
                     }
                     IconButton(
                         onClick = { onBandChange(index, (level - 100).coerceIn(-1500, 1500)) },
                         modifier = Modifier.size(44.dp)
-                    ) { Text("−", color = MusicProTextPrimary, fontSize = 22.sp) }
+                    ) { Text("−", color = MaterialTheme.colorScheme.onBackground, fontSize = 22.sp) }
                     IconButton(
                         onClick = { onBandChange(index, (level + 100).coerceIn(-1500, 1500)) },
                         modifier = Modifier.size(44.dp)
-                    ) { Text("+", color = MusicProTextPrimary, fontSize = 20.sp) }
+                    ) { Text("+", color = MaterialTheme.colorScheme.onBackground, fontSize = 20.sp) }
                 }
             }
             OutlinedButton(onClick = onReset, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) { Icon(Icons.Default.Refresh, null); Spacer(Modifier.width(6.dp)); Text("Tout rétablir") }
@@ -301,8 +302,8 @@ fun KaraokeSettingsDialog(
     onReset: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(onDismissRequest = onDismiss, containerColor = MusicProCardBackground, title = { Text("Mode karaoké", fontWeight = FontWeight.Bold, color = MusicProTextPrimary) }, text = { Column {
-        Text("Taille du texte", color = MusicProTextSecondary, fontSize = 12.sp)
+    AlertDialog(onDismissRequest = onDismiss, containerColor = MaterialTheme.colorScheme.surface, title = { Text("Mode karaoké", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) }, text = { Column {
+        Text("Taille du texte", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -333,9 +334,9 @@ fun KaraokeSettingsDialog(
                 Text("+", fontSize = 20.sp)
             }
         }
-        Text("Ligne active", color = MusicProTextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+        Text("Ligne active", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { listOf("cyan" to "Cyan", "violet" to "Violet", "white" to "Blanc").forEach { pair -> FilterChip(selected = activeColor == pair.first, onClick = { onColorChange(pair.first) }, label = { Text(pair.second, fontSize = 10.sp) }) } }
-        Text("Décalage", color = MusicProTextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+        Text("Décalage", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
