@@ -292,6 +292,15 @@ private fun LrclibTopBar(
     }
 }
 
+private fun cleanLyricsSearchError(message: String): String {
+    return message
+        .replace("lrclib.net", "service de paroles", ignoreCase = true)
+        .replace("API REST", "service en ligne", ignoreCase = true)
+        .replace("API", "service en ligne", ignoreCase = true)
+        .replace("LRC", "paroles synchronisées", ignoreCase = true)
+        .trim()
+}
+
 @Composable
 private fun EmptyResultsView(
     title: String,
@@ -334,7 +343,7 @@ private fun EmptyResultsView(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Aucune parole ne correspond à \"$title\" de \"$artist\" sur lrclib.net.",
+            text = "Aucune parole ne correspond à \"$title\" de \"$artist\".",
             fontSize = 13.sp,
             color = MusicProTextSecondary,
             textAlign = TextAlign.Center,
@@ -402,8 +411,8 @@ private fun ErrorResultsView(
         Text(
             text = when {
                 isNetworkOff -> "Pas de connexion Internet"
-                isTimeout -> "Délai d'attente dépassé (Timeout)"
-                else -> "Erreur lrclib.net"
+                isTimeout -> "Délai d'attente dépassé"
+                else -> "Erreur de recherche"
             },
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
@@ -414,7 +423,7 @@ private fun ErrorResultsView(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = errorMessage,
+            text = cleanLyricsSearchError(errorMessage),
             fontSize = 13.sp,
             color = MusicProTextSecondary,
             textAlign = TextAlign.Center,
@@ -466,7 +475,7 @@ private fun IdleSearchPrompt(
         )
         Spacer(modifier = Modifier.height(6.dp))
         Text(
-            text = "Recherchez directement sur lrclib.net par titre et artiste pour trouver des paroles synchronisées.",
+            text = "Recherchez par titre et artiste pour trouver des paroles synchronisées.",
             fontSize = 12.sp,
             color = MusicProTextSecondary,
             textAlign = TextAlign.Center
