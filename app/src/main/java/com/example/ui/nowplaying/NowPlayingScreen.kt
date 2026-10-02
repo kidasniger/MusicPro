@@ -395,13 +395,13 @@ fun NowPlayingScreen(
                         modifier = Modifier
                             .size(vinylSize * 0.88f)
                             .clip(CircleShape)
-                            .border(1.dp, Color(0x1AFFFFFF), CircleShape)
+                            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f), CircleShape)
                     )
                     Box(
                         modifier = Modifier
                             .size(vinylSize * 0.74f)
                             .clip(CircleShape)
-                            .border(1.dp, Color(0x12FFFFFF), CircleShape)
+                            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.08f), CircleShape)
                     )
 
                     // Pochette centrale rotative
@@ -446,7 +446,7 @@ fun NowPlayingScreen(
                                 .size(vinylSize * 0.10f)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.background)
-                                .border(1.5.dp, Color(0x80FFFFFF), CircleShape)
+                                .border(1.5.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.50f), CircleShape)
                         )
                     }
                 }
@@ -521,7 +521,7 @@ fun NowPlayingScreen(
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
                     border = BorderStroke(
                         1.dp,
-                        if (activeLineText != null) MusicProCyanNeon.copy(alpha = 0.6f) else Color(0x22FFFFFF)
+                        if (activeLineText != null) MusicProCyanNeon.copy(alpha = 0.6f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -581,7 +581,7 @@ fun NowPlayingScreen(
                                 .weight(1f)
                                 .height(8.dp)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0x28FFFFFF))
+                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.16f))
                                 .pointerInput(effectiveDuration) {
                                     detectTapGestures { offset ->
                                         val fraction = (offset.x / size.width.toFloat()).coerceIn(0f, 1f)
@@ -656,7 +656,7 @@ fun NowPlayingScreen(
                             .clip(CircleShape)
                             .background(
                                 if (sleepTimerSecondsRemaining != null) MusicProVioletPrimary.copy(alpha = 0.6f)
-                                else Color(0x1AFFFFFF)
+                                else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
                             )
                     ) {
                         Icon(
@@ -790,10 +790,10 @@ private fun NowPlayingOptionsSheetContent(
                 Surface(
                     onClick = { onSetSleepTimer(mins) },
                     shape = RoundedCornerShape(10.dp),
-                    color = if (isSelected) MusicProVioletPrimary else Color(0x1FFFFFFF),
+                    color = if (isSelected) MusicProVioletPrimary else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                     border = BorderStroke(
                         1.dp,
-                        if (isSelected) MusicProCyanNeon else Color(0x22FFFFFF)
+                        if (isSelected) MusicProCyanNeon else MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)
                     ),
                     modifier = Modifier.weight(1f)
                 ) {
@@ -860,10 +860,10 @@ private fun NowPlayingOptionsSheetContent(
                 Surface(
                     onClick = { onSetSpeed(speed) },
                     shape = RoundedCornerShape(8.dp),
-                    color = if (isSelected) MusicProVioletPrimary else Color(0x1FFFFFFF),
+                    color = if (isSelected) MusicProVioletPrimary else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                     border = BorderStroke(
                         1.dp,
-                        if (isSelected) MusicProCyanNeon else Color(0x1AFFFFFF)
+                        if (isSelected) MusicProCyanNeon else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
                     ),
                     modifier = Modifier.weight(1f)
                 ) {
@@ -892,8 +892,8 @@ private fun RowScope.SecondaryActionButton(
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(10.dp),
-        color = Color(0x14FFFFFF),
-        border = BorderStroke(1.dp, Color(0x1AFFFFFF)),
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)),
         modifier = Modifier.weight(1f)
     ) {
         Column(
