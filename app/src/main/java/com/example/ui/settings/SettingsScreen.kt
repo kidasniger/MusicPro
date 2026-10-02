@@ -213,7 +213,7 @@ fun SettingsScreen(
                             statusFeedbackMessage = Pair(false, "Impossible d'enregistrer la clé.")
                         }
                     } else {
-                        statusFeedbackMessage = Pair(false, "Veuillez saisir une clé API valide.")
+                        statusFeedbackMessage = Pair(false, "Veuillez saisir une clé d’accès valide.")
                     }
                 },
                 onDeleteKey = {
@@ -221,13 +221,13 @@ fun SettingsScreen(
                     apiKeyInput = ""
                     isConfigured = false
                     maskedKey = ""
-                    statusFeedbackMessage = Pair(true, "Clé API supprimée.")
+                    statusFeedbackMessage = Pair(true, "Clé d’accès supprimée.")
                 },
                 onTestKey = {
                     keyboardController?.hide()
                     val keyToTest = apiKeyInput.ifBlank { apiKeyStore.getApiKey() }
                     if (keyToTest.isBlank()) {
-                        statusFeedbackMessage = Pair(false, "Veuillez d'abord saisir une clé API.")
+                        statusFeedbackMessage = Pair(false, "Veuillez d’abord saisir une clé d’accès.")
                     } else {
                         isTestingKey = true
                         scope.launch {
