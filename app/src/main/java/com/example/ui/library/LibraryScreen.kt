@@ -177,7 +177,7 @@ fun LibraryScreen(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = if (isScanning) "Scan MediaStore en cours..." else "${tracks.size} titres • Cache Room actif",
+                        text = if (isScanning) "Analyse de la bibliothèque en cours…" else "${tracks.size} titres • Bibliothèque à jour",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -577,7 +577,7 @@ fun TrackRowItem(
                             .padding(horizontal = 4.dp, vertical = 1.dp)
                     ) {
                         Text(
-                            text = "LRC",
+                            text = "Paroles",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = MusicProCyanNeon
