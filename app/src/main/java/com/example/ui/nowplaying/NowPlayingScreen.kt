@@ -575,6 +575,12 @@ fun NowPlayingScreen(
                                 .height(8.dp)
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.16f))
+                                .semantics {
+                                    val fraction = (displayPositionMs.toFloat() / effectiveDuration.toFloat()).coerceIn(0f, 1f)
+                                    progressBarRangeInfo = ProgressBarRangeInfo(fraction, 0f..1f)
+                                    contentDescription = "Position de lecture"
+                                    stateDescription = "${formatTime(displayPositionMs)} sur ${formatTime(effectiveDuration)}"
+                                }
                                 .pointerInput(effectiveDuration) {
                                     detectTapGestures { offset ->
                                         val fraction = (offset.x / size.width.toFloat()).coerceIn(0f, 1f)
