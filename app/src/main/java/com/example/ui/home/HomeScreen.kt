@@ -1296,7 +1296,7 @@ private fun MiniPlayerBar(
 
                 IconButton(
                     onClick = onNext,
-                    modifier = Modifier.size(34.dp)
+                    modifier = Modifier.size(48.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.SkipNext,
