@@ -101,16 +101,9 @@ import com.example.data.local.AudioTrackEntity
 import com.example.lyrics.LyricLine
 import com.example.lyrics.LyricsData
 import com.example.lyrics.LyricsSource
-import com.example.ui.theme.MaterialTheme.colorScheme.background
-import com.example.ui.theme.MaterialTheme.colorScheme.surface
 import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProPrimaryGradient
-import com.example.ui.theme.MaterialTheme.colorScheme.surfaceVariant
-import com.example.ui.theme.MaterialTheme.colorScheme.surfaceVariant
-import com.example.ui.theme.MaterialTheme.colorScheme.onSurfaceVariant
-import com.example.ui.theme.MaterialTheme.colorScheme.onBackground
-import com.example.ui.theme.MaterialTheme.colorScheme.onSurfaceVariant
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPastel
