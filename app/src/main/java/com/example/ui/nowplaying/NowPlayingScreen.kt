@@ -70,6 +70,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -191,6 +193,16 @@ fun NowPlayingScreen(
 
     val effectiveDuration = if (durationMs > 0) durationMs else (track?.duration ?: 1L).coerceAtLeast(1L)
     val displayPositionMs = progressMs.coerceIn(0L, effectiveDuration)
+    var isSeeking by remember(track?.id) { mutableStateOf(false) }
+    var seekPositionMs by remember(track?.id) { mutableStateOf(displayPositionMs) }
+
+    LaunchedEffect(displayPositionMs, isSeeking) {
+        if (!isSeeking) {
+            seekPositionMs = displayPositionMs
+        }
+    }
+
+    val visiblePositionMs = if (isSeeking) seekPositionMs else displayPositionMs
 
     // Animation infinie de rotation pour la platine vinyle lors de la lecture
     val infiniteTransition = rememberInfiniteTransition(label = "vinyl_rotation")
@@ -557,58 +569,75 @@ fun NowPlayingScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 4. Barre de progression tactile, sans curseur musical
+                // 4. Progression de lecture tactile : appui ou glissement
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        TextButton(
-                            onClick = { onSeekTo((displayPositionMs - 10_000L).coerceAtLeast(0L)) },
-                            modifier = Modifier.size(width = 58.dp, height = 40.dp),
-                            contentPadding = PaddingValues(0.dp)
-                        ) { Text("−10 s", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp) }
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(8.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.16f))
-                                .semantics {
-                                    val fraction = (displayPositionMs.toFloat() / effectiveDuration.toFloat()).coerceIn(0f, 1f)
-                                    progressBarRangeInfo = ProgressBarRangeInfo(fraction, 0f..1f)
-                                    contentDescription = "Position de lecture"
-                                    stateDescription = "${formatTime(displayPositionMs)} sur ${formatTime(effectiveDuration)}"
-                                }
-                                .pointerInput(effectiveDuration) {
-                                    detectTapGestures { offset ->
-                                        val fraction = (offset.x / size.width.toFloat()).coerceIn(0f, 1f)
-                                        onSeekTo((effectiveDuration * fraction).toLong())
-                                    }
-                                }
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth(
-                                        (displayPositionMs.toFloat() / effectiveDuration.toFloat()).coerceIn(0f, 1f)
-                                    )
-                                    .fillMaxSize()
-                                    .background(MusicProCyanNeon)
-                            )
-                        }
-                        TextButton(
-                            onClick = { onSeekTo((displayPositionMs + 10_000L).coerceAtMost(effectiveDuration)) },
-                            modifier = Modifier.size(width = 58.dp, height = 40.dp),
-                            contentPadding = PaddingValues(0.dp)
-                        ) { Text("+10 s", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp) }
+                        Text(
+                            formatTime(visiblePositionMs),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MusicProCyanLight
+                        )
+                        Text(
+                            formatTime(effectiveDuration),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
+
+                    Slider(
+                        value = visiblePositionMs.toFloat().coerceIn(0f, effectiveDuration.toFloat()),
+                        onValueChange = { value ->
+                            isSeeking = true
+                            seekPositionMs = value.toLong().coerceIn(0L, effectiveDuration)
+                        },
+                        onValueChangeFinished = {
+                            val target = seekPositionMs.coerceIn(0L, effectiveDuration)
+                            isSeeking = false
+                            onSeekTo(target)
+                        },
+                        valueRange = 0f..effectiveDuration.toFloat(),
+                        enabled = effectiveDuration > 0L,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 44.dp)
+                            .testTag("now_playing_progress_slider"),
+                        colors = SliderDefaults.colors(
+                            thumbColor = MusicProCyanNeon,
+                            activeTrackColor = MusicProCyanNeon,
+                            inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)
+                        )
+                    )
+
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(formatTime(displayPositionMs), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = MusicProCyanLight)
-                        Text(formatTime(effectiveDuration), fontSize = 12.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        TextButton(
+                            onClick = {
+                                onSeekTo((visiblePositionMs - 10_000L).coerceAtLeast(0L))
+                            },
+                            modifier = Modifier.heightIn(min = 40.dp),
+                            contentPadding = PaddingValues(horizontal = 8.dp)
+                        ) {
+                            Text("−10 s", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+                        }
+                        TextButton(
+                            onClick = {
+                                onSeekTo((visiblePositionMs + 10_000L).coerceAtMost(effectiveDuration))
+                            },
+                            modifier = Modifier.heightIn(min = 40.dp),
+                            contentPadding = PaddingValues(horizontal = 8.dp)
+                        ) {
+                            Text("+10 s", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+                        }
                     }
                 }
 
