@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -68,6 +69,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -573,7 +576,7 @@ fun LyricsScreen(
                     )
                     Spacer(modifier = Modifier.height(18.dp))
                     Text(
-                        text = groqProgressMessage.ifBlank { "Transcription audio en cours..." },
+                        text = cleanLyricsUserMessage(groqProgressMessage.ifBlank { "Création des paroles en cours..." }),
                         fontSize = 13.sp,
                         color = MusicProCyanLight,
                         textAlign = TextAlign.Center
@@ -619,7 +622,7 @@ fun LyricsScreen(
             },
             text = {
                 Text(
-                    text = groqErrorMessage,
+                    text = cleanLyricsUserMessage(groqErrorMessage),
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 18.sp
@@ -777,7 +780,7 @@ private fun LyricsTopBar(
             ) {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Rechercher sur lrclib.net",
+                    contentDescription = "Rechercher des paroles en ligne",
                     tint = MusicProCyanNeon,
                     modifier = Modifier.size(19.dp)
                 )
@@ -879,8 +882,8 @@ private fun LyricLineItem(
                 "white" -> Color.White
                 else -> MusicProCyanNeon
             }
-            isPast -> Color.White.copy(alpha = 0.48f)
-            else -> Color.White.copy(alpha = 0.24f)
+            isPast -> Color.White.copy(alpha = 0.72f)
+            else -> Color.White.copy(alpha = 0.52f)
         },
         animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
         label = "lyric_color"
@@ -1030,7 +1033,7 @@ private fun EmptyLyricsView(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Rechercher sur lrclib.net (En ligne)",
+                text = "Rechercher des paroles en ligne",
                 color = Color.White,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
@@ -1079,6 +1082,17 @@ private fun LyricsBottomControlBar(
     onSeekTo: (Long) -> Unit
 ) {
     val effectivePos = currentPositionMs.coerceAtLeast(0L)
+    val safeDuration = durationMs.coerceAtLeast(1L)
+    var isSeeking by remember(track?.id) { mutableStateOf(false) }
+    var seekPositionMs by remember(track?.id) { mutableStateOf(effectivePos.coerceAtMost(safeDuration)) }
+
+    LaunchedEffect(effectivePos, safeDuration, isSeeking) {
+        if (!isSeeking) {
+            seekPositionMs = effectivePos.coerceAtMost(safeDuration)
+        }
+    }
+
+    val visiblePositionMs = if (isSeeking) seekPositionMs else effectivePos.coerceAtMost(safeDuration)
 
     Surface(
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
@@ -1092,28 +1106,70 @@ private fun LyricsBottomControlBar(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 10.dp)
         ) {
-            // Position audio affichée uniquement : le déplacement reste disponible
-            // dans l'écran principal "Lecture en cours".
+            // Progression de lecture tactile : appui ou glissement
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = formatTimestamp(effectivePos),
+                    text = formatTimestamp(visiblePositionMs),
                     fontSize = 12.sp,
                     color = MusicProCyanNeon,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = formatTimestamp(durationMs),
+                    text = formatTimestamp(durationMs.coerceAtLeast(0L)),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium
                 )
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Slider(
+                value = visiblePositionMs.toFloat().coerceIn(0f, safeDuration.toFloat()),
+                onValueChange = { value ->
+                    isSeeking = true
+                    seekPositionMs = value.toLong().coerceIn(0L, safeDuration)
+                },
+                onValueChangeFinished = {
+                    val target = seekPositionMs.coerceIn(0L, safeDuration)
+                    isSeeking = false
+                    onSeekTo(target)
+                },
+                valueRange = 0f..safeDuration.toFloat(),
+                enabled = durationMs > 0L,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 44.dp)
+                    .testTag("lyrics_progress_slider"),
+                colors = SliderDefaults.colors(
+                    thumbColor = MusicProCyanNeon,
+                    activeTrackColor = MusicProCyanNeon,
+                    inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)
+                )
+            )
 
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                TextButton(
+                    onClick = { onSeekTo((visiblePositionMs - 10_000L).coerceAtLeast(0L)) },
+                    modifier = Modifier.heightIn(min = 40.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp)
+                ) {
+                    Text("−10 s", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+                }
+                TextButton(
+                    onClick = { onSeekTo((visiblePositionMs + 10_000L).coerceAtMost(safeDuration)) },
+                    modifier = Modifier.heightIn(min = 40.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp)
+                ) {
+                    Text("+10 s", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
             // Boutons de contrôle média
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -1170,6 +1226,21 @@ private fun LyricsBottomControlBar(
             }
         }
     }
+}
+
+private fun cleanLyricsUserMessage(message: String): String {
+    return message
+        .replace("Groq", "", ignoreCase = true)
+        .replace("Whisper large-v3", "service de transcription", ignoreCase = true)
+        .replace("Whisper", "transcription", ignoreCase = true)
+        .replace("lrclib.net", "service de paroles", ignoreCase = true)
+        .replace("API REST", "service en ligne", ignoreCase = true)
+        .replace("API", "service en ligne", ignoreCase = true)
+        .replace("ID3", "fichier audio", ignoreCase = true)
+        .replace("SYLT", "", ignoreCase = true)
+        .replace("LRC", "paroles synchronisées", ignoreCase = true)
+        .replace(Regex("""\s{2,}"""), " ")
+        .trim()
 }
 
 private fun formatTimestamp(ms: Long): String {

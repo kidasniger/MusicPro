@@ -331,6 +331,7 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
         // automatiquement que si la bibliothèque locale est réellement vide.
         // Aucun nettoyage destructif n'est lancé à chaque ouverture de l'application.
         viewModelScope.launch {
+            repository.pruneUnavailableTracks()
             val count = repository.getTrackCount()
             if (count > 0) {
                 _statusMessage.value = "$count morceaux chargés depuis la bibliothèque locale"
@@ -361,16 +362,16 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     fun refreshScan() {
         viewModelScope.launch {
             _isScanning.value = true
-            _statusMessage.value = "Scan MediaStore en cours..."
+            _statusMessage.value = "Actualisation de la bibliothèque..."
             try {
                 val count = repository.refreshMediaStoreScan()
                 if (count > 0) {
-                    _statusMessage.value = "$count morceau(x) trouvé(s) et synchronisé(s)"
+                    _statusMessage.value = "$count morceau(x) synchronisé(s)"
                 } else {
                     _statusMessage.value = "Aucun nouveau fichier audio détecté"
                 }
             } catch (e: Exception) {
-                _statusMessage.value = "Scan terminé avec avertissement : ${e.message}"
+                _statusMessage.value = "Actualisation terminée avec avertissement : ${e.message}"
             } finally {
                 _isScanning.value = false
             }

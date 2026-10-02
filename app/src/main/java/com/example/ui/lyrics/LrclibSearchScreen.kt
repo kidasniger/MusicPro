@@ -203,7 +203,7 @@ fun LrclibSearchScreen(
                     is LrclibSearchUiState.AiLoading -> {
                         LoadingResultsView(
                             message = if (searchState is LrclibSearchUiState.AiLoading) {
-                                "Recherche Web par l'IA, puis recherche LRCLIB..."
+                                "Recherche améliorée en cours..."
                             } else {
                                 "Recherche des paroles..."
                             }
@@ -275,7 +275,7 @@ private fun LrclibTopBar(
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = "Recherche lrclib.net",
+                text = "Recherche de paroles",
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
                 color = MusicProTextPrimary
@@ -289,20 +289,6 @@ private fun LrclibTopBar(
             )
         }
 
-        // Badge indicatif source API
-        Surface(
-            shape = RoundedCornerShape(8.dp),
-            color = MusicProVioletPrimary.copy(alpha = 0.25f),
-            border = BorderStroke(1.dp, MusicProCyanNeon.copy(alpha = 0.4f))
-        ) {
-            Text(
-                text = "API REST",
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold,
-                color = MusicProCyanNeon,
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-            )
-        }
     }
 }
 
@@ -505,7 +491,7 @@ private fun SearchFormCard(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = if (isAiLoading) "L'IA recherche sur Internet..." else "Aide IA + recherche Internet",
+                    text = if (isAiLoading) "Recherche améliorée..." else "Améliorer la recherche",
                     color = MusicProCyanNeon,
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp
@@ -514,7 +500,7 @@ private fun SearchFormCard(
 
             aiQuerySuggestion?.let { (suggestedTitle, suggestedArtist) ->
                 Text(
-                    text = "Requête IA : $suggestedTitle — $suggestedArtist",
+                    text = "Proposition : $suggestedTitle — $suggestedArtist",
                     fontSize = 11.sp,
                     color = MusicProTextSecondary,
                     maxLines = 2,
@@ -550,7 +536,7 @@ private fun SearchFormCard(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Rechercher sur lrclib.net", color = Color.Black, fontWeight = FontWeight.Bold)
+                    Text("Rechercher les paroles", color = Color.Black, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -708,7 +694,7 @@ private fun LrclibResultCard(
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                         ) {
                             Text(
-                                text = "⚡ Synchronisé (LRC)",
+                                text = "⚡ Paroles synchronisées",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MusicProCyanNeon
@@ -812,9 +798,9 @@ private fun LrclibResultCard(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = if (isMp3 && result.hasSyncedLyrics) {
-                        "Appliquer & Écrire Tag ID3 SYLT"
+                        "Appliquer les paroles synchronisées"
                     } else {
-                        "Appliquer & Sauvegarder .lrc"
+                        "Appliquer les paroles"
                     },
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -918,11 +904,20 @@ private fun LoadingResultsView(message: String = "Recherche des paroles...") {
         )
         Spacer(modifier = Modifier.height(6.dp))
         Text(
-            text = "Interrogation du catalogue lrclib.net",
+            text = "Recherche des paroles en ligne",
             fontSize = 12.sp,
             color = MusicProTextSecondary
         )
     }
+}
+
+private fun cleanLyricsSearchError(message: String): String {
+    return message
+        .replace("lrclib.net", "service de paroles", ignoreCase = true)
+        .replace("API REST", "service en ligne", ignoreCase = true)
+        .replace("API", "service en ligne", ignoreCase = true)
+        .replace("LRC", "paroles synchronisées", ignoreCase = true)
+        .trim()
 }
 
 @Composable
@@ -967,7 +962,7 @@ private fun EmptyResultsView(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Aucune parole ne correspond à \"$title\" de \"$artist\" sur lrclib.net.",
+            text = "Aucune parole ne correspond à \"$title\" de \"$artist\".",
             fontSize = 13.sp,
             color = MusicProTextSecondary,
             textAlign = TextAlign.Center,
@@ -1035,8 +1030,8 @@ private fun ErrorResultsView(
         Text(
             text = when {
                 isNetworkOff -> "Pas de connexion Internet"
-                isTimeout -> "Délai d'attente dépassé (Timeout)"
-                else -> "Erreur lrclib.net"
+                isTimeout -> "Délai d'attente dépassé"
+                else -> "Erreur de recherche"
             },
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
@@ -1047,7 +1042,7 @@ private fun ErrorResultsView(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = errorMessage,
+            text = cleanLyricsSearchError(errorMessage),
             fontSize = 13.sp,
             color = MusicProTextSecondary,
             textAlign = TextAlign.Center,
@@ -1099,7 +1094,7 @@ private fun IdleSearchPrompt(
         )
         Spacer(modifier = Modifier.height(6.dp))
         Text(
-            text = "Recherchez directement sur lrclib.net par titre et artiste pour trouver des paroles synchronisées.",
+            text = "Recherchez par titre et artiste pour trouver des paroles synchronisées.",
             fontSize = 12.sp,
             color = MusicProTextSecondary,
             textAlign = TextAlign.Center

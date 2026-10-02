@@ -145,7 +145,7 @@ class PlaybackLogicAndEdgeCasesTest {
         // Doit signaler une erreur claire indiquant la clé API manquante
         val errorMsg = viewModel.groqErrorMessage.value
         assertNotNull(errorMsg)
-        assertTrue(errorMsg!!.contains("Clé API Groq manquante"))
+        assertTrue(errorMsg!!.contains("Clé d’accès manquante"))
         assertFalse(viewModel.isGroqTranscribing.value)
 
         viewModel.clearGroqError()

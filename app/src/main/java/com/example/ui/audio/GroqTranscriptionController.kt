@@ -49,7 +49,7 @@ class GroqTranscriptionController(
     fun startGroqTranscription(track: AudioTrackEntity) {
         val apiKey = groqApiKeyStore.getApiKey()
         if (apiKey.isBlank()) {
-            _groqErrorMessage.value = "Clé API Groq manquante. Rendez-vous dans les Paramètres pour renseigner votre clé."
+            _groqErrorMessage.value = "Clé d’accès manquante. Rendez-vous dans les Paramètres pour la renseigner."
             return
         }
 
@@ -69,7 +69,7 @@ class GroqTranscriptionController(
             _isGroqTranscribing.value = true
             _groqErrorMessage.value = null
             _groqTranscriptionResult.value = null
-            _groqProgressMessage.value = "Démarrage de la transcription Whisper..."
+            _groqProgressMessage.value = "Préparation des paroles..."
 
             val result = GroqTranscriptionManager.transcribeAudioFile(
                 context = context,
@@ -90,7 +90,7 @@ class GroqTranscriptionController(
                     _groqTranscriptionResult.value = transcriptionResult
                 },
                 onFailure = { error ->
-                    _groqErrorMessage.value = error.message ?: "Échec de la transcription Whisper."
+                    _groqErrorMessage.value = "La création des paroles a échoué. Réessayez."
                 }
             )
         }
@@ -118,20 +118,20 @@ class GroqTranscriptionController(
 
             when (saveResult) {
                 is LyricsSaveResult.TagWriteSuccess -> {
-                    onSaveFeedbackMessage("✓ Paroles IA intégrées dans le fichier audio (${saveResult.tagType})")
+                    onSaveFeedbackMessage("✓ Paroles intégrées dans le fichier audio")
                     audioRepository.updateLyricsStatus(track.id, true)
                 }
                 is LyricsSaveResult.LrcFileSuccess -> {
                     val fName = File(saveResult.lrcPath).name
-                    onSaveFeedbackMessage("✓ Paroles IA enregistrées dans $fName")
+                    onSaveFeedbackMessage("✓ Paroles enregistrées dans le fichier associé")
                     audioRepository.updateLyricsStatus(track.id, true)
                 }
                 is LyricsSaveResult.AppCacheSuccess -> {
-                    onSaveFeedbackMessage("✓ Paroles IA sauvegardées dans le cache de l'application")
+                    onSaveFeedbackMessage("✓ Paroles sauvegardées dans l’application")
                     audioRepository.updateLyricsStatus(track.id, true)
                 }
                 is LyricsSaveResult.Error -> {
-                    onSaveFeedbackMessage("Paroles IA appliquées (${saveResult.message})")
+                    onSaveFeedbackMessage("Paroles appliquées : ${cleanSaveMessage(saveResult.message)}")
                 }
             }
             if (isCurrentPlaying) {
@@ -149,5 +149,16 @@ class GroqTranscriptionController(
         _groqErrorMessage.value = null
     }
 
+    private fun cleanSaveMessage(message: String): String {
+        return message
+            .replace("Groq", "", ignoreCase = true)
+            .replace("Whisper", "transcription", ignoreCase = true)
+            .replace("ID3", "fichier audio", ignoreCase = true)
+            .replace("SYLT", "", ignoreCase = true)
+            .replace("LRC", "paroles synchronisées", ignoreCase = true)
+            .replace("API", "service en ligne", ignoreCase = true)
+            .replace("lrclib.net", "service de paroles", ignoreCase = true)
+            .trim()
+    }
 
 }

@@ -6,21 +6,21 @@ sealed class GroqException(message: String, cause: Throwable? = null) : Exceptio
      * Clé API Groq manquante, expirée ou invalide (HTTP 401).
      */
     class InvalidApiKeyException(
-        message: String = "Clé API Groq invalide ou absente. Veuillez la renseigner dans les Paramètres."
+        message: String = "Clé d’accès invalide ou absente. Veuillez la renseigner dans les Paramètres."
     ) : GroqException(message)
 
     /**
      * Quota de requêtes ou limite de débit dépassé sur Groq (HTTP 429 Too Many Requests).
      */
     class RateLimitExceededException(
-        message: String = "Quota dépassé sur l'API Groq (Rate limit). Veuillez patienter quelques instants avant de réessayer."
+        message: String = "Limite temporaire atteinte. Veuillez patienter quelques instants avant de réessayer."
     ) : GroqException(message)
 
     /**
      * Fichier audio dépassant la limite de taille directe (25 Mo) ou non découpable (HTTP 413).
      */
     class FileTooLargeException(
-        message: String = "Le fichier audio dépasse la limite autorisée par l'API Groq (25 Mo)."
+        message: String = "Le fichier audio dépasse la taille autorisée (25 Mo)."
     ) : GroqException(message)
 
     /**
@@ -34,7 +34,7 @@ sealed class GroqException(message: String, cause: Throwable? = null) : Exceptio
      * Erreur de connexion ou coupure réseau.
      */
     class NetworkException(
-        message: String = "Erreur de connexion réseau : impossible de joindre les serveurs de Groq.",
+        message: String = "Erreur de connexion réseau : impossible de joindre le service en ligne.",
         cause: Throwable? = null
     ) : GroqException(message, cause)
 
@@ -43,7 +43,7 @@ sealed class GroqException(message: String, cause: Throwable? = null) : Exceptio
      */
     class ServerException(
         val code: Int,
-        message: String = "Erreur serveur Groq ($code)."
+        message: String = "Erreur du service en ligne ($code)."
     ) : GroqException(message)
 
     /**

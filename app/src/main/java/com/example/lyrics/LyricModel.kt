@@ -45,10 +45,10 @@ data class LyricsData(
 }
 
 enum class LyricsSource(val label: String) {
-    ID3_SYLT("Tag ID3 SYLT (Synchronisé)"),
-    ID3_USLT("Tag ID3 USLT / Métadonnées"),
-    LRC_FILE("Fichier .LRC"),
-    LRCLIB_NET("En ligne (lrclib.net)"),
-    GROQ_WHISPER("Transcription IA (Whisper)"),
+    ID3_SYLT("Paroles synchronisées"),
+    ID3_USLT("Paroles intégrées"),
+    LRC_FILE("Fichier de paroles"),
+    LRCLIB_NET("Paroles en ligne"),
+    GROQ_WHISPER("Paroles générées"),
     NONE("Aucune parole")
 }

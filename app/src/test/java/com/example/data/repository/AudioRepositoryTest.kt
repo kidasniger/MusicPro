@@ -47,7 +47,7 @@ class AudioRepositoryTest {
             .allowMainThreadQueries()
             .build()
         scanner = FakeAudioScanner()
-        audioRepository = AudioRepository(database.audioTrackDao(), scanner)
+        audioRepository = AudioRepository(database.audioTrackDao(), scanner, context)
         playlistRepository = PlaylistRepository(database.playlistDao(), database.audioTrackDao())
     }
 
