@@ -421,7 +421,7 @@ fun SearchScreen(
                                             .background(MaterialTheme.colorScheme.surfaceVariant),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text("♫", fontSize = 20.sp, color = MusicProCyanNeon)
+                                        Icon(Icons.Default.MusicNote, contentDescription = null, tint = MusicProCyanNeon, modifier = Modifier.size(20.dp))
                                     }
                                     Spacer(modifier = Modifier.width(10.dp))
                                     Column(modifier = Modifier.weight(1f)) {
