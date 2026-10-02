@@ -52,8 +52,8 @@ object GroqTranscriptionManager {
                     val errorBody = response.errorBody()?.string().orEmpty()
                     Log.w(TAG, "Test clé API échoué code $code: $errorBody")
                     when (code) {
-                        401 -> Result.failure(GroqException.InvalidApiKeyException("Clé API Groq invalide ou non autorisée."))
-                        429 -> Result.failure(GroqException.RateLimitExceededException("Quota Groq temporairement atteint (Rate limit)."))
+                        401 -> Result.failure(GroqException.InvalidApiKeyException("Clé d’accès invalide ou non autorisée."))
+                        429 -> Result.failure(GroqException.RateLimitExceededException("Limite temporaire atteinte. Réessayez dans quelques instants."))
                         else -> Result.failure(GroqException.ServerException(code, errorBody.ifBlank { "Échec d'authentification" }))
                     }
                 }
@@ -61,7 +61,7 @@ object GroqTranscriptionManager {
                 tempWav.delete()
             }
         } catch (e: UnknownHostException) {
-            Result.failure(GroqException.NetworkException("Impossible de contacter l'API Groq. Vérifiez votre connexion Internet.", e))
+            Result.failure(GroqException.NetworkException("Impossible de contacter le service en ligne. Vérifiez votre connexion Internet.", e))
         } catch (e: SocketTimeoutException) {
             Result.failure(GroqException.NetworkException("Délai d'attente dépassé lors du test de la clé.", e))
         } catch (e: Exception) {
@@ -90,12 +90,12 @@ object GroqTranscriptionManager {
             return@withContext Result.failure(GroqException.GeneralException("Le fichier audio sélectionné est introuvable ou vide."))
         }
 
-        onProgress("Préparation et vérification de la taille audio...")
+        onProgress("Préparation de l’audio...")
 
         // Découpage automatique si le fichier dépasse la limite Groq (25 Mo)
         val chunks = AudioChunker.prepareChunks(context, audioFile, durationMs)
         if (chunks.isEmpty()) {
-            return@withContext Result.failure(GroqException.FileTooLargeException("Impossible de préparer l'audio pour Groq."))
+            return@withContext Result.failure(GroqException.FileTooLargeException("Impossible de préparer l’audio pour la création des paroles."))
         }
 
         val allSegments = mutableListOf<GroqSegment>()
@@ -105,7 +105,7 @@ object GroqTranscriptionManager {
         try {
             for ((index, chunk) in chunks.withIndex()) {
                 val chunkLabel = if (chunks.size > 1) " (morceau ${index + 1}/${chunks.size})" else ""
-                onProgress("Transcription Whisper large-v3 en cours$chunkLabel...")
+                onProgress("Création des paroles en cours$chunkLabel...")
 
                 val chunkResult = transcribeSingleChunk(chunk.file, apiKey)
                 if (chunkResult.isFailure) {
@@ -126,7 +126,7 @@ object GroqTranscriptionManager {
                 }
             }
 
-            onProgress("Génération et formatage des horodatages LRC...")
+            onProgress("Finalisation des paroles synchronisées...")
 
             // Trier par timestamp croissant
             val sortedSegments = allSegments.sortedBy { it.start }
@@ -179,7 +179,7 @@ object GroqTranscriptionManager {
                 if (data != null) {
                     Result.success(data)
                 } else {
-                    Result.failure(GroqException.GeneralException("Réponse vide reçue des serveurs Groq."))
+                    Result.failure(GroqException.GeneralException("Aucune réponse reçue du service en ligne."))
                 }
             } else {
                 val code = response.code()
@@ -187,7 +187,7 @@ object GroqTranscriptionManager {
                 Log.e(TAG, "Erreur transcription Groq ($code): $errorStr")
                 when (code) {
                     401 -> Result.failure(GroqException.InvalidApiKeyException())
-                    413 -> Result.failure(GroqException.FileTooLargeException("Fichier trop volumineux (> 25 Mo) pour l'API Groq."))
+                    413 -> Result.failure(GroqException.FileTooLargeException("Le fichier audio dépasse la taille autorisée."))
                     429 -> Result.failure(GroqException.RateLimitExceededException())
                     400 -> {
                         if (errorStr.contains("too long", ignoreCase = true) || errorStr.contains("maximum duration", ignoreCase = true)) {
@@ -196,14 +196,14 @@ object GroqTranscriptionManager {
                             Result.failure(GroqException.GeneralException("Requête invalide ($errorStr)"))
                         }
                     }
-                    in 500..599 -> Result.failure(GroqException.ServerException(code, "Le service Groq Whisper rencontre une anomalie momentanée."))
-                    else -> Result.failure(GroqException.GeneralException("Erreur Groq HTTP $code : $errorStr"))
+                    in 500..599 -> Result.failure(GroqException.ServerException(code, "Le service de transcription rencontre une anomalie momentanée."))
+                    else -> Result.failure(GroqException.GeneralException("Erreur du service en ligne ($code)."))
                 }
             }
         } catch (e: UnknownHostException) {
             Result.failure(GroqException.NetworkException("Connexion Internet indisponible.", e))
         } catch (e: ConnectException) {
-            Result.failure(GroqException.NetworkException("Impossible de se connecter aux serveurs Groq.", e))
+            Result.failure(GroqException.NetworkException("Impossible de se connecter au service en ligne.", e))
         } catch (e: SocketTimeoutException) {
             Result.failure(GroqException.NetworkException("Délai d'attente dépassé pendant la transcription.", e))
         } catch (e: Exception) {
