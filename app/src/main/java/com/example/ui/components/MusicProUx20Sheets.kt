@@ -264,11 +264,70 @@ fun KaraokeSettingsDialog(
     onOffsetChange: (Long) -> Unit, onDismiss: () -> Unit
 ) {
     AlertDialog(onDismissRequest = onDismiss, containerColor = MusicProCardBackground, title = { Text("Mode karaoké", fontWeight = FontWeight.Bold, color = MusicProTextPrimary) }, text = { Column {
-        Text("Taille du texte", color = MusicProTextSecondary, fontSize = 12.sp); Slider(value = fontSize, onValueChange = onFontSizeChange, valueRange = 12f..32f)
-        Text(fontSize.roundToInt().toString() + " sp", color = MusicProCyanNeon, fontSize = 11.sp)
+        Text("Taille du texte", color = MusicProTextSecondary, fontSize = 12.sp)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            OutlinedButton(
+                onClick = { onFontSizeChange((fontSize - 1f).coerceIn(12f, 32f)) },
+                enabled = fontSize > 12f,
+                modifier = Modifier.size(48.dp),
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Text("−", fontSize = 22.sp)
+            }
+            Text(
+                fontSize.roundToInt().toString() + " sp",
+                color = MusicProCyanNeon,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.Center
+            )
+            OutlinedButton(
+                onClick = { onFontSizeChange((fontSize + 1f).coerceIn(12f, 32f)) },
+                enabled = fontSize < 32f,
+                modifier = Modifier.size(48.dp),
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Text("+", fontSize = 20.sp)
+            }
+        }
         Text("Ligne active", color = MusicProTextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { listOf("cyan" to "Cyan", "violet" to "Violet", "white" to "Blanc").forEach { pair -> FilterChip(selected = activeColor == pair.first, onClick = { onColorChange(pair.first) }, label = { Text(pair.second, fontSize = 10.sp) }) } }
-        Text("Décalage", color = MusicProTextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp)); Slider(value = offsetMs.toFloat(), onValueChange = { onOffsetChange(it.roundToInt().toLong()) }, valueRange = -5000f..5000f); Text(offsetMs.toString() + " ms", color = MusicProCyanNeon, fontSize = 11.sp)
+        Text("Décalage", color = MusicProTextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            OutlinedButton(
+                onClick = { onOffsetChange((offsetMs - 50L).coerceIn(-5000L, 5000L)) },
+                enabled = offsetMs > -5000L,
+                modifier = Modifier.size(48.dp),
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Text("−", fontSize = 22.sp)
+            }
+            Text(
+                offsetMs.toString() + " ms",
+                color = MusicProCyanNeon,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.Center
+            )
+            OutlinedButton(
+                onClick = { onOffsetChange((offsetMs + 50L).coerceIn(-5000L, 5000L)) },
+                enabled = offsetMs < 5000L,
+                modifier = Modifier.size(48.dp),
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Text("+", fontSize = 20.sp)
+            }
+        }
     } }, confirmButton = { TextButton(onClick = onDismiss) { Text("Fermer", color = MusicProCyanNeon) } })
 }
 
