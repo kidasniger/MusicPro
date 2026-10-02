@@ -90,7 +90,7 @@ class GroqTranscriptionController(
                     _groqTranscriptionResult.value = transcriptionResult
                 },
                 onFailure = { error ->
-                    _groqErrorMessage.value = error.message ?: "Échec de la transcription Whisper."
+                    _groqErrorMessage.value = "La création des paroles a échoué. Réessayez."
                 }
             )
         }
