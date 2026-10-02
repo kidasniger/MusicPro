@@ -881,8 +881,8 @@ private fun LyricLineItem(
                 "white" -> Color.White
                 else -> MusicProCyanNeon
             }
-            isPast -> Color.White.copy(alpha = 0.48f)
-            else -> Color.White.copy(alpha = 0.24f)
+            isPast -> Color.White.copy(alpha = 0.72f)
+            else -> Color.White.copy(alpha = 0.52f)
         },
         animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
         label = "lyric_color"
