@@ -727,6 +727,7 @@ fun HomeScreen(
             onFontSizeChange = { audioViewModel.setKaraokeFontSize(it) },
             onColorChange = { audioViewModel.setKaraokeActiveColor(it) },
             onOffsetChange = { audioViewModel.setKaraokeOffsetMs(it) },
+            onReset = { audioViewModel.resetKaraokeSettings() },
             onDismiss = { isKaraokeSettingsOpen = false }
         )
     }
