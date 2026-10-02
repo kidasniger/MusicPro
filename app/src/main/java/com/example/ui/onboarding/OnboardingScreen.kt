@@ -109,8 +109,8 @@ fun OnboardingScreen(
         ),
         OnboardingPageData(
             title = "Paroles synchronisées",
-            description = "Karaoké précis en direct, défilement avec surbrillance néon et ajustement du décalage. Import de fichiers .LRC ou génération intégrée.",
-            badgeText = "FICHIERS .LRC & KARAOKÉ",
+            description = "Karaoké précis en direct, défilement avec surbrillance néon et ajustement du décalage. Importez vos paroles ou créez-les directement dans l’application.",
+            badgeText = "PAROLES & KARAOKÉ",
             icon = Icons.Default.Subtitles,
             accentColor = MusicProCyanNeon,
             glowColor = Color(0x6600D4FF)
