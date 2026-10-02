@@ -547,7 +547,7 @@ fun NowPlayingScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = activeLineText?.ifBlank { "♪ ♪ ♪" } ?: "Voir les paroles synchronisées",
+                                text = activeLineText?.ifBlank { "…" } ?: "Voir les paroles synchronisées",
                                 fontSize = 12.sp,
                                 fontWeight = if (activeLineText != null) FontWeight.SemiBold else FontWeight.Normal,
                                 color = if (activeLineText != null) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
