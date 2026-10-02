@@ -1267,6 +1267,7 @@ private fun cleanLyricsUserMessage(message: String): String {
         .replace("ID3", "fichier audio", ignoreCase = true)
         .replace("SYLT", "", ignoreCase = true)
         .replace("LRC", "paroles synchronisées", ignoreCase = true)
+        .replace(Regex("""[\x{1F1E6}-\x{1F1FF}\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}]"""), "")
         .replace(Regex("""\s{2,}"""), " ")
         .trim()
 }
