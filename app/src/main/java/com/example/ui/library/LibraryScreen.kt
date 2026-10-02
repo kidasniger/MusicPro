@@ -187,7 +187,7 @@ fun LibraryScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Refresh,
-                    contentDescription = "Rafraîchir le scan MediaStore",
+                    contentDescription = "Actualiser la bibliothèque",
                     tint = MusicProCyanNeon,
                     modifier = Modifier
                         .size(22.dp)
