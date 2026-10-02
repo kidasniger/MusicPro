@@ -70,8 +70,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -569,14 +567,13 @@ fun NowPlayingScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // 4. Progression de lecture tactile : appui ou glissement
+                // 4. Barre de progression fine et tactile
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
                             formatTime(visiblePositionMs),
@@ -592,29 +589,62 @@ fun NowPlayingScreen(
                         )
                     }
 
-                    Slider(
-                        value = visiblePositionMs.toFloat().coerceIn(0f, effectiveDuration.toFloat()),
-                        onValueChange = { value ->
-                            isSeeking = true
-                            seekPositionMs = value.toLong().coerceIn(0L, effectiveDuration)
-                        },
-                        onValueChangeFinished = {
-                            val target = seekPositionMs.coerceIn(0L, effectiveDuration)
-                            isSeeking = false
-                            onSeekTo(target)
-                        },
-                        valueRange = 0f..effectiveDuration.toFloat(),
-                        enabled = effectiveDuration > 0L,
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(min = 44.dp)
-                            .testTag("now_playing_progress_slider"),
-                        colors = SliderDefaults.colors(
-                            thumbColor = MusicProCyanNeon,
-                            activeTrackColor = MusicProCyanNeon,
-                            inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)
+                            .height(36.dp)
+                            .semantics {
+                                val fraction = (visiblePositionMs.toFloat() / effectiveDuration.toFloat()).coerceIn(0f, 1f)
+                                progressBarRangeInfo = ProgressBarRangeInfo(fraction, 0f..1f)
+                                contentDescription = "Position de lecture"
+                                stateDescription = "${formatTime(visiblePositionMs)} sur ${formatTime(effectiveDuration)}"
+                            }
+                            .pointerInput(effectiveDuration) {
+                                detectTapGestures { offset ->
+                                    val fraction = (offset.x / size.width.toFloat()).coerceIn(0f, 1f)
+                                    onSeekTo((effectiveDuration * fraction).toLong())
+                                }
+                            }
+                            .pointerInput(effectiveDuration) {
+                                detectHorizontalDragGestures(
+                                    onDragStart = { offset ->
+                                        isSeeking = true
+                                        seekPositionMs = (effectiveDuration * (offset.x / size.width.toFloat()).coerceIn(0f, 1f)).toLong()
+                                    },
+                                    onHorizontalDrag = { change, _ ->
+                                        change.consume()
+                                        seekPositionMs = (effectiveDuration * (change.position.x / size.width.toFloat()).coerceIn(0f, 1f)).toLong()
+                                    },
+                                    onDragEnd = {
+                                        val target = seekPositionMs.coerceIn(0L, effectiveDuration)
+                                        isSeeking = false
+                                        onSeekTo(target)
+                                    },
+                                    onDragCancel = {
+                                        isSeeking = false
+                                    }
+                                )
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(5.dp)
+                                .clip(RoundedCornerShape(999.dp))
+                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.14f))
                         )
-                    )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(
+                                    (visiblePositionMs.toFloat() / effectiveDuration.toFloat()).coerceIn(0f, 1f)
+                                )
+                                .height(5.dp)
+                                .clip(RoundedCornerShape(999.dp))
+                                .background(MusicProCyanNeon)
+                                .align(Alignment.CenterStart)
+                        )
+                    }
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
