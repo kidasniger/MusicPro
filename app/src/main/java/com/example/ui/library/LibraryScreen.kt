@@ -30,6 +30,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -68,6 +69,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -243,7 +245,7 @@ fun LibraryScreen(
                         )
                         .border(
                             1.dp,
-                            if (isSelected) MusicProVioletGlow else Color(0x1AFFFFFF),
+                            if (isSelected) MusicProVioletGlow else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                             RoundedCornerShape(12.dp)
                         )
                         .clickable {
@@ -498,7 +500,7 @@ fun TrackRowItem(
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .border(
                     1.dp,
-                    if (isCurrent) MusicProCyanNeon else Color(0x1FFFFFFF),
+                    if (isCurrent) MusicProCyanNeon else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                     RoundedCornerShape(10.dp)
                 ),
             contentAlignment = Alignment.Center
