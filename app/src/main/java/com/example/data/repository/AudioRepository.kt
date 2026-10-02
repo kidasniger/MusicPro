@@ -1,6 +1,7 @@
 package com.example.data.repository
 
 import android.content.Context
+import android.net.Uri
 import com.example.data.local.AudioTrackDao
 import com.example.data.local.AudioTrackEntity
 import com.example.data.local.MusicProDatabase
@@ -9,10 +10,12 @@ import com.example.data.scanner.MediaStoreAudioScanner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import java.io.File
 
 class AudioRepository(
     private val audioTrackDao: AudioTrackDao,
-    private val scanner: AudioScanner
+    private val scanner: AudioScanner,
+    private val context: Context
 ) {
 
     val allTracks: Flow<List<AudioTrackEntity>> = audioTrackDao.getAllTracks()
@@ -51,6 +54,47 @@ class AudioRepository(
 
     suspend fun getAllTracksSnapshot(): List<AudioTrackEntity> = withContext(Dispatchers.IO) {
         audioTrackDao.getAllTracksSnapshot()
+    }
+
+    suspend fun pruneUnavailableTracks(): Int = withContext(Dispatchers.IO) {
+        val tracks = audioTrackDao.getAllTracksSnapshot()
+        val unavailableIds = tracks
+            .filterNot { isTrackAccessible(it) }
+            .map { it.id }
+
+        if (unavailableIds.isNotEmpty()) {
+            audioTrackDao.deleteTracksByIds(unavailableIds)
+        }
+        unavailableIds.size
+    }
+
+    private fun isTrackAccessible(track: AudioTrackEntity): Boolean {
+        val path = track.path.trim()
+
+        if (path.startsWith("http://", ignoreCase = true) ||
+            path.startsWith("https://", ignoreCase = true)
+        ) {
+            return true
+        }
+
+        if (path.isNotBlank()) {
+            val file = File(path)
+            if (file.isFile && file.canRead()) return true
+        }
+
+        val uriText = track.contentUri.trim()
+        if (uriText.isNotBlank()) {
+            return try {
+                context.contentResolver
+                    .openAssetFileDescriptor(Uri.parse(uriText), "r")
+                    ?.use { true }
+                    ?: false
+            } catch (_: Exception) {
+                false
+            }
+        }
+
+        return false
     }
 
     /**
@@ -117,7 +161,7 @@ class AudioRepository(
             return INSTANCE ?: synchronized(this) {
                 val db = MusicProDatabase.getInstance(context)
                 val scanner = MediaStoreAudioScanner(context)
-                val instance = AudioRepository(db.audioTrackDao(), scanner)
+                val instance = AudioRepository(db.audioTrackDao(), scanner, context)
                 INSTANCE = instance
                 instance
             }
