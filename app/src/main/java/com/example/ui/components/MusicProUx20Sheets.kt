@@ -259,9 +259,14 @@ fun EqualizerSheet(
 
 @Composable
 fun KaraokeSettingsDialog(
-    fontSize: Float, activeColor: String, offsetMs: Long,
-    onFontSizeChange: (Float) -> Unit, onColorChange: (String) -> Unit,
-    onOffsetChange: (Long) -> Unit, onDismiss: () -> Unit
+    fontSize: Float,
+    activeColor: String,
+    offsetMs: Long,
+    onFontSizeChange: (Float) -> Unit,
+    onColorChange: (String) -> Unit,
+    onOffsetChange: (Long) -> Unit,
+    onReset: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     AlertDialog(onDismissRequest = onDismiss, containerColor = MusicProCardBackground, title = { Text("Mode karaoké", fontWeight = FontWeight.Bold, color = MusicProTextPrimary) }, text = { Column {
         Text("Taille du texte", color = MusicProTextSecondary, fontSize = 12.sp)
@@ -327,6 +332,16 @@ fun KaraokeSettingsDialog(
             ) {
                 Text("+", fontSize = 20.sp)
             }
+        }
+
+        OutlinedButton(
+            onClick = onReset,
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Icon(Icons.Default.Refresh, null)
+            Spacer(Modifier.width(6.dp))
+            Text("Tout rétablir")
         }
     } }, confirmButton = { TextButton(onClick = onDismiss) { Text("Fermer", color = MusicProCyanNeon) } })
 }
