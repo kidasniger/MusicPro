@@ -918,6 +918,7 @@ private fun cleanLyricsSearchError(message: String): String {
         .replace("API REST", "service en ligne", ignoreCase = true)
         .replace("API", "service en ligne", ignoreCase = true)
         .replace("LRC", "paroles synchronisées", ignoreCase = true)
+        .replace(Regex("""[\x{1F1E6}-\x{1F1FF}\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}]"""), "")
         .trim()
 }
 
