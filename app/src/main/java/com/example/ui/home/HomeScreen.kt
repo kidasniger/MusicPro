@@ -47,6 +47,7 @@ import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MusicNote
@@ -932,7 +933,7 @@ private fun HomeExplorerContent(
                     modifier = Modifier.weight(1f)
                 ) {
                     Row(Modifier.padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text("♥", fontSize = 20.sp, color = Color(0xFFFF4081))
+                        Icon(Icons.Default.Favorite, contentDescription = "Favoris", tint = Color(0xFFFF4081), modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(8.dp))
                         Column {
                             Text("Favoris", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
@@ -1006,7 +1007,7 @@ private fun HomeExplorerContent(
                     LazyRow(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(playlists.take(6), key = { it.id }) { playlist ->
                             Surface(onClick = onNavigateToLibrary, shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceVariant, border = BorderStroke(1.dp, MusicProCyanNeon.copy(alpha = 0.20f))) {
-                                Text("♫ ${playlist.name}", modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp), fontSize = 12.sp, color = MaterialTheme.colorScheme.onBackground, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.MusicNote, contentDescription = null, tint = MusicProCyanNeon, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text(playlist.name, fontSize = 12.sp, color = MaterialTheme.colorScheme.onBackground, maxLines = 1, overflow = TextOverflow.Ellipsis) }
                             }
                         }
                     }
