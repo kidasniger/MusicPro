@@ -71,7 +71,7 @@ jobs:
         id: release_notes
         shell: bash
         run: |
-          # Le corps du commit courant est utilisé comme résumé utilisateur.
+          # Le corps du commit courant est utilisé comme résumé utilisateur. Les commits de release doivent donc rester orientés changements utilisateur.
           # Il doit contenir uniquement les changements visibles ou utiles dans l'application.
           NOTES=$(git log -1 --pretty=format:'%b' | sed '/^[[:space:]]*$/d')
           if [ -z "$NOTES" ]; then
