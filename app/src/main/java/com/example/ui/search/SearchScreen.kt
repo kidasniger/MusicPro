@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -46,6 +47,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -216,7 +218,7 @@ fun SearchScreen(
                             if (isSelected) MusicProVioletGlow else Color(0x1FFFFFFF),
                             RoundedCornerShape(10.dp)
                         )
-                        .clickable { onFilterChange(f) }
+                        .selectable(selected = isSelected, role = Role.Tab, onClick = { onFilterChange(f) })
                         .heightIn(min = 48.dp)
                         .padding(horizontal = 14.dp, vertical = 7.dp)
                         .testTag("search_filter_${f.name.lowercase()}"),
@@ -250,12 +252,16 @@ fun SearchScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Recherches récentes", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onBackground)
                         }
-                        Text(
-                            "Effacer",
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.clickable(onClick = onClearSearchHistory)
-                        )
+                        TextButton(
+                            onClick = onClearSearchHistory,
+                            modifier = Modifier.heightIn(min = 48.dp)
+                        ) {
+                            Text(
+                                text = "Effacer",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.height(10.dp))
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
