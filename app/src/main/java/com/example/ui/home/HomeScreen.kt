@@ -1213,7 +1213,7 @@ private fun MiniPlayerBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(2.5.dp)
-                    .background(Color(0x33FFFFFF))
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f))
             ) {
                 Box(
                     modifier = Modifier
@@ -1235,7 +1235,7 @@ private fun MiniPlayerBar(
                         .size(42.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(8.dp)),
+                        .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.16f), RoundedCornerShape(8.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     if (!track.albumArtUri.isNullOrBlank()) {
