@@ -187,7 +187,7 @@ fun SearchScreen(
                     focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                     focusedBorderColor = MusicProCyanNeon,
-                    unfocusedBorderColor = Color(0x26FFFFFF),
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.32f),
                     focusedTextColor = MaterialTheme.colorScheme.onBackground,
                     unfocusedTextColor = MaterialTheme.colorScheme.onBackground
                 ),
@@ -215,7 +215,7 @@ fun SearchScreen(
                         )
                         .border(
                             1.dp,
-                            if (isSelected) MusicProVioletGlow else Color(0x1FFFFFFF),
+                            if (isSelected) MusicProVioletGlow else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                             RoundedCornerShape(10.dp)
                         )
                         .selectable(selected = isSelected, role = Role.Tab, onClick = { onFilterChange(f) })
@@ -310,7 +310,7 @@ fun SearchScreen(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(20.dp))
                                 .background(MaterialTheme.colorScheme.surfaceVariant)
-                                .border(1.dp, Color(0x228A2BE2), RoundedCornerShape(20.dp))
+                                .border(1.dp, MusicProVioletPrimary.copy(alpha = 0.14f), RoundedCornerShape(20.dp))
                                 .clickable { onQueryChange(suggestion) }
                                 .heightIn(min = 48.dp)
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
@@ -334,7 +334,7 @@ fun SearchScreen(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
                         .background(MaterialTheme.colorScheme.surface)
-                        .border(1.dp, Color(0x1AFFFFFF), RoundedCornerShape(16.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f), RoundedCornerShape(16.dp))
                         .padding(18.dp)
                 ) {
                     Column {
@@ -467,7 +467,7 @@ fun SearchScreen(
                             .size(72.dp)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .border(1.dp, Color(0x26FFFFFF), CircleShape),
+                            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.16f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
