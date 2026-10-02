@@ -248,12 +248,16 @@ fun LibraryScreen(
                             if (isSelected) MusicProVioletGlow else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                             RoundedCornerShape(12.dp)
                         )
-                        .clickable {
-                            selectedAlbum = null
-                            selectedArtist = null
-                            selectedFolder = null
-                            onSelectTab(tab)
-                        }
+                        .selectable(
+                            selected = isSelected,
+                            role = Role.Tab,
+                            onClick = {
+                                selectedAlbum = null
+                                selectedArtist = null
+                                selectedFolder = null
+                                onSelectTab(tab)
+                            }
+                        )
                         .padding(horizontal = 14.dp)
                         .testTag("library_tab_${tab.name.lowercase()}"),
                     contentAlignment = Alignment.Center
