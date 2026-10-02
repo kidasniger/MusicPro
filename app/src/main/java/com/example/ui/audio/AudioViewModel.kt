@@ -451,6 +451,14 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch { preferencesRepository.setKaraokeOffsetMs(value) }
     }
 
+    fun resetKaraokeSettings() {
+        viewModelScope.launch {
+            preferencesRepository.setKaraokeFontSize(18f)
+            preferencesRepository.setKaraokeActiveColor("cyan")
+            preferencesRepository.setKaraokeOffsetMs(0L)
+        }
+    }
+
     fun playTrack(track: AudioTrackEntity, playlist: List<AudioTrackEntity> = tracks.value) {
         val activePlaylist = if (playlist.isNotEmpty()) playlist else listOf(track)
         playbackManager.playTrack(track, activePlaylist)
