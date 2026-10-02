@@ -620,6 +620,10 @@ fun NowPlayingScreen(
                     }
                 }
 
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     // Volume : commandes + / −, sans curseur
                     Row(
                         modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
