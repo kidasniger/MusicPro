@@ -66,15 +66,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -1087,13 +1084,7 @@ private fun LyricsBottomControlBar(
     onPrevious: () -> Unit,
     onSeekTo: (Long) -> Unit
 ) {
-    var isDraggingSlider by remember { mutableStateOf(false) }
-    var sliderValueMs by remember { mutableFloatStateOf(0f) }
-
-    val effectivePos = if (isDraggingSlider) sliderValueMs.toLong() else currentPositionMs
-    val progressFraction = if (durationMs > 0) {
-        (effectivePos.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f)
-    } else 0f
+    val effectivePos = currentPositionMs.coerceAtLeast(0L)
 
     Surface(
         color = MusicProSurfaceElevated.copy(alpha = 0.95f),
@@ -1107,30 +1098,8 @@ private fun LyricsBottomControlBar(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 10.dp)
         ) {
-            // Slider de progression
-            Slider(
-                value = effectivePos.toFloat().coerceIn(0f, durationMs.toFloat().coerceAtLeast(1f)),
-                onValueChange = {
-                    isDraggingSlider = true
-                    sliderValueMs = it
-                },
-                onValueChangeFinished = {
-                    isDraggingSlider = false
-                    onSeekTo(sliderValueMs.toLong())
-                },
-                valueRange = 0f..durationMs.toFloat().coerceAtLeast(1f),
-                colors = SliderDefaults.colors(
-                    thumbColor = MusicProCyanNeon,
-                    activeTrackColor = MusicProCyanNeon,
-                    inactiveTrackColor = Color(0x33FFFFFF)
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(24.dp)
-                    .testTag("lyrics_scrubber")
-            )
-
-            // Durées écoulée et restante
+            // Position audio affichée uniquement : le déplacement reste disponible
+            // dans l'écran principal "Lecture en cours".
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
