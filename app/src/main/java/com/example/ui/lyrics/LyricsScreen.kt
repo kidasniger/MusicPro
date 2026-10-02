@@ -575,7 +575,7 @@ fun LyricsScreen(
                     )
                     Spacer(modifier = Modifier.height(18.dp))
                     Text(
-                        text = groqProgressMessage.ifBlank { "Transcription audio en cours..." },
+                        text = cleanLyricsUserMessage(groqProgressMessage.ifBlank { "Création des paroles en cours..." }),
                         fontSize = 13.sp,
                         color = MusicProCyanLight,
                         textAlign = TextAlign.Center
@@ -621,7 +621,7 @@ fun LyricsScreen(
             },
             text = {
                 Text(
-                    text = groqErrorMessage,
+                    text = cleanLyricsUserMessage(groqErrorMessage),
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 18.sp
@@ -779,7 +779,7 @@ private fun LyricsTopBar(
             ) {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Rechercher sur lrclib.net",
+                    contentDescription = "Rechercher des paroles en ligne",
                     tint = MusicProCyanNeon,
                     modifier = Modifier.size(19.dp)
                 )
@@ -1032,7 +1032,7 @@ private fun EmptyLyricsView(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Rechercher sur lrclib.net (En ligne)",
+                text = "Rechercher des paroles en ligne",
                 color = Color.White,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
@@ -1225,6 +1225,21 @@ private fun LyricsBottomControlBar(
             }
         }
     }
+}
+
+private fun cleanLyricsUserMessage(message: String): String {
+    return message
+        .replace("Groq", "", ignoreCase = true)
+        .replace("Whisper large-v3", "service de transcription", ignoreCase = true)
+        .replace("Whisper", "transcription", ignoreCase = true)
+        .replace("lrclib.net", "service de paroles", ignoreCase = true)
+        .replace("API REST", "service en ligne", ignoreCase = true)
+        .replace("API", "service en ligne", ignoreCase = true)
+        .replace("ID3", "fichier audio", ignoreCase = true)
+        .replace("SYLT", "", ignoreCase = true)
+        .replace("LRC", "paroles synchronisées", ignoreCase = true)
+        .replace(Regex("""\s{2,}"""), " ")
+        .trim()
 }
 
 private fun formatTimestamp(ms: Long): String {
