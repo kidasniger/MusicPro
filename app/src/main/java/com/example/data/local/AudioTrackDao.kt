@@ -55,6 +55,9 @@ interface AudioTrackDao {
     @Query("DELETE FROM audio_tracks WHERE id NOT IN (:ids)")
     suspend fun deleteTracksNotIn(ids: List<Long>)
 
+    @Query("DELETE FROM audio_tracks WHERE id IN (:ids)")
+    suspend fun deleteTracksByIds(ids: List<Long>)
+
     @Query("SELECT * FROM audio_tracks")
     suspend fun getAllTracksSnapshot(): List<AudioTrackEntity>
 
