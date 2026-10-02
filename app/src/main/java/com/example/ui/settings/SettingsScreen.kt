@@ -98,16 +98,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.data.preferences.AppThemeMode
 import com.example.data.security.GroqApiKeyStore
 import com.example.groq.GroqTranscriptionManager
-import com.example.ui.theme.MusicProBackground
-import com.example.ui.theme.MusicProCardBackground
 import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProError
 import com.example.ui.theme.MusicProSuccess
-import com.example.ui.theme.MusicProSurfaceElevated
-import com.example.ui.theme.MusicProTextMuted
-import com.example.ui.theme.MusicProTextPrimary
-import com.example.ui.theme.MusicProTextSecondary
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPrimary
@@ -219,7 +213,7 @@ fun SettingsScreen(
                             statusFeedbackMessage = Pair(false, "Impossible d'enregistrer la clé.")
                         }
                     } else {
-                        statusFeedbackMessage = Pair(false, "Veuillez saisir une clé API valide.")
+                        statusFeedbackMessage = Pair(false, "Veuillez saisir une clé d’accès valide.")
                     }
                 },
                 onDeleteKey = {
@@ -227,13 +221,13 @@ fun SettingsScreen(
                     apiKeyInput = ""
                     isConfigured = false
                     maskedKey = ""
-                    statusFeedbackMessage = Pair(true, "Clé API supprimée.")
+                    statusFeedbackMessage = Pair(true, "Clé d’accès supprimée.")
                 },
                 onTestKey = {
                     keyboardController?.hide()
                     val keyToTest = apiKeyInput.ifBlank { apiKeyStore.getApiKey() }
                     if (keyToTest.isBlank()) {
-                        statusFeedbackMessage = Pair(false, "Veuillez d'abord saisir une clé API.")
+                        statusFeedbackMessage = Pair(false, "Veuillez d’abord saisir une clé d’accès.")
                     } else {
                         isTestingKey = true
                         scope.launch {
@@ -314,14 +308,14 @@ fun SettingsScreen(
                 Text(
                     text = "Vider le cache ?",
                     fontWeight = FontWeight.Bold,
-                    color = MusicProTextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             },
             text = {
                 Text(
                     text = "Cette action supprimera les pochettes d'album temporaires et les segments audio transcrits en cache. Vos morceaux et playlists ne seront pas modifiés.",
                     fontSize = 13.sp,
-                    color = MusicProTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 18.sp
                 )
             },
@@ -340,10 +334,10 @@ fun SettingsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showClearCacheDialog = false }) {
-                    Text("Annuler", color = MusicProTextSecondary)
+                    Text("Annuler", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
-            containerColor = MusicProCardBackground,
+            containerColor = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(16.dp)
         )
     }

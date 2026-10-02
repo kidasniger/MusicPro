@@ -40,6 +40,7 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -64,18 +65,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.R
-import com.example.ui.theme.MusicProBackground
 import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProCyanVibrant
 import com.example.ui.theme.MusicProPrimaryGradient
 import com.example.ui.theme.MusicProSuccess
-import com.example.ui.theme.MusicProSurface
-import com.example.ui.theme.MusicProSurfaceElevated
-import com.example.ui.theme.MusicProSurfaceVariant
-import com.example.ui.theme.MusicProTextMuted
-import com.example.ui.theme.MusicProTextPrimary
-import com.example.ui.theme.MusicProTextSecondary
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPastel
@@ -108,8 +102,8 @@ fun OnboardingScreen(
         ),
         OnboardingPageData(
             title = "Paroles synchronisées",
-            description = "Karaoké précis en direct, défilement avec surbrillance néon et ajustement du décalage. Import de fichiers .LRC ou génération intégrée.",
-            badgeText = "FICHIERS .LRC & KARAOKÉ",
+            description = "Karaoké précis en direct, défilement avec surbrillance néon et ajustement du décalage. Importez vos paroles ou créez-les directement dans l’application.",
+            badgeText = "PAROLES & KARAOKÉ",
             icon = Icons.Default.Subtitles,
             accentColor = MusicProCyanNeon,
             glowColor = Color(0x6600D4FF)
@@ -130,7 +124,7 @@ fun OnboardingScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MusicProBackground)
+            .background(MaterialTheme.colorScheme.background)
             .testTag("onboarding_screen")
     ) {
         // Ambient background blur
@@ -170,7 +164,7 @@ fun OnboardingScreen(
                         modifier = Modifier
                             .size(38.dp)
                             .shadow(8.dp, RoundedCornerShape(12.dp), spotColor = MusicProVioletGlow)
-                            .background(MusicProSurface, RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
                             .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(12.dp)),
                         contentAlignment = Alignment.Center
                     ) {
@@ -185,7 +179,7 @@ fun OnboardingScreen(
                         text = "MusicPro",
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MusicProTextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
 
@@ -203,7 +197,7 @@ fun OnboardingScreen(
                         text = "Passer",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = MusicProTextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp)
                     )
                 }
@@ -342,7 +336,7 @@ private fun OnboardingPageView(
                     .shadow(20.dp, RoundedCornerShape(32.dp), spotColor = page.glowColor)
                     .background(
                         Brush.linearGradient(
-                            listOf(MusicProSurfaceVariant, MusicProSurface)
+                            listOf(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.surface)
                         ),
                         RoundedCornerShape(32.dp)
                     )
@@ -369,7 +363,7 @@ private fun OnboardingPageView(
             text = page.title,
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
-            color = MusicProTextPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center,
             letterSpacing = (-0.5).sp
         )
@@ -381,7 +375,7 @@ private fun OnboardingPageView(
             text = page.description,
             fontSize = 14.sp,
             fontWeight = FontWeight.Normal,
-            color = MusicProTextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             lineHeight = 22.sp,
             modifier = Modifier.padding(horizontal = 12.dp)
@@ -422,7 +416,7 @@ private fun OnboardingPageView(
                 // Slide 1: Karaoke LRC live preview mockup
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MusicProSurface),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     border = BorderStroke(1.dp, Color(0x3322D3EE)),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -435,7 +429,7 @@ private fun OnboardingPageView(
                         Text(
                             text = "♪ I look around and Sin City's cold and empty",
                             fontSize = 12.sp,
-                            color = MusicProTextMuted,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(6.dp))
@@ -457,7 +451,7 @@ private fun OnboardingPageView(
                         Text(
                             text = "No, I can't sleep until I feel your touch...",
                             fontSize = 12.sp,
-                            color = MusicProTextMuted,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -467,7 +461,7 @@ private fun OnboardingPageView(
                 // Slide 2: Playlist & offline controller preview mockup
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MusicProSurface),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     border = BorderStroke(1.dp, Color(0x338A2BE2)),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -501,7 +495,7 @@ private fun OnboardingPageView(
                                 text = "Playlist: Nuit Néon",
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = MusicProTextPrimary
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                             Text(
                                 text = "12 morceaux • Widget d'accueil actif",

@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -32,6 +33,7 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -45,6 +47,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -55,18 +58,10 @@ import com.example.data.local.AudioTrackEntity
 import com.example.data.local.PlaylistSummary
 import com.example.ui.audio.SearchFilter
 import com.example.ui.library.TrackRowItem
-import com.example.ui.theme.MusicProBackground
-import com.example.ui.theme.MusicProCardBackground
 import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProGreenEmerald
 import com.example.ui.theme.MusicProPrimaryGradient
-import com.example.ui.theme.MusicProSurface
-import com.example.ui.theme.MusicProSurfaceElevated
-import com.example.ui.theme.MusicProSurfaceVariant
-import com.example.ui.theme.MusicProTextMuted
-import com.example.ui.theme.MusicProTextPrimary
-import com.example.ui.theme.MusicProTextSecondary
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPrimary
@@ -101,7 +96,7 @@ fun SearchScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(MusicProBackground)
+            .background(MaterialTheme.colorScheme.background)
             .testTag("search_screen")
     ) {
         // En-tête Titre Recherche
@@ -116,7 +111,7 @@ fun SearchScreen(
                     text = "Recherche Locale",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MusicProTextPrimary
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -133,7 +128,7 @@ fun SearchScreen(
                         text = "Indexation instantanée hors-ligne",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = MusicProTextSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -152,14 +147,14 @@ fun SearchScreen(
                     Text(
                         text = "Rechercher titre, artiste, album...",
                         fontSize = 14.sp,
-                        color = MusicProTextMuted
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
                         contentDescription = "Recherche",
-                        tint = if (query.isNotBlank()) MusicProCyanNeon else MusicProTextSecondary
+                        tint = if (query.isNotBlank()) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 },
                 trailingIcon = {
@@ -171,7 +166,7 @@ fun SearchScreen(
                             Icon(
                                 imageVector = Icons.Default.Clear,
                                 contentDescription = "Effacer",
-                                tint = MusicProTextSecondary
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -181,12 +176,12 @@ fun SearchScreen(
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = MusicProSurfaceElevated,
-                    unfocusedContainerColor = MusicProSurface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                     focusedBorderColor = MusicProCyanNeon,
-                    unfocusedBorderColor = Color(0x26FFFFFF),
-                    focusedTextColor = MusicProTextPrimary,
-                    unfocusedTextColor = MusicProTextPrimary
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.32f),
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -208,14 +203,14 @@ fun SearchScreen(
                         .clip(RoundedCornerShape(10.dp))
                         .background(
                             if (isSelected) MusicProPrimaryGradient
-                            else Brush.linearGradient(listOf(MusicProSurface, MusicProSurface))
+                            else Brush.linearGradient(listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surface))
                         )
                         .border(
                             1.dp,
-                            if (isSelected) MusicProVioletGlow else Color(0x1FFFFFFF),
+                            if (isSelected) MusicProVioletGlow else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                             RoundedCornerShape(10.dp)
                         )
-                        .clickable { onFilterChange(f) }
+                        .selectable(selected = isSelected, role = Role.Tab, onClick = { onFilterChange(f) })
                         .heightIn(min = 48.dp)
                         .padding(horizontal = 14.dp, vertical = 7.dp)
                         .testTag("search_filter_${f.name.lowercase()}"),
@@ -225,7 +220,7 @@ fun SearchScreen(
                         text = f.label,
                         fontSize = 12.sp,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        color = if (isSelected) Color.White else MusicProTextSecondary
+                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -247,14 +242,18 @@ fun SearchScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.History, contentDescription = null, tint = MusicProVioletLight, modifier = Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Recherches récentes", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MusicProTextPrimary)
+                            Text("Recherches récentes", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onBackground)
                         }
-                        Text(
-                            "Effacer",
-                            fontSize = 12.sp,
-                            color = MusicProTextSecondary,
-                            modifier = Modifier.clickable(onClick = onClearSearchHistory)
-                        )
+                        TextButton(
+                            onClick = onClearSearchHistory,
+                            modifier = Modifier.heightIn(min = 48.dp)
+                        ) {
+                            Text(
+                                text = "Effacer",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.height(10.dp))
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -262,14 +261,14 @@ fun SearchScreen(
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(20.dp))
-                                    .background(MusicProSurfaceVariant)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
                                     .clickable {
                                         onQueryChange(historyItem)
                                         onSearchSubmit(historyItem)
                                     }
                                     .padding(horizontal = 12.dp, vertical = 7.dp)
                             ) {
-                                Text(historyItem, fontSize = 12.sp, color = MusicProTextPrimary, maxLines = 1)
+                                Text(historyItem, fontSize = 12.sp, color = MaterialTheme.colorScheme.onBackground, maxLines = 1)
                             }
                         }
                     }
@@ -288,7 +287,7 @@ fun SearchScreen(
                         text = "Suggestions rapides",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = MusicProTextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
 
@@ -302,8 +301,8 @@ fun SearchScreen(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(20.dp))
-                                .background(MusicProSurfaceVariant)
-                                .border(1.dp, Color(0x228A2BE2), RoundedCornerShape(20.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .border(1.dp, MusicProVioletPrimary.copy(alpha = 0.14f), RoundedCornerShape(20.dp))
                                 .clickable { onQueryChange(suggestion) }
                                 .heightIn(min = 48.dp)
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
@@ -326,8 +325,8 @@ fun SearchScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
-                        .background(MusicProCardBackground)
-                        .border(1.dp, Color(0x1AFFFFFF), RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f), RoundedCornerShape(16.dp))
                         .padding(18.dp)
                 ) {
                     Column {
@@ -343,14 +342,14 @@ fun SearchScreen(
                                 text = "Recherche 100% hors-ligne",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = MusicProTextPrimary
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                         }
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "Les requêtes interrogent directement la base Room locale sans aucune connexion Internet ni latence réseau.",
+                            text = "Votre recherche consulte directement votre bibliothèque, sans connexion Internet.",
                             fontSize = 12.sp,
-                            color = MusicProTextSecondary,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             lineHeight = 18.sp
                         )
                     }
@@ -380,7 +379,7 @@ fun SearchScreen(
                         Icon(
                             Icons.Default.SearchOff,
                             contentDescription = null,
-                            tint = MusicProTextMuted,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(32.dp)
                         )
                         Spacer(modifier = Modifier.height(12.dp))
@@ -388,7 +387,7 @@ fun SearchScreen(
                             "Aucune playlist pour \"$query\"",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MusicProTextPrimary,
+                            color = MaterialTheme.colorScheme.onBackground,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -403,7 +402,7 @@ fun SearchScreen(
                         ) { _, playlist ->
                             androidx.compose.material3.Surface(
                                 onClick = { onPlaylistClick(playlist) },
-                                color = MusicProSurface,
+                                color = MaterialTheme.colorScheme.surface,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp, vertical = 4.dp),
@@ -419,7 +418,7 @@ fun SearchScreen(
                                         modifier = Modifier
                                             .size(44.dp)
                                             .clip(RoundedCornerShape(10.dp))
-                                            .background(MusicProSurfaceVariant),
+                                            .background(MaterialTheme.colorScheme.surfaceVariant),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text("♫", fontSize = 20.sp, color = MusicProCyanNeon)
@@ -430,7 +429,7 @@ fun SearchScreen(
                                             playlist.name,
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.SemiBold,
-                                            color = MusicProTextPrimary,
+                                            color = MaterialTheme.colorScheme.onBackground,
                                             maxLines = 1
                                         )
                                         Text(
@@ -438,7 +437,7 @@ fun SearchScreen(
                                                 " morceau(s) • " +
                                                 playlist.formatDuration(),
                                             fontSize = 12.sp,
-                                            color = MusicProTextSecondary
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                     Text("›", fontSize = 22.sp, color = MusicProCyanNeon)
@@ -459,14 +458,14 @@ fun SearchScreen(
                         modifier = Modifier
                             .size(72.dp)
                             .clip(CircleShape)
-                            .background(MusicProSurfaceElevated)
-                            .border(1.dp, Color(0x26FFFFFF), CircleShape),
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.16f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.SearchOff,
                             contentDescription = null,
-                            tint = MusicProTextMuted,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(32.dp)
                         )
                     }
@@ -477,7 +476,7 @@ fun SearchScreen(
                         text = "Aucun résultat pour \"$query\"",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MusicProTextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         textAlign = TextAlign.Center
                     )
 
@@ -486,7 +485,7 @@ fun SearchScreen(
                     Text(
                         text = "Vérifiez l'orthographe ou essayez un filtre plus large comme \"Tous\".",
                         fontSize = 12.sp,
-                        color = MusicProTextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
                 }

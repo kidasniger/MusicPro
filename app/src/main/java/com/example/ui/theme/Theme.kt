@@ -67,7 +67,7 @@ val MusicProLightColorScheme = lightColorScheme(
     tertiary = MusicProVioletVibrant,
     onTertiary = Color.White,
 
-    background = Color(0xFFF8F9FA),
+    background = Color(0xFFF7F7FA),
     onBackground = Color(0xFF0F0F19),
 
     surface = Color(0xFFFFFFFF),
@@ -75,7 +75,7 @@ val MusicProLightColorScheme = lightColorScheme(
     surfaceVariant = Color(0xFFECEEF2),
     onSurfaceVariant = Color(0xFF4A4A5A),
 
-    outline = Color(0xFFCCCCCC)
+    outline = Color(0xFF8A8F9A)
 )
 
 /**

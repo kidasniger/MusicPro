@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -42,22 +43,29 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.MusicProBackground
-import com.example.ui.theme.MusicProCardBackground
 import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProError
 import com.example.ui.theme.MusicProSuccess
-import com.example.ui.theme.MusicProSurfaceElevated
-import com.example.ui.theme.MusicProTextMuted
-import com.example.ui.theme.MusicProTextPrimary
-import com.example.ui.theme.MusicProTextSecondary
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPrimary
 import com.example.updater.AppUpdateManager
 import com.example.updater.DownloadState
 import com.example.updater.UpdateCheckState
+
+private fun cleanUserReleaseNotes(raw: String): String {
+    return raw
+        .replace(Regex("(?i)GitHub"), "service de mise à jour")
+        .replace(Regex("(?i)Groq"), "service de transcription")
+        .replace(Regex("(?i)Whisper"), "transcription")
+        .replace(Regex("(?i)AndroidX|Media3|ExoPlayer|Jetpack|Compose|Material ?3|Material You|Room|SQLite|EncryptedSharedPreferences|AES-256|Firebase|Retrofit|Moshi|KSP"), "")
+        .replace(Regex("(?i)LRC|SYLT"), "paroles synchronisées")
+        .replace(Regex("(?im)^\s*[-•]*\s*$"), "")
+        .replace(Regex("\n{3,}"), "\n\n")
+        .trim()
+        .ifBlank { "Améliorations et corrections pour une expérience plus fluide." }
+}
 
 @Composable
 fun AppUpdateCard(
@@ -73,10 +81,10 @@ fun AppUpdateCard(
         modifier = modifier
             .fillMaxWidth()
             .shadow(8.dp, RoundedCornerShape(18.dp), spotColor = MusicProVioletGlow)
-            .border(1.dp, MusicProSurfaceElevated, RoundedCornerShape(18.dp))
+            .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(18.dp))
             .testTag("app_update_card"),
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = MusicProCardBackground)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             // Header
@@ -106,19 +114,19 @@ fun AppUpdateCard(
                         text = "Mises à jour de l'application",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MusicProTextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
-                        text = "Dépôt : ${AppUpdateManager.GITHUB_OWNER}/${AppUpdateManager.GITHUB_REPO}",
+                        text = "Mises à jour disponibles",
                         fontSize = 11.sp,
-                        color = MusicProTextMuted
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
                 // Version badge
                 Surface(
                     shape = RoundedCornerShape(6.dp),
-                    color = MusicProSurfaceElevated,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     border = BorderStroke(1.dp, MusicProCyanLight.copy(alpha = 0.3f))
                 ) {
                     Text(
@@ -144,7 +152,7 @@ fun AppUpdateCard(
                         Text(
                             text = "Vérifier si une nouvelle version est publiée",
                             fontSize = 12.sp,
-                            color = MusicProTextSecondary,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.weight(1f)
                         )
                         Button(
@@ -178,9 +186,9 @@ fun AppUpdateCard(
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = "Interrogation de GitHub Releases...",
+                            text = "Recherche d’une nouvelle version…",
                             fontSize = 12.sp,
-                            color = MusicProTextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -213,7 +221,7 @@ fun AppUpdateCard(
                                 Text(
                                     text = "Version v${updateCheckState.currentVersion} installée",
                                     fontSize = 11.sp,
-                                    color = MusicProTextMuted
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                             OutlinedButton(
@@ -246,7 +254,7 @@ fun AppUpdateCard(
                                 Text(
                                     text = updateCheckState.message,
                                     fontSize = 12.sp,
-                                    color = MusicProTextPrimary,
+                                    color = MaterialTheme.colorScheme.onBackground,
                                     modifier = Modifier.weight(1f)
                                 )
                             }
@@ -285,7 +293,7 @@ fun AppUpdateCard(
                                         text = "Nouvelle version v${info.latestVersion} disponible !",
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = MusicProTextPrimary
+                                        color = MaterialTheme.colorScheme.onBackground
                                     )
                                     val sizeMb = if (info.apkSize > 0) {
                                         " • ${(info.apkSize / (1024 * 1024 * 1.0)).let { "%.1f".format(it) }} Mo"
@@ -304,12 +312,12 @@ fun AppUpdateCard(
                             Surface(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(8.dp),
-                                color = MusicProBackground.copy(alpha = 0.7f)
+                                color = MaterialTheme.colorScheme.background.copy(alpha = 0.7f)
                             ) {
                                 Text(
-                                    text = info.releaseNotes,
+                                    text = cleanUserReleaseNotes(info.releaseNotes),
                                     fontSize = 11.sp,
-                                    color = MusicProTextSecondary,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.padding(10.dp)
                                 )
                             }
@@ -330,13 +338,13 @@ fun AppUpdateCard(
                                         Icon(
                                             imageVector = Icons.Default.CloudDownload,
                                             contentDescription = null,
-                                            tint = MusicProBackground,
+                                            tint = MaterialTheme.colorScheme.background,
                                             modifier = Modifier.size(18.dp)
                                         )
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
-                                            text = "Télécharger & Installer la mise à jour",
-                                            color = MusicProBackground,
+                                            text = "Télécharger et installer",
+                                            color = MaterialTheme.colorScheme.background,
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 13.sp
                                         )
@@ -350,9 +358,9 @@ fun AppUpdateCard(
                                             horizontalArrangement = Arrangement.SpaceBetween
                                         ) {
                                             Text(
-                                                text = "Téléchargement de l'APK...",
+                                                text = "Téléchargement de la mise à jour…",
                                                 fontSize = 12.sp,
-                                                color = MusicProTextPrimary
+                                                color = MaterialTheme.colorScheme.onBackground
                                             )
                                             Text(
                                                 text = "${downloadState.progressPercent}%",
@@ -369,7 +377,7 @@ fun AppUpdateCard(
                                                 .height(8.dp)
                                                 .clip(RoundedCornerShape(4.dp)),
                                             color = MusicProCyanNeon,
-                                            trackColor = MusicProSurfaceElevated
+                                            trackColor = MaterialTheme.colorScheme.surfaceVariant
                                         )
                                     }
                                 }
@@ -388,7 +396,7 @@ fun AppUpdateCard(
                                             )
                                             Spacer(modifier = Modifier.width(8.dp))
                                             Text(
-                                                text = "APK prêt à l'installation",
+                                                text = "Mise à jour prête à l’installation",
                                                 fontSize = 12.sp,
                                                 fontWeight = FontWeight.SemiBold,
                                                 color = MusicProSuccess
@@ -404,13 +412,13 @@ fun AppUpdateCard(
                                             Icon(
                                                 imageVector = Icons.Default.SystemUpdate,
                                                 contentDescription = null,
-                                                tint = MusicProBackground,
+                                                tint = MaterialTheme.colorScheme.background,
                                                 modifier = Modifier.size(18.dp)
                                             )
                                             Spacer(modifier = Modifier.width(8.dp))
                                             Text(
                                                 text = "Installer la mise à jour maintenant",
-                                                color = MusicProBackground,
+                                                color = MaterialTheme.colorScheme.background,
                                                 fontWeight = FontWeight.Bold,
                                                 fontSize = 12.sp
                                             )

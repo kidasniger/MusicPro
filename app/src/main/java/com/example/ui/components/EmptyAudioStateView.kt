@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.MusicOff
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
@@ -40,11 +41,6 @@ import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProCyanVibrant
 import com.example.ui.theme.MusicProPrimaryGradient
-import com.example.ui.theme.MusicProSurface
-import com.example.ui.theme.MusicProSurfaceVariant
-import com.example.ui.theme.MusicProTextMuted
-import com.example.ui.theme.MusicProTextPrimary
-import com.example.ui.theme.MusicProTextSecondary
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletPrimary
 
@@ -77,7 +73,7 @@ fun EmptyAudioStateView(
                 modifier = Modifier
                     .size(84.dp)
                     .shadow(16.dp, RoundedCornerShape(26.dp), spotColor = MusicProVioletGlow)
-                    .background(MusicProSurface, RoundedCornerShape(26.dp))
+                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(26.dp))
                     .border(
                         1.dp,
                         Brush.linearGradient(
@@ -102,7 +98,7 @@ fun EmptyAudioStateView(
             text = "Aucun fichier audio trouvé",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            color = MusicProTextPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center
         )
 
@@ -112,7 +108,7 @@ fun EmptyAudioStateView(
             text = "MusicPro est un lecteur 100% hors ligne. Placez vos fichiers .mp3, .flac ou .m4a dans le dossier /Music/ ou /Download/ de votre appareil.",
             fontSize = 13.sp,
             fontWeight = FontWeight.Normal,
-            color = MusicProTextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             lineHeight = 20.sp
         )
@@ -140,7 +136,7 @@ fun EmptyAudioStateView(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Scanner l'appareil (MediaStore)",
+                    text = "Analyser la bibliothèque",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White

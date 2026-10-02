@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,14 +48,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.R
-import com.example.ui.theme.MusicProBackground
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProCyanVibrant
 import com.example.ui.theme.MusicProPrimaryGradient
 import com.example.ui.theme.MusicProSuccess
-import com.example.ui.theme.MusicProSurface
-import com.example.ui.theme.MusicProTextMuted
-import com.example.ui.theme.MusicProTextPrimary
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletPastel
 import com.example.ui.theme.MusicProVioletPrimary
@@ -66,7 +63,7 @@ fun SplashScreen(
     onSplashFinished: () -> Unit,
     modifier: Modifier = Modifier,
     isReadyToNavigate: Boolean = true,
-    splashDurationMillis: Long = 1500L
+    splashDurationMillis: Long = 650L
 ) {
     val currentOnSplashFinished by rememberUpdatedState(onSplashFinished)
     val currentIsReady by rememberUpdatedState(isReadyToNavigate)
@@ -97,28 +94,29 @@ fun SplashScreen(
         label = "shimmerOffset"
     )
 
-    LaunchedEffect(Unit) {
-        // Run entry animation and wait for exact splash duration (1.5s)
+    LaunchedEffect(splashDurationMillis) {
+        val totalDuration = splashDurationMillis.coerceAtLeast(0L)
+        val scaleDuration = (totalDuration * 0.55f).toLong().coerceAtLeast(1L)
+        val alphaDuration = (totalDuration * 0.35f).toLong().coerceAtLeast(1L)
+        val remainingDuration = (totalDuration - scaleDuration - alphaDuration).coerceAtLeast(0L)
+
         scale.animateTo(
             targetValue = 1.0f,
-            animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing)
+            animationSpec = tween(durationMillis = scaleDuration.toInt(), easing = FastOutSlowInEasing)
         )
         alpha.animateTo(
             targetValue = 1.0f,
-            animationSpec = tween(durationMillis = 400, easing = LinearEasing)
+            animationSpec = tween(durationMillis = alphaDuration.toInt(), easing = LinearEasing)
         )
-        delay(splashDurationMillis - 600L) // Remaining time to reach 1.5s exactly
-
-        // Ensure preferences and readiness check are completed before navigating
+        delay(remainingDuration)
         snapshotFlow { currentIsReady }.first { it }
-
         currentOnSplashFinished()
     }
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MusicProBackground)
+            .background(MaterialTheme.colorScheme.background)
             .testTag("splash_screen"),
         contentAlignment = Alignment.Center
     ) {
@@ -187,7 +185,7 @@ fun SplashScreen(
                 text = "MusicPro",
                 fontSize = 34.sp,
                 fontWeight = FontWeight.Bold,
-                color = MusicProTextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 letterSpacing = (-0.5).sp
             )
 

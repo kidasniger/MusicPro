@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -55,15 +56,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.local.PlaylistSummary
-import com.example.ui.theme.MusicProCardBackground
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProError
 import com.example.ui.theme.MusicProPrimaryGradient
-import com.example.ui.theme.MusicProSurface
-import com.example.ui.theme.MusicProSurfaceElevated
-import com.example.ui.theme.MusicProTextMuted
-import com.example.ui.theme.MusicProTextPrimary
-import com.example.ui.theme.MusicProTextSecondary
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPrimary
@@ -95,13 +90,13 @@ fun PlaylistsScreen(
                 Column {
                     Text(
                         text = "Playlists",
-                        color = MusicProTextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "${playlists.size} playlist(s) personnalisée(s)",
-                        color = MusicProTextMuted,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 13.sp
                     )
                 }
@@ -133,7 +128,7 @@ fun PlaylistsScreen(
                     ) {
                         Surface(
                             shape = CircleShape,
-                            color = MusicProSurfaceElevated,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
                             modifier = Modifier.size(80.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
@@ -148,14 +143,14 @@ fun PlaylistsScreen(
 
                         Text(
                             text = "Aucune playlist créée",
-                            color = MusicProTextPrimary,
+                            color = MaterialTheme.colorScheme.onBackground,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
 
                         Text(
                             text = "Créez vos propres listes de lecture thématiques et organisez vos morceaux préférés avec réordonnancement par glisser-déposer.",
-                            color = MusicProTextMuted,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 14.sp,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                             modifier = Modifier.padding(horizontal = 16.dp)
@@ -206,7 +201,7 @@ fun PlaylistsScreen(
             FloatingActionButton(
                 onClick = { showCreateDialog = true },
                 containerColor = MusicProVioletPrimary,
-                contentColor = MusicProTextPrimary,
+                contentColor = MaterialTheme.colorScheme.onBackground,
                 shape = CircleShape,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -248,11 +243,11 @@ fun PlaylistsScreen(
     playlistToDelete?.let { playlist ->
         AlertDialog(
             onDismissRequest = { playlistToDelete = null },
-            title = { Text("Supprimer \"${playlist.name}\" ?", color = MusicProTextPrimary) },
+            title = { Text("Supprimer \"${playlist.name}\" ?", color = MaterialTheme.colorScheme.onBackground) },
             text = {
                 Text(
                     "Cette action supprimera définitivement la playlist. Vos fichiers audio d'origine restent inchangés.",
-                    color = MusicProTextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
             confirmButton = {
@@ -268,10 +263,10 @@ fun PlaylistsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { playlistToDelete = null }) {
-                    Text("Annuler", color = MusicProTextMuted)
+                    Text("Annuler", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
-            containerColor = MusicProCardBackground
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 }
@@ -289,10 +284,10 @@ private fun PlaylistCardItem(
     Card(
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MusicProCardBackground),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, MusicProSurfaceElevated, RoundedCornerShape(16.dp))
+            .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
             .testTag("playlist_card_${playlist.id}")
     ) {
         Row(
@@ -312,7 +307,7 @@ private fun PlaylistCardItem(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = playlist.name,
-                    color = MusicProTextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -323,7 +318,7 @@ private fun PlaylistCardItem(
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = playlist.description,
-                        color = MusicProTextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -338,7 +333,7 @@ private fun PlaylistCardItem(
                 ) {
                     Surface(
                         shape = RoundedCornerShape(6.dp),
-                        color = MusicProSurfaceElevated
+                        color = MaterialTheme.colorScheme.surfaceVariant
                     ) {
                         Text(
                             text = "${playlist.trackCount} morceau(x)",
@@ -352,7 +347,7 @@ private fun PlaylistCardItem(
                     if (playlist.totalDurationMs > 0) {
                         Text(
                             text = playlist.formatDuration(),
-                            color = MusicProTextMuted,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 12.sp
                         )
                     }
@@ -366,7 +361,7 @@ private fun PlaylistCardItem(
                     modifier = Modifier
                         .size(38.dp)
                         .clip(CircleShape)
-                        .background(MusicProSurfaceElevated)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .border(1.dp, MusicProVioletPrimary.copy(alpha = 0.5f), CircleShape)
                         .testTag("playlist_play_direct_${playlist.id}")
                 ) {
@@ -390,19 +385,19 @@ private fun PlaylistCardItem(
                     Icon(
                         imageVector = Icons.Default.MoreVert,
                         contentDescription = "Options",
-                        tint = MusicProTextMuted
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
                 DropdownMenu(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false },
-                    modifier = Modifier.background(MusicProCardBackground)
+                    modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Renommer", color = MusicProTextPrimary) },
+                        text = { Text("Renommer", color = MaterialTheme.colorScheme.onBackground) },
                         leadingIcon = {
-                            Icon(Icons.Default.Edit, contentDescription = null, tint = MusicProTextSecondary)
+                            Icon(Icons.Default.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         },
                         onClick = {
                             showMenu = false

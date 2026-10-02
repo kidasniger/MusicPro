@@ -16,7 +16,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -63,6 +63,7 @@ import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -88,6 +89,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -99,19 +105,12 @@ import androidx.media3.common.Player
 import coil.compose.AsyncImage
 import com.example.data.local.AudioTrackEntity
 import com.example.lyrics.LyricsData
-import com.example.ui.theme.MusicProBackground
-import com.example.ui.theme.MusicProCardBackground
 import com.example.ui.theme.MusicProCyanGlow
 import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProFavorite
 import com.example.ui.theme.MusicProGreenEmerald
 import com.example.ui.theme.MusicProPrimaryGradient
-import com.example.ui.theme.MusicProSurfaceElevated
-import com.example.ui.theme.MusicProSurfaceVariant
-import com.example.ui.theme.MusicProTextMuted
-import com.example.ui.theme.MusicProTextPrimary
-import com.example.ui.theme.MusicProTextSecondary
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPrimary
@@ -212,7 +211,7 @@ fun NowPlayingScreen(
 
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = MusicProBackground
+        color = MaterialTheme.colorScheme.background
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val screenHeight = maxHeight
@@ -244,7 +243,7 @@ fun NowPlayingScreen(
                         modifier = Modifier
                             .size(42.dp)
                             .clip(CircleShape)
-                            .background(MusicProSurfaceElevated)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                             .testTag("now_playing_back_button")
                     ) {
                         Icon(
@@ -262,16 +261,16 @@ fun NowPlayingScreen(
                             .padding(horizontal = 8.dp)
                     ) {
                         Text(
-                            text = "LECTURE EN COURS",
+                            text = "LECTURE",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 2.sp,
                             color = MusicProCyanNeon
                         )
                         Text(
-                            text = track?.album ?: "MusicPro Player",
+                            text = track?.album ?: "Lecteur MusicPro",
                             fontSize = 12.sp,
-                            color = MusicProTextMuted,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -283,7 +282,7 @@ fun NowPlayingScreen(
                             modifier = Modifier
                                 .size(42.dp)
                                 .clip(CircleShape)
-                                .background(MusicProSurfaceElevated)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
                         ) {
                             Icon(
                                 Icons.AutoMirrored.Filled.QueueMusic,
@@ -302,14 +301,14 @@ fun NowPlayingScreen(
                                 .clip(CircleShape)
                                 .background(
                                     if (lyricsData.lines.isNotEmpty()) MusicProVioletPrimary.copy(alpha = 0.35f)
-                                    else MusicProSurfaceElevated
+                                    else MaterialTheme.colorScheme.surfaceVariant
                                 )
                                 .testTag("now_playing_lyrics_button")
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Subtitles,
                                 contentDescription = "Paroles synchronisées",
-                                tint = if (lyricsData.lines.isNotEmpty()) MusicProCyanNeon else MusicProTextSecondary,
+                                tint = if (lyricsData.lines.isNotEmpty()) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -321,13 +320,13 @@ fun NowPlayingScreen(
                             modifier = Modifier
                                 .size(42.dp)
                                 .clip(CircleShape)
-                                .background(MusicProSurfaceElevated)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
                                 .testTag("now_playing_favorite_button")
                         ) {
                             Icon(
                                 imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                                 contentDescription = "Favori",
-                                tint = if (isFavorite) MusicProFavorite else MusicProTextSecondary,
+                                tint = if (isFavorite) MusicProFavorite else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -351,30 +350,21 @@ fun NowPlayingScreen(
                     modifier = Modifier
                         .size(vinylSize)
                         .pointerInput(track?.id) {
-                            detectDragGestures(
-                                onDragStart = {
-                                    gestureDx = 0f
-                                    gestureDy = 0f
-                                },
-                                onDrag = { change, dragAmount ->
+                            var horizontalDrag = 0f
+                            detectHorizontalDragGestures(
+                                onDragStart = { horizontalDrag = 0f },
+                                onHorizontalDrag = { change, amount ->
                                     change.consume()
-                                    gestureDx += dragAmount.x
-                                    gestureDy += dragAmount.y
+                                    horizontalDrag += amount
                                 },
                                 onDragEnd = {
-                                    val horizontal = kotlin.math.abs(gestureDx) >= kotlin.math.abs(gestureDy)
                                     when {
-                                        horizontal && gestureDx < -90f -> onNext()
-                                        horizontal && gestureDx > 90f -> onPrevious()
-                                        else -> onPlayPause()
+                                        horizontalDrag > 80f -> onPrevious()
+                                        horizontalDrag < -80f -> onNext()
                                     }
-                                    gestureDx = 0f
-                                    gestureDy = 0f
+                                    horizontalDrag = 0f
                                 },
-                                onDragCancel = {
-                                    gestureDx = 0f
-                                    gestureDy = 0f
-                                }
+                                onDragCancel = { horizontalDrag = 0f }
                             )
                         }
                         .shadow(
@@ -398,13 +388,13 @@ fun NowPlayingScreen(
                         modifier = Modifier
                             .size(vinylSize * 0.88f)
                             .clip(CircleShape)
-                            .border(1.dp, Color(0x1AFFFFFF), CircleShape)
+                            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f), CircleShape)
                     )
                     Box(
                         modifier = Modifier
                             .size(vinylSize * 0.74f)
                             .clip(CircleShape)
-                            .border(1.dp, Color(0x12FFFFFF), CircleShape)
+                            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.08f), CircleShape)
                     )
 
                     // Pochette centrale rotative
@@ -448,8 +438,8 @@ fun NowPlayingScreen(
                             modifier = Modifier
                                 .size(vinylSize * 0.10f)
                                 .clip(CircleShape)
-                                .background(MusicProBackground)
-                                .border(1.5.dp, Color(0x80FFFFFF), CircleShape)
+                                .background(MaterialTheme.colorScheme.background)
+                                .border(1.5.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.50f), CircleShape)
                         )
                     }
                 }
@@ -489,7 +479,7 @@ fun NowPlayingScreen(
                     text = track?.title ?: "Aucun morceau sélectionné",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MusicProTextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Center,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -521,10 +511,10 @@ fun NowPlayingScreen(
                 Surface(
                     onClick = onOpenLyrics,
                     shape = RoundedCornerShape(12.dp),
-                    color = MusicProSurfaceElevated.copy(alpha = 0.8f),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
                     border = BorderStroke(
                         1.dp,
-                        if (activeLineText != null) MusicProCyanNeon.copy(alpha = 0.6f) else Color(0x22FFFFFF)
+                        if (activeLineText != null) MusicProCyanNeon.copy(alpha = 0.6f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -550,14 +540,14 @@ fun NowPlayingScreen(
                                 text = activeLineText?.ifBlank { "♪ ♪ ♪" } ?: "Voir les paroles synchronisées",
                                 fontSize = 12.sp,
                                 fontWeight = if (activeLineText != null) FontWeight.SemiBold else FontWeight.Normal,
-                                color = if (activeLineText != null) MusicProCyanNeon else MusicProTextSecondary,
+                                color = if (activeLineText != null) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = if (lyricsData.lines.isNotEmpty()) "LRC / SYLT" else "Ouvrir",
+                            text = if (lyricsData.lines.isNotEmpty()) "Synchronisées" else "Ouvrir",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = MusicProVioletLight
@@ -578,13 +568,19 @@ fun NowPlayingScreen(
                             onClick = { onSeekTo((displayPositionMs - 10_000L).coerceAtLeast(0L)) },
                             modifier = Modifier.size(width = 58.dp, height = 40.dp),
                             contentPadding = PaddingValues(0.dp)
-                        ) { Text("−10 s", color = MusicProTextSecondary, fontSize = 11.sp) }
+                        ) { Text("−10 s", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp) }
                         Box(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(8.dp)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0x28FFFFFF))
+                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.16f))
+                                .semantics {
+                                    val fraction = (displayPositionMs.toFloat() / effectiveDuration.toFloat()).coerceIn(0f, 1f)
+                                    progressBarRangeInfo = ProgressBarRangeInfo(fraction, 0f..1f)
+                                    contentDescription = "Position de lecture"
+                                    stateDescription = "${formatTime(displayPositionMs)} sur ${formatTime(effectiveDuration)}"
+                                }
                                 .pointerInput(effectiveDuration) {
                                     detectTapGestures { offset ->
                                         val fraction = (offset.x / size.width.toFloat()).coerceIn(0f, 1f)
@@ -605,14 +601,14 @@ fun NowPlayingScreen(
                             onClick = { onSeekTo((displayPositionMs + 10_000L).coerceAtMost(effectiveDuration)) },
                             modifier = Modifier.size(width = 58.dp, height = 40.dp),
                             contentPadding = PaddingValues(0.dp)
-                        ) { Text("+10 s", color = MusicProTextSecondary, fontSize = 11.sp) }
+                        ) { Text("+10 s", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp) }
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(formatTime(displayPositionMs), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = MusicProCyanLight)
-                        Text(formatTime(effectiveDuration), fontSize = 12.sp, fontWeight = FontWeight.Medium, color = MusicProTextMuted)
+                        Text(formatTime(effectiveDuration), fontSize = 12.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
 
@@ -633,11 +629,11 @@ fun NowPlayingScreen(
                             },
                             modifier = Modifier.size(44.dp)
                         ) {
-                            Icon(Icons.AutoMirrored.Filled.VolumeDown, "Baisser le volume", tint = MusicProTextSecondary, modifier = Modifier.size(18.dp))
+                            Icon(Icons.AutoMirrored.Filled.VolumeDown, "Baisser le volume", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
                         }
                         Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(((currentVolume / maxVolume.toFloat()) * 100f).roundToInt().toString() + "%", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MusicProCyanNeon)
-                            Text(if (currentVolume == 0f) "Muet" else "Volume", fontSize = 10.sp, color = MusicProTextMuted)
+                            Text(if (currentVolume == 0f) "Muet" else "Volume", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         IconButton(
                             onClick = {
@@ -659,13 +655,13 @@ fun NowPlayingScreen(
                             .clip(CircleShape)
                             .background(
                                 if (sleepTimerSecondsRemaining != null) MusicProVioletPrimary.copy(alpha = 0.6f)
-                                else Color(0x1AFFFFFF)
+                                else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
                             )
                     ) {
                         Icon(
                             imageVector = if (sleepTimerSecondsRemaining != null) Icons.Default.Timer else Icons.Default.Tune,
                             contentDescription = "Options audio et minuterie",
-                            tint = if (sleepTimerSecondsRemaining != null) MusicProCyanNeon else MusicProTextPrimary,
+                            tint = if (sleepTimerSecondsRemaining != null) MusicProCyanNeon else MaterialTheme.colorScheme.onBackground,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -680,7 +676,7 @@ fun NowPlayingScreen(
     if (showOptionsSheet) {
         ModalBottomSheet(
             onDismissRequest = { showOptionsSheet = false },
-            containerColor = MusicProCardBackground,
+            containerColor = MaterialTheme.colorScheme.surface,
             scrimColor = Color.Black.copy(alpha = 0.65f),
             shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
         ) {
@@ -736,7 +732,7 @@ private fun NowPlayingOptionsSheetContent(
                 text = "Options de lecture",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = MusicProTextPrimary
+                color = MaterialTheme.colorScheme.onBackground
             )
             TextButton(
                 onClick = onClose,
@@ -766,7 +762,7 @@ private fun NowPlayingOptionsSheetContent(
                 text = "Minuterie de veille :",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = MusicProTextPrimary
+                color = MaterialTheme.colorScheme.onBackground
             )
             if (sleepTimerSecondsRemaining != null) {
                 Spacer(modifier = Modifier.width(8.dp))
@@ -793,10 +789,10 @@ private fun NowPlayingOptionsSheetContent(
                 Surface(
                     onClick = { onSetSleepTimer(mins) },
                     shape = RoundedCornerShape(10.dp),
-                    color = if (isSelected) MusicProVioletPrimary else Color(0x1FFFFFFF),
+                    color = if (isSelected) MusicProVioletPrimary else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                     border = BorderStroke(
                         1.dp,
-                        if (isSelected) MusicProCyanNeon else Color(0x22FFFFFF)
+                        if (isSelected) MusicProCyanNeon else MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)
                     ),
                     modifier = Modifier.weight(1f)
                 ) {
@@ -804,7 +800,7 @@ private fun NowPlayingOptionsSheetContent(
                         text = label,
                         fontSize = 12.sp,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        color = if (isSelected) Color.White else MusicProTextSecondary,
+                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
@@ -847,7 +843,7 @@ private fun NowPlayingOptionsSheetContent(
                 text = "Vitesse de lecture :",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = MusicProTextPrimary
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
 
@@ -863,10 +859,10 @@ private fun NowPlayingOptionsSheetContent(
                 Surface(
                     onClick = { onSetSpeed(speed) },
                     shape = RoundedCornerShape(8.dp),
-                    color = if (isSelected) MusicProVioletPrimary else Color(0x1FFFFFFF),
+                    color = if (isSelected) MusicProVioletPrimary else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                     border = BorderStroke(
                         1.dp,
-                        if (isSelected) MusicProCyanNeon else Color(0x1AFFFFFF)
+                        if (isSelected) MusicProCyanNeon else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
                     ),
                     modifier = Modifier.weight(1f)
                 ) {
@@ -874,7 +870,7 @@ private fun NowPlayingOptionsSheetContent(
                         text = "${speed}x",
                         fontSize = 12.sp,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        color = if (isSelected) Color.White else MusicProTextSecondary,
+                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(vertical = 6.dp)
                     )
@@ -895,8 +891,8 @@ private fun RowScope.SecondaryActionButton(
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(10.dp),
-        color = Color(0x14FFFFFF),
-        border = BorderStroke(1.dp, Color(0x1AFFFFFF)),
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)),
         modifier = Modifier.weight(1f)
     ) {
         Column(
@@ -904,7 +900,7 @@ private fun RowScope.SecondaryActionButton(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(icon, contentDescription = label, tint = MusicProCyanNeon, modifier = Modifier.size(17.dp))
-            Text(label, fontSize = 10.sp, color = MusicProTextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(label, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }

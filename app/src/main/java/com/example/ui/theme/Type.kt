@@ -4,6 +4,7 @@ import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 
 /**
@@ -26,7 +27,7 @@ val MusicProTypography = Typography(
         fontSize = 32.sp,
         lineHeight = 38.sp,
         letterSpacing = (-0.5).sp,
-        color = MusicProTextPrimary
+        color = Color.Unspecified
     ),
 
     // 28px • Titres d'onboarding ("100% Hors ligne", "Paroles synchronisées")
@@ -36,7 +37,7 @@ val MusicProTypography = Typography(
         fontSize = 28.sp,
         lineHeight = 34.sp,
         letterSpacing = (-0.25).sp,
-        color = MusicProTextPrimary
+        color = Color.Unspecified
     ),
 
     // 22px • Titre en lecture NowPlaying & titres majeurs de pages ("Playlists", "Paramètres")
@@ -46,7 +47,7 @@ val MusicProTypography = Typography(
         fontSize = 22.sp,
         lineHeight = 28.sp,
         letterSpacing = (-0.25).sp,
-        color = MusicProTextPrimary
+        color = Color.Unspecified
     ),
 
     // 20px • Ligne active mise en avant des paroles synchronisées (Karaoké actif)
@@ -56,7 +57,7 @@ val MusicProTypography = Typography(
         fontSize = 20.sp,
         lineHeight = 28.sp,
         letterSpacing = 0.sp,
-        color = MusicProTextPrimary
+        color = Color.Unspecified
     ),
 
     // 18px • En-têtes de modales ("Nouvelle playlist") & Dialogues
@@ -65,7 +66,7 @@ val MusicProTypography = Typography(
         fontWeight = FontWeight.Bold,
         fontSize = 18.sp,
         lineHeight = 24.sp,
-        color = MusicProTextPrimary
+        color = Color.Unspecified
     ),
 
     // 17px • Logo & Top Bar Header "MusicPro"
@@ -75,7 +76,7 @@ val MusicProTypography = Typography(
         fontSize = 17.sp,
         lineHeight = 22.sp,
         letterSpacing = (-0.2).sp,
-        color = MusicProTextPrimary
+        color = Color.Unspecified
     ),
 
     // 16px • Titres de rubriques ("Récemment écoutés"), Boutons CTA, Paroles inactives
@@ -85,7 +86,7 @@ val MusicProTypography = Typography(
         fontSize = 16.sp,
         lineHeight = 22.sp,
         letterSpacing = 0.1.sp,
-        color = MusicProTextPrimary
+        color = Color.Unspecified
     ),
 
     // 15px • Texte narratif d'introduction & widgets d'accueil
@@ -104,7 +105,7 @@ val MusicProTypography = Typography(
         fontSize = 14.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.sp,
-        color = MusicProTextPrimary
+        color = Color.Unspecified
     ),
 
     // 13px • Noms d'artistes, sous-titres, menus secondaires, items de paramètres
@@ -151,7 +152,7 @@ val MusicProTypography = Typography(
         fontSize = 9.sp,
         lineHeight = 12.sp,
         letterSpacing = 0.5.sp,
-        color = MusicProTextPrimary
+        color = Color.Unspecified
     )
 )
 

@@ -78,7 +78,7 @@ fun MusicProNavGraph(
 
             SplashScreen(
                 isReadyToNavigate = (isOnboardingCompleted != null),
-                splashDurationMillis = 1500L,
+                splashDurationMillis = if (initialOpenNowPlaying || initialOpenQueue || initialOpenLyrics) 260L else 650L,
                 onSplashFinished = {
                     val onboardingDone = currentOnboardingCompleted == true
                     if (!onboardingDone) {

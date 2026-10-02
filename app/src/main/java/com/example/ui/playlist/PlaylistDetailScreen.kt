@@ -42,6 +42,7 @@ import androidx.compose.material.icons.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -79,19 +80,12 @@ import androidx.compose.ui.zIndex
 import coil.compose.AsyncImage
 import com.example.data.local.AudioTrackEntity
 import com.example.data.local.PlaylistSummary
-import com.example.ui.theme.MusicProBackground
-import com.example.ui.theme.MusicProCardBackground
 import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProCyanVibrant
 import com.example.ui.theme.MusicProError
 import com.example.ui.theme.MusicProGreenEmerald
 import com.example.ui.theme.MusicProPrimaryGradient
-import com.example.ui.theme.MusicProSurface
-import com.example.ui.theme.MusicProSurfaceElevated
-import com.example.ui.theme.MusicProTextMuted
-import com.example.ui.theme.MusicProTextPrimary
-import com.example.ui.theme.MusicProTextSecondary
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPrimary
@@ -142,7 +136,7 @@ fun PlaylistDetailScreen(
         modifier = modifier
             .fillMaxSize()
             .testTag("playlist_detail_screen"),
-        containerColor = MusicProBackground
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -165,13 +159,13 @@ fun PlaylistDetailScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Retour",
-                        tint = MusicProTextPrimary
+                        tint = MaterialTheme.colorScheme.onBackground
                     )
                 }
 
                 Text(
                     text = playlist.name,
-                    color = MusicProTextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -189,14 +183,14 @@ fun PlaylistDetailScreen(
                         Icon(
                             imageVector = Icons.Default.MoreVert,
                             contentDescription = "Options",
-                            tint = MusicProTextPrimary
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
 
                     DropdownMenu(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false },
-                        modifier = Modifier.background(MusicProCardBackground)
+                        modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                     ) {
                         DropdownMenuItem(
                             text = { Text("Ajouter des morceaux", color = MusicProCyanNeon) },
@@ -219,9 +213,9 @@ fun PlaylistDetailScreen(
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Renommer la playlist", color = MusicProTextPrimary) },
+                            text = { Text("Renommer la playlist", color = MaterialTheme.colorScheme.onBackground) },
                             leadingIcon = {
-                                Icon(Icons.Default.Edit, contentDescription = null, tint = MusicProTextSecondary)
+                                Icon(Icons.Default.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             },
                             onClick = {
                                 showMenu = false
@@ -263,7 +257,7 @@ fun PlaylistDetailScreen(
             ) {
                 Text(
                     text = "MORCEAUX (${localTracks.size})",
-                    color = MusicProTextMuted,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp
@@ -293,7 +287,7 @@ fun PlaylistDetailScreen(
                     ) {
                         Surface(
                             shape = CircleShape,
-                            color = MusicProSurfaceElevated,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
                             modifier = Modifier.size(72.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
@@ -308,14 +302,14 @@ fun PlaylistDetailScreen(
 
                         Text(
                             text = "Cette playlist est vide",
-                            color = MusicProTextPrimary,
+                            color = MaterialTheme.colorScheme.onBackground,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold
                         )
 
                         Text(
                             text = "Ajoutez vos morceaux favoris depuis votre bibliothèque pour écouter votre sélection personnalisée.",
-                            color = MusicProTextMuted,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 13.sp,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                             modifier = Modifier.padding(horizontal = 24.dp)
@@ -392,11 +386,11 @@ fun PlaylistDetailScreen(
     if (showDeleteConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmDialog = false },
-            title = { Text("Supprimer la playlist", color = MusicProTextPrimary) },
+            title = { Text("Supprimer la playlist", color = MaterialTheme.colorScheme.onBackground) },
             text = {
                 Text(
                     "Voulez-vous vraiment supprimer la playlist \"${playlist.name}\" ? Les fichiers audio d'origine ne seront pas supprimés.",
-                    color = MusicProTextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
             confirmButton = {
@@ -412,10 +406,10 @@ fun PlaylistDetailScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirmDialog = false }) {
-                    Text("Annuler", color = MusicProTextMuted)
+                    Text("Annuler", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
-            containerColor = MusicProCardBackground
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 
@@ -423,11 +417,11 @@ fun PlaylistDetailScreen(
     trackPendingRemoval?.let { track ->
         AlertDialog(
             onDismissRequest = { trackPendingRemoval = null },
-            title = { Text("Retirer le morceau", color = MusicProTextPrimary) },
+            title = { Text("Retirer le morceau", color = MaterialTheme.colorScheme.onBackground) },
             text = {
                 Text(
                     "Retirer \"${track.title}\" de la playlist \"${playlist.name}\" ?",
-                    color = MusicProTextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
             confirmButton = {
@@ -444,10 +438,10 @@ fun PlaylistDetailScreen(
             },
             dismissButton = {
                 TextButton(onClick = { trackPendingRemoval = null }) {
-                    Text("Annuler", color = MusicProTextMuted)
+                    Text("Annuler", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
-            containerColor = MusicProCardBackground
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 
@@ -476,7 +470,7 @@ private fun PlaylistHeaderHero(
 ) {
     Surface(
         shape = RoundedCornerShape(20.dp),
-        color = MusicProCardBackground,
+        color = MaterialTheme.colorScheme.surface,
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
@@ -500,7 +494,7 @@ private fun PlaylistHeaderHero(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = playlist.name,
-                        color = MusicProTextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 2,
@@ -511,7 +505,7 @@ private fun PlaylistHeaderHero(
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = playlist.description,
-                            color = MusicProTextSecondary,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 13.sp,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
@@ -526,7 +520,7 @@ private fun PlaylistHeaderHero(
                     ) {
                         Surface(
                             shape = RoundedCornerShape(6.dp),
-                            color = MusicProSurfaceElevated
+                            color = MaterialTheme.colorScheme.surfaceVariant
                         ) {
                             Text(
                                 text = "$trackCount morceau(x)",
@@ -540,7 +534,7 @@ private fun PlaylistHeaderHero(
                         if (playlist.totalDurationMs > 0) {
                             Text(
                                 text = playlist.formatDuration(),
-                                color = MusicProTextMuted,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 12.sp
                             )
                         }
@@ -588,7 +582,7 @@ private fun PlaylistHeaderHero(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(MusicProSurfaceElevated)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .border(1.dp, MusicProCyanNeon.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
                         .testTag("playlist_add_tracks_button")
                 ) {
@@ -607,7 +601,7 @@ fun PlaylistCoverArt(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(14.dp))
-            .background(MusicProSurfaceElevated)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .border(1.dp, MusicProVioletPrimary.copy(alpha = 0.5f), RoundedCornerShape(14.dp)),
         contentAlignment = Alignment.Center
     ) {
@@ -684,7 +678,7 @@ private fun ReorderableTrackRow(
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
-        color = if (isCurrent) MusicProSurfaceElevated else MusicProSurface,
+        color = if (isCurrent) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface,
         modifier = Modifier
             .fillMaxWidth()
             .zIndex(if (isDragging) 10f else 1f)
@@ -736,7 +730,7 @@ private fun ReorderableTrackRow(
                 Icon(
                     imageVector = Icons.Default.DragHandle,
                     contentDescription = "Glisser pour réordonner",
-                    tint = if (isDragging) MusicProCyanNeon else MusicProTextMuted,
+                    tint = if (isDragging) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -744,7 +738,7 @@ private fun ReorderableTrackRow(
             // Index badge (#1, #2)
             Text(
                 text = "${index + 1}",
-                color = if (isCurrent) MusicProCyanNeon else MusicProTextMuted,
+                color = if (isCurrent) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.width(22.dp)
@@ -755,7 +749,7 @@ private fun ReorderableTrackRow(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(MusicProSurfaceElevated),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
                 if (!track.albumArtUri.isNullOrBlank()) {
@@ -769,7 +763,7 @@ private fun ReorderableTrackRow(
                     Icon(
                         imageVector = Icons.Default.MusicNote,
                         contentDescription = null,
-                        tint = if (isCurrent) MusicProCyanNeon else MusicProTextMuted,
+                        tint = if (isCurrent) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -779,7 +773,7 @@ private fun ReorderableTrackRow(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = track.title,
-                    color = if (isCurrent) MusicProCyanNeon else MusicProTextPrimary,
+                    color = if (isCurrent) MusicProCyanNeon else MaterialTheme.colorScheme.onBackground,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
@@ -787,7 +781,7 @@ private fun ReorderableTrackRow(
                 )
                 Text(
                     text = "${track.artist} • ${track.formatDuration()}",
-                    color = MusicProTextMuted,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -807,7 +801,7 @@ private fun ReorderableTrackRow(
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowUp,
                         contentDescription = "Monter",
-                        tint = if (index > 0) MusicProTextSecondary else MusicProTextMuted.copy(alpha = 0.3f),
+                        tint = if (index > 0) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -820,7 +814,7 @@ private fun ReorderableTrackRow(
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
                         contentDescription = "Descendre",
-                        tint = if (index < totalCount - 1) MusicProTextSecondary else MusicProTextMuted.copy(alpha = 0.3f),
+                        tint = if (index < totalCount - 1) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -836,7 +830,7 @@ private fun ReorderableTrackRow(
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Retirer",
-                    tint = MusicProTextMuted,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp)
                 )
             }
