@@ -193,7 +193,7 @@ object GroqTranscriptionManager {
                         if (errorStr.contains("too long", ignoreCase = true) || errorStr.contains("maximum duration", ignoreCase = true)) {
                             Result.failure(GroqException.AudioTooLongException())
                         } else {
-                            Result.failure(GroqException.GeneralException("Requête invalide ($errorStr)"))
+                            Result.failure(GroqException.GeneralException("La demande n’a pas pu être traitée."))
                         }
                     }
                     in 500..599 -> Result.failure(GroqException.ServerException(code, "Le service de transcription rencontre une anomalie momentanée."))
