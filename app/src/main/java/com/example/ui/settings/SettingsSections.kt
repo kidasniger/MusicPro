@@ -989,7 +989,7 @@ fun PlaybackSettingsCard(
                 }
             }
             SettingToggleRow("Lecture automatique", "Enchaîner la file sans intervention", autoPlay, onAutoPlayChanged)
-            SettingToggleRow("Lecture sans blanc", "Préparer la piste suivante avec Media3", gaplessPlayback, onGaplessChanged)
+            SettingToggleRow("Lecture sans blanc", "Préparer la piste suivante pour une transition fluide", gaplessPlayback, onGaplessChanged)
             SettingToggleRow("Reprendre la lecture", "Conserver cette préférence pour les prochaines sessions", resumePlayback, onResumeChanged)
         }
     }
