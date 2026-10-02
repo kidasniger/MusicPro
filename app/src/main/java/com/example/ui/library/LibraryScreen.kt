@@ -968,7 +968,7 @@ private fun AlbumDetailView(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("🔀", fontSize = 14.sp)
+                    Icon(Icons.Default.Shuffle, contentDescription = null, tint = MusicProCyanNeon, modifier = Modifier.size(17.dp))
                     Spacer(Modifier.width(6.dp))
                     Text("Aléatoire", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
