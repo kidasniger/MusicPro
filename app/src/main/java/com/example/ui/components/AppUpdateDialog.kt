@@ -64,6 +64,7 @@ private fun cleanUserReleaseNotes(raw: String): String {
         .replace(Regex("(?i)Whisper"), "transcription")
         .replace(Regex("(?i)AndroidX|Media3|ExoPlayer|Jetpack|Compose|Material ?3|Material You|Room|SQLite|EncryptedSharedPreferences|AES-256|Firebase|Retrofit|Moshi|KSP"), "")
         .replace(Regex("(?i)LRC|SYLT"), "paroles synchronisées")
+        .replace(Regex("""[\\x{1F1E6}-\\x{1F1FF}\\x{1F300}-\\x{1FAFF}\\x{2600}-\\x{27BF}]"""), "")
         .replace(Regex("""(?im)^\s*[-•]*\s*$"""), "")
         .replace(Regex("""\n{3,}"""), "\n\n")
         .trim()
