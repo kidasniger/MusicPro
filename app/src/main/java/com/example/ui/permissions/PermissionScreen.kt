@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -61,17 +62,17 @@ import androidx.compose.ui.unit.sp
 import com.example.R
 import com.example.permissions.PermissionUiState
 import com.example.permissions.PermissionUtils
-import com.example.ui.theme.MusicProBackground
-import com.example.ui.theme.MusicProBackgroundDeep
+import com.example.ui.theme.MaterialTheme.colorScheme.background
+import com.example.ui.theme.MaterialTheme.colorScheme.background
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProCyanVibrant
 import com.example.ui.theme.MusicProFavorite
 import com.example.ui.theme.MusicProPrimaryGradient
-import com.example.ui.theme.MusicProSurface
-import com.example.ui.theme.MusicProSurfaceVariant
-import com.example.ui.theme.MusicProTextMuted
-import com.example.ui.theme.MusicProTextPrimary
-import com.example.ui.theme.MusicProTextSecondary
+import com.example.ui.theme.MaterialTheme.colorScheme.surface
+import com.example.ui.theme.MaterialTheme.colorScheme.surfaceVariant
+import com.example.ui.theme.MaterialTheme.colorScheme.onSurfaceVariant
+import com.example.ui.theme.MaterialTheme.colorScheme.onBackground
+import com.example.ui.theme.MaterialTheme.colorScheme.onSurfaceVariant
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletPastel
 import com.example.ui.theme.MusicProVioletPrimary
@@ -106,8 +107,8 @@ fun PermissionScreen(
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        MusicProBackgroundDeep,
-                        MusicProBackground,
+                        MaterialTheme.colorScheme.background,
+                        MaterialTheme.colorScheme.background,
                         Color(0xFF0D0D1A)
                     )
                 )
@@ -167,7 +168,7 @@ fun PermissionScreen(
                     text = "MusicPro",
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MusicProTextPrimary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     letterSpacing = (-0.5).sp
                 )
 
@@ -194,7 +195,7 @@ fun PermissionScreen(
                 Text(
                     text = "Pour vous offrir une expérience musicale fluide, privée et sans connexion, MusicPro a besoin de quelques autorisations sur votre appareil.",
                     fontSize = 14.sp,
-                    color = MusicProTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     lineHeight = 20.sp,
                     modifier = Modifier.padding(horizontal = 8.dp)
@@ -275,7 +276,7 @@ fun PermissionScreen(
                                         text = "Accès audio requis",
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 15.sp,
-                                        color = MusicProTextPrimary
+                                        color = MaterialTheme.colorScheme.onBackground
                                     )
                                     Text(
                                         text = "Permission refusée par le système",
@@ -290,7 +291,7 @@ fun PermissionScreen(
                             Text(
                                 text = "L'accès à votre stockage audio est indispensable pour que MusicPro fonctionne. Sans cette permission, l'application ne peut pas détecter vos musiques.\n\nVeuillez autoriser l'accès dans les Paramètres système de l'application.",
                                 fontSize = 13.sp,
-                                color = MusicProTextSecondary,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 lineHeight = 18.sp
                             )
 
@@ -408,7 +409,7 @@ fun PermissionScreen(
                 Text(
                     text = "🔒 Aucune donnée audio n'est transférée ni partagée sur Internet",
                     fontSize = 12.sp,
-                    color = MusicProTextMuted,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
             }
@@ -430,7 +431,7 @@ private fun PermissionDetailCard(
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MusicProSurface
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         border = androidx.compose.foundation.BorderStroke(
             width = 1.dp,
@@ -476,7 +477,7 @@ private fun PermissionDetailCard(
                         text = title,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MusicProTextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
 
                     if (isGranted) {
@@ -525,7 +526,7 @@ private fun PermissionDetailCard(
                 Text(
                     text = description,
                     fontSize = 12.sp,
-                    color = MusicProTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 16.sp
                 )
             }
