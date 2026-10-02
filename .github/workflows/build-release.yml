@@ -67,6 +67,27 @@ jobs:
           echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
           echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
 
+      - name: Prepare Release Notes
+        id: release_notes
+        shell: bash
+        run: |
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD 2>/dev/null || true)
+          if [ -n "$PREVIOUS_TAG" ]; then
+            NOTES=$(git log "${PREVIOUS_TAG}..HEAD" --pretty=format:'- %s' |
+              grep -E '^- (feat|fix|ui|perf|refactor|test):' || true)
+          else
+            NOTES=$(git log -10 --pretty=format:'- %s' |
+              grep -E '^- (feat|fix|ui|perf|refactor|test):' || true)
+          fi
+          if [ -z "$NOTES" ]; then
+            NOTES='- Corrections et améliorations de MusicPro dans cette version.'
+          fi
+          {
+            echo 'notes<<EOF'
+            echo "$NOTES"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
@@ -98,9 +119,8 @@ jobs:
           tag_name: ${{ steps.version_info.outputs.tag_name }}
           name: "Release ${{ steps.version_info.outputs.tag_name }} (v${{ steps.version_info.outputs.version_name }})"
           body: |
-            ### Nouveautés et correctifs
-            - APK Release signée générée automatiquement.
-            - Release et tag créés immédiatement après la génération de l'APK.
+            ### Mise à jour MusicPro
+            ${{ steps.release_notes.outputs.notes }}
           files: build_output/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
