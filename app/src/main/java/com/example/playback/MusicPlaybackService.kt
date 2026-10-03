@@ -94,6 +94,8 @@ class MusicPlaybackService : MediaSessionService() {
             .setAudioAttributes(audioAttributes, /* handleAudioFocus = */ true)
             .setHandleAudioBecomingNoisy(true)
             .setWakeMode(C.WAKE_MODE_LOCAL)
+            .setSeekBackIncrementMs(10_000L)
+            .setSeekForwardIncrementMs(10_000L)
             .build()
 
         ensureEqualizer(exoPlayer)
@@ -297,22 +299,36 @@ class MusicPlaybackService : MediaSessionService() {
     }
 
     private fun buildNotificationButtons(): List<CommandButton> {
-        val isFavorite = player?.currentMediaItem?.mediaId?.toLongOrNull()?.let(favoriteTrackIds::contains) == true
+        val isFavorite =
+            player?.currentMediaItem?.mediaId?.toLongOrNull()?.let(favoriteTrackIds::contains) == true
 
         return listOf(
+            CommandButton.Builder(CommandButton.ICON_SKIP_BACK_10)
+                .setDisplayName("Reculer de 10 secondes")
+                .setPlayerCommand(androidx.media3.common.Player.COMMAND_SEEK_BACK)
+                .setSlots(intArrayOf(CommandButton.SLOT_BACK_SECONDARY, CommandButton.SLOT_OVERFLOW))
+                .build(),
+            CommandButton.Builder(CommandButton.ICON_SKIP_FORWARD_10)
+                .setDisplayName("Avancer de 10 secondes")
+                .setPlayerCommand(androidx.media3.common.Player.COMMAND_SEEK_FORWARD)
+                .setSlots(intArrayOf(CommandButton.SLOT_FORWARD_SECONDARY, CommandButton.SLOT_OVERFLOW))
+                .build(),
             CommandButton.Builder(
                 if (isFavorite) CommandButton.ICON_HEART_FILLED else CommandButton.ICON_HEART_UNFILLED
             )
                 .setDisplayName(if (isFavorite) "Retirer des favoris" else "Ajouter aux favoris")
                 .setSessionCommand(SessionCommand(ACTION_TOGGLE_FAVORITE, Bundle.EMPTY))
+                .setSlots(intArrayOf(CommandButton.SLOT_OVERFLOW))
                 .build(),
             CommandButton.Builder(CommandButton.ICON_QUEUE_ADD)
                 .setDisplayName("Ouvrir la file d'attente")
                 .setSessionCommand(SessionCommand(ACTION_OPEN_QUEUE, Bundle.EMPTY))
+                .setSlots(intArrayOf(CommandButton.SLOT_OVERFLOW))
                 .build(),
             CommandButton.Builder(CommandButton.ICON_SUBTITLES)
                 .setDisplayName("Ouvrir les paroles")
                 .setSessionCommand(SessionCommand(ACTION_OPEN_LYRICS, Bundle.EMPTY))
+                .setSlots(intArrayOf(CommandButton.SLOT_OVERFLOW))
                 .build()
         )
     }
