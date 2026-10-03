@@ -323,12 +323,12 @@ class MusicPlaybackService : MediaSessionService() {
             CommandButton.Builder(CommandButton.ICON_QUEUE_ADD)
                 .setDisplayName("Ouvrir la file d'attente")
                 .setSessionCommand(SessionCommand(ACTION_OPEN_QUEUE, Bundle.EMPTY))
-                .setSlots(intArrayOf(CommandButton.SLOT_OVERFLOW))
+                .setSlots(CommandButton.SLOT_OVERFLOW)
                 .build(),
             CommandButton.Builder(CommandButton.ICON_SUBTITLES)
                 .setDisplayName("Ouvrir les paroles")
                 .setSessionCommand(SessionCommand(ACTION_OPEN_LYRICS, Bundle.EMPTY))
-                .setSlots(intArrayOf(CommandButton.SLOT_OVERFLOW))
+                .setSlots(CommandButton.SLOT_OVERFLOW)
                 .build()
         )
     }
