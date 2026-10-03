@@ -57,14 +57,28 @@ import com.example.ui.theme.MusicProVioletPrimary
 import com.example.updater.DownloadState
 import com.example.updater.UpdateCheckState
 
-private fun cleanUserReleaseNotes(raw: String): String {
-    return raw
+internal fun cleanUserReleaseNotes(raw: String): String {
+    val withoutEmoji = buildString(raw.length) {
+        var index = 0
+        while (index < raw.length) {
+            val codePoint = raw.codePointAt(index)
+            val isEmoji = when {
+                codePoint in 0x1F1E6..0x1F1FF -> true
+                codePoint in 0x1F300..0x1FAFF -> true
+                codePoint in 0x2600..0x27BF -> true
+                else -> false
+            }
+            if (!isEmoji) appendCodePoint(codePoint)
+            index += Character.charCount(codePoint)
+        }
+    }
+
+    return withoutEmoji
         .replace(Regex("(?i)GitHub"), "service de mise à jour")
         .replace(Regex("(?i)Groq"), "service de transcription")
         .replace(Regex("(?i)Whisper"), "transcription")
         .replace(Regex("(?i)AndroidX|Media3|ExoPlayer|Jetpack|Compose|Material ?3|Material You|Room|SQLite|EncryptedSharedPreferences|AES-256|Firebase|Retrofit|Moshi|KSP"), "")
         .replace(Regex("(?i)LRC|SYLT"), "paroles synchronisées")
-        .replace(Regex("""[\\x{1F1E6}-\\x{1F1FF}\\x{1F300}-\\x{1FAFF}\\x{2600}-\\x{27BF}]"""), "")
         .replace(Regex("""(?im)^\s*[-•]*\s*$"""), "")
         .replace(Regex("""\n{3,}"""), "\n\n")
         .trim()
