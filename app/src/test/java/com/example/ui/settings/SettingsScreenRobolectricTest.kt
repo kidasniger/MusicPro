@@ -59,6 +59,27 @@ class SettingsScreenRobolectricTest {
         assertTrue(repo.isDynamicColorEnabled.first())
     }
 
+
+    @Test
+    fun testLightThemeComposesSuccessfully() {
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        val viewModel = SettingsViewModel(app)
+
+        composeTestRule.setContent {
+            MusicProTheme(themeMode = AppThemeMode.LIGHT, dynamicColor = false) {
+                SettingsScreen(
+                    onBack = {},
+                    onNavigateToPermissions = {},
+                    settingsViewModel = viewModel
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag("theme_settings_card").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("theme_light_button").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("groq_settings_card").assertIsDisplayed()
+    }
+
     @Test
     fun testCacheManagerCalculationAndClear() {
         val context = ApplicationProvider.getApplicationContext<Context>()
