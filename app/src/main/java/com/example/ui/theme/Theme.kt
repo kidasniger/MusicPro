@@ -87,13 +87,15 @@ fun MusicProTheme(
     dynamicColor: Boolean = false, // Par défaut désactivé pour respecter la charte exacte
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
+    val colorScheme = if (dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val context = LocalContext.current
+        runCatching {
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }.getOrElse {
+            if (darkTheme) MusicProDarkColorScheme else MusicProLightColorScheme
         }
-        darkTheme -> MusicProDarkColorScheme
-        else -> MusicProLightColorScheme
+    } else {
+        if (darkTheme) MusicProDarkColorScheme else MusicProLightColorScheme
     }
 
     MaterialTheme(
