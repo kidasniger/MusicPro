@@ -18,6 +18,7 @@ import com.example.ui.home.HomeScreen
 import com.example.ui.onboarding.OnboardingScreen
 import com.example.ui.permissions.PermissionScreen
 import com.example.ui.settings.SettingsScreen
+import com.example.ui.settings.SettingsViewModel
 import com.example.ui.splash.SplashScreen
 
 object Destinations {
@@ -35,6 +36,7 @@ fun MusicProNavGraph(
     onCompleteOnboarding: () -> Unit,
     onRequestPermissions: (Map<String, Boolean>) -> Unit,
     onManualCheck: () -> Unit,
+    settingsViewModel: SettingsViewModel,
     initialOpenNowPlaying: Boolean = false,
     initialOpenQueue: Boolean = false,
     initialOpenLyrics: Boolean = false,
@@ -144,6 +146,7 @@ fun MusicProNavGraph(
         // Écran 4: Écran principal de la bibliothèque musicale
         composable(Destinations.HOME) {
             HomeScreen(
+                settingsViewModel = settingsViewModel,
                 initialOpenNowPlaying = initialOpenNowPlaying,
                 initialOpenQueue = initialOpenQueue,
                 initialOpenLyrics = initialOpenLyrics,
@@ -160,6 +163,7 @@ fun MusicProNavGraph(
         // Écran 5: Paramètres de l'application (Clé API Groq Whisper, sécurité, etc.)
         composable(Destinations.SETTINGS) {
             SettingsScreen(
+                settingsViewModel = settingsViewModel,
                 onBack = {
                     navController.popBackStack()
                 },
