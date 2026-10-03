@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
@@ -23,10 +25,13 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.permissions.PermissionViewModel
 import com.example.playback.MusicPlaybackService
+import com.example.ui.components.AppUpdateDialog
 import com.example.ui.navigation.MusicProNavGraph
 import com.example.ui.onboarding.OnboardingViewModel
 import com.example.ui.settings.SettingsViewModel
 import com.example.ui.theme.MusicProTheme
+import com.example.updater.DownloadState
+import com.example.updater.UpdateCheckState
 import com.example.ui.theme.MyApplicationTheme
 import androidx.compose.material3.MaterialTheme
 
@@ -53,6 +58,18 @@ class MainActivity : ComponentActivity() {
         val lifecycleOwner = LocalLifecycleOwner.current
         val uiState by permissionViewModel.uiState.collectAsStateWithLifecycle()
         val isOnboardingCompleted by onboardingViewModel.isOnboardingCompleted.collectAsStateWithLifecycle()
+        val updateCheckState by settingsViewModel.updateCheckState.collectAsStateWithLifecycle()
+        val downloadState by settingsViewModel.downloadState.collectAsStateWithLifecycle()
+        var dismissedUpdateVersion by rememberSaveable { mutableStateOf<String?>(null) }
+
+        // La vérification automatique est globale : elle ne dépend d'aucun écran
+        // et l'état de mise à jour est affiché au niveau de l'Activity.
+        if (isOnboardingCompleted == true) {
+          LaunchedEffect(Unit) {
+            kotlinx.coroutines.delay(900L)
+            settingsViewModel.checkForUpdates()
+          }
+        }
 
         // Re-vérifier automatiquement les permissions lorsque l'utilisateur revient des paramètres système
         DisposableEffect(lifecycleOwner) {
@@ -75,6 +92,7 @@ class MainActivity : ComponentActivity() {
           MusicProNavGraph(
             uiState = uiState,
             isOnboardingCompleted = isOnboardingCompleted,
+            settingsViewModel = settingsViewModel,
             initialOpenNowPlaying = openNowPlaying,
             initialOpenQueue = mediaUiRequest?.first == MusicPlaybackService.ACTION_SHOW_QUEUE,
             initialOpenLyrics = mediaUiRequest?.first == MusicPlaybackService.ACTION_SHOW_LYRICS,
@@ -87,6 +105,27 @@ class MainActivity : ComponentActivity() {
             },
             onManualCheck = {
               permissionViewModel.checkPermissions(context)
+            }
+          )
+        }
+
+        val currentUpdate = updateCheckState
+        if (
+          isOnboardingCompleted == true &&
+          currentUpdate is UpdateCheckState.UpdateAvailable &&
+          dismissedUpdateVersion != currentUpdate.latestVersion
+        ) {
+          AppUpdateDialog(
+            updateInfo = currentUpdate,
+            downloadState = downloadState,
+            onDismiss = {
+              dismissedUpdateVersion = currentUpdate.latestVersion
+            },
+            onDownloadAndInstall = { downloadUrl ->
+              settingsViewModel.downloadAndInstallUpdate(downloadUrl)
+            },
+            onInstallExisting = {
+              settingsViewModel.installExistingApk()
             }
           )
         }
