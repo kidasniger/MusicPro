@@ -5,7 +5,7 @@ version: "1.0-b207"
 status: "Stable"
 category: "Lecteur musical"
 author: "kidasniger"
-license: "À renseigner"
+license: "Non spécifiée dans le dépôt"
 platforms:
   - "Android"
 technologies:
@@ -27,7 +27,7 @@ website: "https://github.com/kidasniger/MusicPro"
 documentation: "https://github.com/kidasniger/MusicPro"
 download: "https://github.com/kidasniger/MusicPro/releases/download/v1.0-b207/MusicPro-v1.0-b207.apk"
 icon: "https://raw.githubusercontent.com/kidasniger/MusicPro/main/app/src/main/res/drawable/musicpro_logo_square.png"
-cover: "À renseigner"
+cover: "https://raw.githubusercontent.com/kidasniger/MusicPro/main/app/src/main/res/drawable/musicpro_logo_clean.png"
 ---
 
 # Description
@@ -121,7 +121,7 @@ Le nettoyage est effectué lors de l'actualisation de la bibliothèque et peut �
 
 - URL: "https://github.com/kidasniger/MusicPro/releases/download/v1.0-b207/MusicPro-v1.0-b207.apk"
 - Version: "1.0-b207"
-- Architecture: "À renseigner"
+- Architecture: "Universelle (APK)"
 - Taille: "21.9 MB"
 - SHA-256: "cf9aebf05700b8f9eacfaa0ba1a54f48c746b19cf3319a1eb57cb21ac68b2968"
 
@@ -185,7 +185,7 @@ MusicPro est un lecteur musical Android moderne pour gérer une bibliothèque au
 
 ## Open Graph Image
 
-À renseigner
+https://raw.githubusercontent.com/kidasniger/MusicPro/main/app/src/main/res/drawable/musicpro_logo_clean.png
 
 ## Canonical URL
 
