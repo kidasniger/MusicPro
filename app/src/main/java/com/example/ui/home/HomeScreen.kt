@@ -184,14 +184,11 @@ fun HomeScreen(
         }
     }
 
-    // État et vérification automatique des mises à jour au démarrage
+    // Les mises à jour sont vérifiées depuis les paramètres afin de ne jamais
+    // bloquer ou faire tomber l'écran d'accueil lors de la publication d'une nouvelle release.
     val updateCheckState by settingsViewModel.updateCheckState.collectAsStateWithLifecycle()
     val downloadState by settingsViewModel.downloadState.collectAsStateWithLifecycle()
     var isUpdateDialogDismissed by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        settingsViewModel.checkForUpdates()
-    }
 
     val tracks by audioViewModel.tracks.collectAsStateWithLifecycle()
     val recentTracks by audioViewModel.recentTracks.collectAsStateWithLifecycle()
@@ -729,23 +726,8 @@ fun HomeScreen(
         )
     }
 
-    // Dialogue d'alerte de nouvelle mise à jour disponible au lancement
-    val currentUpdate = updateCheckState
-    if (currentUpdate is UpdateCheckState.UpdateAvailable && !isUpdateDialogDismissed) {
-        AppUpdateDialog(
-            updateInfo = currentUpdate,
-            downloadState = downloadState,
-            onDismiss = {
-                isUpdateDialogDismissed = true
-            },
-            onDownloadAndInstall = { downloadUrl ->
-                settingsViewModel.downloadAndInstallUpdate(downloadUrl)
-            },
-            onInstallExisting = {
-                settingsViewModel.installExistingApk()
-            }
-        )
-    }
+    // Les nouvelles releases ne sont plus affichées automatiquement au démarrage.
+    // La vérification et l'installation restent disponibles depuis les paramètres.
 }
 }
 
