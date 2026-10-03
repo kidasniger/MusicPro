@@ -13,6 +13,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.permissions.PermissionUiState
 import com.example.ui.home.HomeScreen
 import com.example.ui.onboarding.OnboardingScreen
@@ -36,7 +37,7 @@ fun MusicProNavGraph(
     onCompleteOnboarding: () -> Unit,
     onRequestPermissions: (Map<String, Boolean>) -> Unit,
     onManualCheck: () -> Unit,
-    settingsViewModel: SettingsViewModel,
+    settingsViewModel: SettingsViewModel = viewModel(),
     initialOpenNowPlaying: Boolean = false,
     initialOpenQueue: Boolean = false,
     initialOpenLyrics: Boolean = false,
