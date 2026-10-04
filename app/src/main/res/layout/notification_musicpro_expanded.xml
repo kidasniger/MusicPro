@@ -7,7 +7,7 @@
             <TextView android:id="@+id/notification_artist_expanded" android:layout_width="match_parent" android:layout_height="wrap_content" android:maxLines="1" android:ellipsize="end" android:textColor="#CCFFFFFF" android:textSize="14sp" android:paddingTop="3dp" />
         </LinearLayout>
     </LinearLayout>
-    <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="8dp" android:layout_marginBottom="8dp" android:background="#24FFFFFF" />
+    <TextView android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="8dp" android:layout_marginBottom="8dp" android:background="#24FFFFFF" android:text="" />
     <LinearLayout android:layout_width="match_parent" android:layout_height="58dp" android:orientation="horizontal" android:gravity="center" android:weightSum="7">
         <ImageButton android:id="@+id/notification_favorite" android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1" android:background="@drawable/notification_musicpro_button" android:padding="9dp" android:scaleType="centerInside" android:src="@drawable/ic_notification_favorite" android:contentDescription="Ajouter ou retirer des favoris" />
         <ImageButton android:id="@+id/notification_prev" android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1" android:background="@drawable/notification_musicpro_button" android:padding="9dp" android:scaleType="centerInside" android:src="@drawable/ic_widget_prev" android:contentDescription="Piste précédente" />
