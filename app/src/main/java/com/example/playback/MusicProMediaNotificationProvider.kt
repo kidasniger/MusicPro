@@ -8,9 +8,9 @@ import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
-import androidx.media3.datasource.DataSourceBitmapLoader
 import androidx.media3.session.CacheBitmapLoader
 import androidx.media3.session.CommandButton
+import androidx.media3.session.SimpleBitmapLoader
 import androidx.media3.session.MediaNotification
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaStyleNotificationHelper
@@ -30,12 +30,7 @@ class MusicProMediaNotificationProvider(
         private const val CHANNEL_ID = "musicpro_playback_channel"
     }
 
-    private val bitmapLoader = CacheBitmapLoader(
-        DataSourceBitmapLoader.Builder(context)
-            .setMaximumOutputDimension(256)
-            .setMakeShared(true)
-            .build()
-    )
+    private val bitmapLoader = CacheBitmapLoader(SimpleBitmapLoader())
 
     @Volatile
     private var artworkBitmap: Bitmap? = null
@@ -45,13 +40,6 @@ class MusicProMediaNotificationProvider(
 
     @Volatile
     private var artworkLoadingKey: String? = null
-
-    override fun getNotificationChannelInfo(): MediaNotification.Provider.NotificationChannelInfo {
-        return MediaNotification.Provider.NotificationChannelInfo(
-            CHANNEL_ID,
-            context.getString(R.string.notification_channel_name)
-        )
-    }
 
     override fun handleCustomCommand(
         session: MediaSession,
@@ -189,7 +177,7 @@ class MusicProMediaNotificationProvider(
         ) {
             val available = player.isCommandAvailable(command)
             val pendingIntent =
-                actionFactory.createMediaActionPendingIntent(mediaSession, command)
+                actionFactory.createMediaActionPendingIntent(mediaSession, command.toLong())
 
             compact.setOnClickPendingIntent(viewId, pendingIntent)
             expanded.setOnClickPendingIntent(viewId, pendingIntent)
@@ -308,9 +296,6 @@ class MusicProMediaNotificationProvider(
             .setContentText(artist)
             .setLargeIcon(artwork)
             .setContentIntent(mediaSession.sessionActivity)
-            .setDeleteIntent(
-                actionFactory.createNotificationDismissalIntent(mediaSession)
-            )
             .setOnlyAlertOnce(true)
             .setShowWhen(false)
             .setOngoing(true)
