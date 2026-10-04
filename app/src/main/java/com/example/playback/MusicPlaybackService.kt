@@ -17,7 +17,6 @@ import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.CommandButton
-import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.MediaSession.ConnectionResult.AcceptedResultBuilder
@@ -253,12 +252,7 @@ class MusicPlaybackService : MediaSessionService() {
         })
 
         // 5. Notification Media système avec canal dédié et id
-        val notificationProvider = DefaultMediaNotificationProvider.Builder(this)
-            .setChannelId(NOTIFICATION_CHANNEL_ID)
-            .setChannelName(R.string.notification_channel_name)
-            .setNotificationId(NOTIFICATION_ID)
-            .build()
-
+        val notificationProvider = MusicProMediaNotificationProvider(this)
         setMediaNotificationProvider(notificationProvider)
     }
 
