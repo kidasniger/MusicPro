@@ -290,6 +290,30 @@ class MusicProMediaNotificationProvider(
             setNextItem(expanded, 1, nextItems.getOrNull(1))
         }
 
+        // Fallback natif : même si System UI n'utilise pas les RemoteViews personnalisées,
+        // les cinq commandes principales restent toujours visibles sur les anciennes versions
+        // d'Android. La vue développée garde en plus le design MusicPro et la file suivante.
+        val previousAction = actionFactory.createMediaActionPendingIntent(
+            mediaSession,
+            Player.COMMAND_SEEK_TO_PREVIOUS.toLong()
+        )
+        val rewindAction = actionFactory.createMediaActionPendingIntent(
+            mediaSession,
+            Player.COMMAND_SEEK_BACK.toLong()
+        )
+        val playPauseAction = actionFactory.createMediaActionPendingIntent(
+            mediaSession,
+            Player.COMMAND_PLAY_PAUSE.toLong()
+        )
+        val forwardAction = actionFactory.createMediaActionPendingIntent(
+            mediaSession,
+            Player.COMMAND_SEEK_FORWARD.toLong()
+        )
+        val nextAction = actionFactory.createMediaActionPendingIntent(
+            mediaSession,
+            Player.COMMAND_SEEK_TO_NEXT.toLong()
+        )
+
         val notificationBuilder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_music_notification)
             .setContentTitle(title)
@@ -299,16 +323,42 @@ class MusicProMediaNotificationProvider(
             .setOnlyAlertOnce(true)
             .setShowWhen(false)
             .setOngoing(true)
+            .setCategory(NotificationCompat.CATEGORY_TRANSPORT)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setColor(0xFF8A2BE2.toInt())
             .setColorized(true)
+            .addAction(
+                R.drawable.ic_widget_prev,
+                "Piste précédente",
+                previousAction
+            )
+            .addAction(
+                R.drawable.ic_notification_rewind,
+                "Reculer de 10 secondes",
+                rewindAction
+            )
+            .addAction(
+                playIcon,
+                if (isPlaying) "Pause" else "Lecture",
+                playPauseAction
+            )
+            .addAction(
+                R.drawable.ic_notification_forward,
+                "Avancer de 10 secondes",
+                forwardAction
+            )
+            .addAction(
+                R.drawable.ic_widget_next,
+                "Piste suivante",
+                nextAction
+            )
             .setCustomContentView(compact)
             .setCustomBigContentView(expanded)
             .setCustomHeadsUpContentView(compact)
             .setStyle(
                 MediaStyleNotificationHelper.DecoratedMediaCustomViewStyle(
                     mediaSession
-                )
+                ).setShowActionsInCompactView(0, 2, 4)
             )
 
         return MediaNotification(
