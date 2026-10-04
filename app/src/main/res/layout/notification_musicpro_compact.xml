@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="64dp" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="10dp" android:paddingEnd="6dp" android:background="@drawable/notification_musicpro_background">
+    <ImageView android:id="@+id/notification_art_compact" android:layout_width="48dp" android:layout_height="48dp" android:scaleType="centerCrop" android:contentDescription="@null" />
+    <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center_vertical" android:paddingStart="10dp" android:paddingEnd="6dp">
+        <TextView android:id="@+id/notification_title_compact" android:layout_width="match_parent" android:layout_height="wrap_content" android:maxLines="1" android:ellipsize="end" android:textColor="#FFFFFFFF" android:textSize="14sp" android:textStyle="bold" />
+        <TextView android:id="@+id/notification_artist_compact" android:layout_width="match_parent" android:layout_height="wrap_content" android:maxLines="1" android:ellipsize="end" android:textColor="#CCFFFFFF" android:textSize="12sp" />
+    </LinearLayout>
+    <ImageButton android:id="@+id/notification_prev_compact" android:layout_width="38dp" android:layout_height="48dp" android:background="@drawable/notification_musicpro_button" android:padding="7dp" android:scaleType="centerInside" android:src="@drawable/ic_widget_prev" android:contentDescription="Piste précédente" />
+    <ImageButton android:id="@+id/notification_play_compact" android:layout_width="42dp" android:layout_height="48dp" android:background="@drawable/notification_musicpro_button" android:padding="6dp" android:scaleType="centerInside" android:contentDescription="Lecture ou pause" />
+    <ImageButton android:id="@+id/notification_next_compact" android:layout_width="38dp" android:layout_height="48dp" android:background="@drawable/notification_musicpro_button" android:padding="7dp" android:scaleType="centerInside" android:src="@drawable/ic_widget_next" android:contentDescription="Piste suivante" />
+</LinearLayout>
