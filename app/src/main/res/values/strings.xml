@@ -4,4 +4,16 @@
     <string name="notification_channel_desc">Contrôles de lecture et notification multimédia</string>
     <string name="widget_name">MusicPro - Lecteur</string>
     <string name="widget_description">Affiche le morceau en cours et les commandes de lecture</string>
+
+    <!-- Navigation principale -->
+    <string name="nav_home">Accueil</string>
+    <string name="nav_new">Nouveau</string>
+    <string name="nav_radio">Radio</string>
+    <string name="nav_library">Bibliothèque</string>
+    <string name="nav_search">Recherche</string>
+
+    <!-- Écrans provisoires -->
+    <string name="placeholder_title">Bientôt disponible</string>
+    <string name="placeholder_new_desc">Les nouveautés musicales arriveront dans une prochaine mise à jour.</string>
+    <string name="placeholder_radio_desc">La radio arrivera dans une prochaine mise à jour.</string>
 </resources>
