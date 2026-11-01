@@ -2,11 +2,13 @@ package com.example.data.repository
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import com.example.data.local.AudioTrackDao
 import com.example.data.local.AudioTrackEntity
 import com.example.data.local.MusicProDatabase
 import com.example.data.scanner.AudioScanner
 import com.example.data.scanner.MediaStoreAudioScanner
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -25,7 +27,13 @@ class AudioRepository(
     }
 
     suspend fun updateLastPlayed(trackId: Long, timestamp: Long = System.currentTimeMillis()) = withContext(Dispatchers.IO) {
-        audioTrackDao.updateLastPlayed(trackId, timestamp)
+        try {
+            audioTrackDao.updateLastPlayed(trackId, timestamp)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Erreur updateLastPlayed: ${e.message}", e)
+        }
     }
 
     fun searchTracks(query: String): Flow<List<AudioTrackEntity>> {
@@ -45,27 +53,78 @@ class AudioRepository(
     }
 
     suspend fun getTrackCount(): Int = withContext(Dispatchers.IO) {
-        audioTrackDao.getTrackCount()
+        try {
+            audioTrackDao.getTrackCount()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Erreur getTrackCount: ${e.message}", e)
+            0
+        }
     }
 
     suspend fun getTrackById(id: Long): AudioTrackEntity? = withContext(Dispatchers.IO) {
-        audioTrackDao.getTrackById(id)
+        try {
+            audioTrackDao.getTrackById(id)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Erreur getTrackById: ${e.message}", e)
+            null
+        }
     }
 
     suspend fun getAllTracksSnapshot(): List<AudioTrackEntity> = withContext(Dispatchers.IO) {
-        audioTrackDao.getAllTracksSnapshot()
+        try {
+            audioTrackDao.getAllTracksSnapshot()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Erreur getAllTracksSnapshot: ${e.message}", e)
+            emptyList()
+        }
     }
 
+    /**
+     * Supprime de Room les morceaux dont le fichier n'est plus accessible.
+     *
+     * Garde-fous (cause de plantages au démarrage) :
+     * - ne lève jamais d'exception (appelée au démarrage sans try/catch) ;
+     * - si TOUS les morceaux semblent inaccessibles (stockage non monté, autorisation absente,
+     *   démarrage juste après une mise à jour), on ne supprime rien : cela viderait la
+     *   bibliothèque et les playlists (suppression en cascade) ;
+     * - les suppressions sont découpées par lots (limite SQLite de variables par requête).
+     */
     suspend fun pruneUnavailableTracks(): Int = withContext(Dispatchers.IO) {
-        val tracks = audioTrackDao.getAllTracksSnapshot()
-        val unavailableIds = tracks
-            .filterNot { isTrackAccessible(it) }
-            .map { it.id }
+        try {
+            val tracks = audioTrackDao.getAllTracksSnapshot()
+            if (tracks.isEmpty()) return@withContext 0
 
-        if (unavailableIds.isNotEmpty()) {
-            audioTrackDao.deleteTracksByIds(unavailableIds)
+            val unavailableIds = tracks
+                .filterNot { isTrackAccessible(it) }
+                .map { it.id }
+
+            if (unavailableIds.isEmpty()) return@withContext 0
+
+            if (unavailableIds.size == tracks.size) {
+                Log.w(TAG, "Tous les morceaux semblent inaccessibles : nettoyage ignoré par sécurité.")
+                return@withContext 0
+            }
+
+            deleteTracksByIdsInChunks(unavailableIds)
+            unavailableIds.size
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Erreur pruneUnavailableTracks: ${e.message}", e)
+            0
         }
-        unavailableIds.size
+    }
+
+    private suspend fun deleteTracksByIdsInChunks(ids: Collection<Long>) {
+        ids.chunked(DELETE_CHUNK_SIZE).forEach { chunk ->
+            audioTrackDao.deleteTracksByIds(chunk)
+        }
     }
 
     private fun isTrackAccessible(track: AudioTrackEntity): Boolean {
@@ -103,49 +162,67 @@ class AudioRepository(
      * - Les lignes existantes sont mises à jour par Upsert, sans suppression/recréation :
      *   les relations playlist -> morceau restent donc intactes.
      * - Un scan vide est considéré comme non fiable et ne modifie jamais la base.
-     * - Les morceaux réellement absents sont supprimés uniquement après un scan non vide.
+     * - Les morceaux réellement absents sont supprimés uniquement après un scan non vide,
+     *   par lots (pas de requête NOT IN géante qui dépasse la limite de variables SQLite).
+     * - Ne lève jamais d'exception : en cas d'erreur, la bibliothèque existante est conservée.
      */
     suspend fun refreshMediaStoreScan(): Int = withContext(Dispatchers.IO) {
         val existingTracks = try {
             audioTrackDao.getAllTracksSnapshot().associateBy { it.id }
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Exception) {
             emptyMap()
         }
 
-        val scannedTracks = scanner.scanAudioFiles()
+        try {
+            val scannedTracks = scanner.scanAudioFiles()
 
-        if (scannedTracks.isEmpty()) {
-            android.util.Log.w(
-                "AudioRepository",
-                "Scan MediaStore vide : conservation de la bibliothèque Room existante."
-            )
-            return@withContext existingTracks.size
-        }
-
-        val mergedTracks = scannedTracks.map { scanned ->
-            val previous = existingTracks[scanned.id]
-            if (previous != null) {
-                scanned.copy(
-                    albumArtUri = scanned.albumArtUri ?: previous.albumArtUri,
-                    hasSyncedLyrics = previous.hasSyncedLyrics || scanned.hasSyncedLyrics,
-                    lastPlayed = maxOf(previous.lastPlayed, scanned.lastPlayed)
+            if (scannedTracks.isEmpty()) {
+                Log.w(
+                    TAG,
+                    "Scan MediaStore vide : conservation de la bibliothèque Room existante."
                 )
-            } else {
-                scanned
+                return@withContext existingTracks.size
             }
+
+            val mergedTracks = scannedTracks.map { scanned ->
+                val previous = existingTracks[scanned.id]
+                if (previous != null) {
+                    scanned.copy(
+                        albumArtUri = scanned.albumArtUri ?: previous.albumArtUri,
+                        hasSyncedLyrics = previous.hasSyncedLyrics || scanned.hasSyncedLyrics,
+                        lastPlayed = maxOf(previous.lastPlayed, scanned.lastPlayed)
+                    )
+                } else {
+                    scanned
+                }
+            }
+
+            audioTrackDao.upsertTracks(mergedTracks)
+
+            val scannedIds = mergedTracks.mapTo(HashSet()) { it.id }
+            val staleIds = existingTracks.keys.filterNot { it in scannedIds }
+            if (staleIds.isNotEmpty()) {
+                deleteTracksByIdsInChunks(staleIds)
+            }
+
+            mergedTracks.size
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Erreur refreshMediaStoreScan: ${e.message}", e)
+            existingTracks.size
         }
-
-        audioTrackDao.upsertTracks(mergedTracks)
-        audioTrackDao.deleteTracksNotIn(mergedTracks.map { it.id })
-
-        mergedTracks.size
     }
 
     suspend fun updateLyricsStatus(trackId: Long, hasLyrics: Boolean) = withContext(Dispatchers.IO) {
         try {
             audioTrackDao.updateLyricsStatus(trackId, hasLyrics)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            android.util.Log.e("AudioRepository", "Erreur updateLyricsStatus: ${e.message}")
+            Log.e(TAG, "Erreur updateLyricsStatus: ${e.message}")
         }
     }
 
@@ -154,6 +231,9 @@ class AudioRepository(
     }
 
     companion object {
+        private const val TAG = "AudioRepository"
+        private const val DELETE_CHUNK_SIZE = 500
+
         @Volatile
         private var INSTANCE: AudioRepository? = null
 
