@@ -11,6 +11,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
 import com.example.data.preferences.AppThemeMode
+import com.example.data.preferences.GlassQuality
 import com.example.data.preferences.UserPreferencesRepository
 import com.example.data.security.GroqApiKeyStore
 import com.example.ui.theme.MusicProTheme
@@ -59,6 +60,17 @@ class SettingsScreenRobolectricTest {
         assertTrue(repo.isDynamicColorEnabled.first())
     }
 
+    @Test
+    fun testGlassQualityPersistence() = runTest {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val repo = UserPreferencesRepository(context)
+
+        repo.setGlassQuality(GlassQuality.FAST)
+        assertEquals(GlassQuality.FAST, repo.glassQuality.first())
+
+        repo.setGlassQuality(GlassQuality.BEAUTIFUL)
+        assertEquals(GlassQuality.BEAUTIFUL, repo.glassQuality.first())
+    }
 
     @Test
     fun testLightThemeComposesSuccessfully() {
@@ -77,7 +89,8 @@ class SettingsScreenRobolectricTest {
 
         composeTestRule.onNodeWithTag("theme_settings_card").assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_light_button").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("groq_settings_card").assertIsDisplayed()
+        // La carte « Effet verre » se trouve entre le thème et la clé : on fait défiler jusqu'à la clé.
+        composeTestRule.onNodeWithTag("groq_settings_card").performScrollTo().assertIsDisplayed()
     }
 
     @Test
@@ -143,10 +156,11 @@ class SettingsScreenRobolectricTest {
 
         // Verify key sections are present
         composeTestRule.onNodeWithTag("theme_settings_card").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("groq_settings_card").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("glass_quality_card").performScrollTo().assertIsDisplayed()
+        composeTestRule.onNodeWithTag("groq_settings_card").performScrollTo().assertIsDisplayed()
 
         // Verify Theme buttons
-        composeTestRule.onNodeWithTag("theme_dark_button").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("theme_dark_button").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_light_button").assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_system_button").assertIsDisplayed()
 
