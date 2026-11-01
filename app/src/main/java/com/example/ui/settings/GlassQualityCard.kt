@@ -26,20 +26,22 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.example.R
-import com.example.data.preferences.GlassQuality
+import com.example.data.preferences.GlassMaterial
+import com.example.data.preferences.effective
 
 /**
- * Réglage « Effet verre » : Plus beau (flou en temps réel) ou Plus rapide (aplat translucide).
- * Avant Android 12, seul « Plus rapide » est possible et l'autre choix est désactivé.
+ * Réglage « Effet verre » : trois niveaux (Le plus rapide, Équilibré, Qualité).
+ * Avant Android 12, le niveau Qualité n'est pas proposé (option désactivée) et le flou est
+ * remplacé par un fond translucide quel que soit le niveau.
  */
 @Composable
 fun GlassQualityCard(
-    quality: GlassQuality,
+    material: GlassMaterial,
     blurSupported: Boolean,
-    onQualitySelected: (GlassQuality) -> Unit,
+    onMaterialSelected: (GlassMaterial) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val effective = if (blurSupported) quality else GlassQuality.FAST
+    val effective = material.effective(blurSupported)
 
     Card(
         modifier = modifier
@@ -64,28 +66,36 @@ fun GlassQualityCard(
             Spacer(modifier = Modifier.height(12.dp))
 
             Column(modifier = Modifier.selectableGroup()) {
-                GlassQualityOption(
-                    title = stringResource(R.string.glass_quality_beautiful),
-                    description = stringResource(R.string.glass_quality_beautiful_desc),
-                    selected = effective == GlassQuality.BEAUTIFUL,
-                    enabled = blurSupported,
-                    onClick = { onQualitySelected(GlassQuality.BEAUTIFUL) },
-                    tag = "glass_quality_beautiful"
-                )
-                GlassQualityOption(
-                    title = stringResource(R.string.glass_quality_fast),
-                    description = stringResource(R.string.glass_quality_fast_desc),
-                    selected = effective == GlassQuality.FAST,
+                GlassMaterialOption(
+                    title = stringResource(R.string.glass_material_fastest),
+                    description = stringResource(R.string.glass_material_fastest_desc),
+                    selected = effective == GlassMaterial.FASTEST,
                     enabled = true,
-                    onClick = { onQualitySelected(GlassQuality.FAST) },
-                    tag = "glass_quality_fast"
+                    onClick = { onMaterialSelected(GlassMaterial.FASTEST) },
+                    tag = "glass_material_fastest"
+                )
+                GlassMaterialOption(
+                    title = stringResource(R.string.glass_material_balanced),
+                    description = stringResource(R.string.glass_material_balanced_desc),
+                    selected = effective == GlassMaterial.BALANCED,
+                    enabled = true,
+                    onClick = { onMaterialSelected(GlassMaterial.BALANCED) },
+                    tag = "glass_material_balanced"
+                )
+                GlassMaterialOption(
+                    title = stringResource(R.string.glass_material_quality),
+                    description = stringResource(R.string.glass_material_quality_desc),
+                    selected = effective == GlassMaterial.QUALITY,
+                    enabled = blurSupported,
+                    onClick = { onMaterialSelected(GlassMaterial.QUALITY) },
+                    tag = "glass_material_quality"
                 )
             }
 
             if (!blurSupported) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = stringResource(R.string.glass_quality_unsupported),
+                    text = stringResource(R.string.glass_material_unsupported),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -95,7 +105,7 @@ fun GlassQualityCard(
 }
 
 @Composable
-private fun GlassQualityOption(
+private fun GlassMaterialOption(
     title: String,
     description: String,
     selected: Boolean,

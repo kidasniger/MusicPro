@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.unit.IntSize
+import com.example.data.preferences.rendersBlur
 import kotlin.math.roundToInt
 
 /** État partagé : calque contenant le rendu du fond + sa position à l'écran. */
@@ -40,7 +41,7 @@ fun rememberGlassBackdropState(): GlassBackdropState {
  * Enregistre le contenu de ce Modifier dans le calque du backdrop, puis le dessine normalement.
  * Ne jamais y placer de GlassSurface (récursion).
  *
- * Avec [enabled] = false (API < 31 ou option « Plus rapide »), rien n'est enregistré :
+ * Avec [enabled] = false (API < 31 ou niveau FASTEST), rien n'est enregistré :
  * le contenu n'est dessiné qu'une seule fois, ce qui garde l'application fluide.
  */
 fun Modifier.glassBackdropSource(state: GlassBackdropState, enabled: Boolean = true): Modifier =
@@ -66,7 +67,7 @@ fun Modifier.glassBackdropSource(state: GlassBackdropState, enabled: Boolean = t
  *  - [background] : ce qui sera visible (et flouté) derrière le verre ;
  *  - [foreground] : barres, mini-lecteur, boutons… qui utilisent [GlassSurface].
  *
- * Quand le flou est indisponible ou désactivé, le fond n'est pas enregistré et les
+ * Avec le niveau FASTEST ou avant Android 12, le fond n'est pas enregistré et les
  * [GlassSurface] reçoivent `null` : elles affichent l'aplat translucide.
  */
 @Composable
@@ -76,7 +77,7 @@ fun GlassBackdropHost(
     background: @Composable BoxScope.() -> Unit,
     foreground: @Composable BoxScope.() -> Unit
 ) {
-    val recordBackdrop = LocalGlassBlurAllowed.current && glassBlurSupported
+    val recordBackdrop = LocalGlassMaterial.current.rendersBlur(glassBlurSupported)
     Box(modifier) {
         val boxScope = this
         // matchParentSize est un membre de BoxScope (pas d'import nécessaire).

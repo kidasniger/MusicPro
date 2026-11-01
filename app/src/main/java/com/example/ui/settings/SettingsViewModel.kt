@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.preferences.AppThemeMode
-import com.example.data.preferences.GlassQuality
+import com.example.data.preferences.GlassMaterial
 import com.example.data.preferences.UserPreferencesRepository
 import com.example.data.repository.AudioRepository
 import com.example.updater.AppUpdateManager
@@ -37,8 +37,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val isDynamicColor: StateFlow<Boolean> = preferencesRepository.isDynamicColorEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    val glassQuality: StateFlow<GlassQuality> = preferencesRepository.glassQuality
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), GlassQuality.BEAUTIFUL)
+    val glassMaterial: StateFlow<GlassMaterial> = preferencesRepository.glassMaterial
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), GlassMaterial.BALANCED)
 
     val autoPlay: StateFlow<Boolean> = preferencesRepository.autoPlay
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
@@ -77,9 +77,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun setGlassQuality(quality: GlassQuality) {
+    fun setGlassMaterial(material: GlassMaterial) {
         viewModelScope.launch {
-            preferencesRepository.setGlassQuality(quality)
+            preferencesRepository.setGlassMaterial(material)
         }
     }
 

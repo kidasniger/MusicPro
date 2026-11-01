@@ -9,18 +9,19 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Description d'un « matériau » de verre : flou, voile de couleur (Film),
- * reflet haut→bas et bordure en dégradé.
+ * Recette de base d'une surface en verre : rayon de flou, voile de couleur (film), reflet et bordure.
+ * Le niveau choisi par l'utilisateur ([com.example.data.preferences.GlassMaterial]) décide ensuite
+ * de ce qui est réellement dessiné avec cette recette (voir [GlassSurface]).
  */
 @Immutable
-data class GlassMaterial(
-    /** Rayon du flou du contenu derrière (ignoré sous API 31 ou avec l'option « Plus rapide »). */
+data class GlassSpec(
+    /** Rayon du flou en QUALITY (BALANCED utilise [GlassBalancedBlurRadius], FASTEST aucun). */
     val blurRadius: Dp,
-    /** Couleur du voile (Film). */
+    /** Couleur du voile (film). */
     val filmColor: Color,
     /** Opacité du film quand le flou est actif. */
     val filmAlpha: Float,
-    /** Opacité de l'aplat quand le flou est indisponible ou désactivé (voir [GlassFlatFallbackAlpha]). */
+    /** Opacité de l'aplat sans flou (voir [GlassFlatFallbackAlpha]). */
     val fallbackFilmAlpha: Float,
     /** Couleur du contenu posé sur le verre (texte, icônes). */
     val contentColor: Color,
@@ -31,26 +32,26 @@ data class GlassMaterial(
     val borderWidth: Dp = 1.dp
 )
 
-/** Matériaux prêts à l'emploi, adaptés au thème clair ou sombre courant. */
+/** Recettes prêtes à l'emploi, adaptées au thème clair ou sombre courant. */
 object GlassMaterials {
 
     /** Barres, boutons ronds. */
     @Composable
-    fun regular(): GlassMaterial = build(blur = 24.dp, dark = 0.45f, light = 0.55f)
+    fun regular(): GlassSpec = build(blur = 24.dp, dark = 0.45f, light = 0.55f)
 
     /** Éléments légers posés sur des visuels (pochettes). */
     @Composable
-    fun thin(): GlassMaterial = build(blur = 16.dp, dark = 0.30f, light = 0.40f)
+    fun thin(): GlassSpec = build(blur = 16.dp, dark = 0.30f, light = 0.40f)
 
     /** Feuilles et zones de texte dense : contraste maximal. */
     @Composable
-    fun thick(): GlassMaterial = build(blur = 32.dp, dark = 0.65f, light = 0.75f)
+    fun thick(): GlassSpec = build(blur = 32.dp, dark = 0.65f, light = 0.75f)
 
     @Composable
-    private fun build(blur: Dp, dark: Float, light: Float): GlassMaterial {
+    private fun build(blur: Dp, dark: Float, light: Float): GlassSpec {
         val scheme = MaterialTheme.colorScheme
         val isDark = scheme.surface.luminance() < 0.5f
-        return GlassMaterial(
+        return GlassSpec(
             blurRadius = blur,
             filmColor = scheme.surface,
             filmAlpha = if (isDark) dark else light,

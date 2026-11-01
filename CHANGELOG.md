@@ -7,7 +7,7 @@
 - Parcours de recherche, bibliothèque et lecture affinés.
 - Écran de démarrage raccourci pour un accès plus rapide.
 - Libellés utilisateur simplifiés, sans exposition de détails techniques.
-- Nouveau réglage « Effet verre » : « Plus beau » (flou en temps réel) ou « Plus rapide » (fond translucide sans flou, plus fluide sur les petits téléphones).
+- Nouveau réglage « Effet verre » à trois niveaux : « Le plus rapide » (fond translucide sans flou), « Équilibré » (léger flou et un reflet, par défaut) et « Qualité » (flou réel, reflets, bordure lumineuse, grain léger et ombre douce, Android 12 et plus).
 
 
 - Le lecteur n'utilise plus les curseurs audio standards : progression tactile avec **−10 s / +10 s** et volume avec **− / +**.

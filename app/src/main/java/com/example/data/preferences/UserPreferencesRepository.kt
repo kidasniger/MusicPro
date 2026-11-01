@@ -1,6 +1,5 @@
 package com.example.data.preferences
 
-import android.app.ActivityManager
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -31,23 +30,15 @@ enum class AppThemeMode(val displayName: String) {
     SYSTEM("Système")
 }
 
-/**
- * Qualité de l'effet verre.
- * BEAUTIFUL : flou en temps réel derrière les surfaces en verre (Android 12+).
- * FAST : aplat translucide sans flou, plus fluide sur les petits téléphones.
- */
-enum class GlassQuality {
-    BEAUTIFUL,
-    FAST
-}
-
 class UserPreferencesRepository(private val context: Context) {
 
     companion object {
         val KEY_ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         val KEY_THEME_MODE = stringPreferencesKey("app_theme_mode")
         val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
-        val KEY_GLASS_QUALITY = stringPreferencesKey("glass_quality")
+        val KEY_GLASS_MATERIAL = stringPreferencesKey("glass_material")
+        /** Ancienne clé (mise à jour 004, valeurs BEAUTIFUL / FAST) : migrée à la lecture. */
+        val KEY_GLASS_QUALITY_LEGACY = stringPreferencesKey("glass_quality")
         val KEY_FAVORITE_TRACK_IDS = stringSetPreferencesKey("favorite_track_ids")
         val KEY_SEARCH_HISTORY = stringPreferencesKey("search_history")
         val KEY_AUTO_PLAY = booleanPreferencesKey("auto_play")
@@ -103,22 +94,16 @@ class UserPreferencesRepository(private val context: Context) {
             preferences[KEY_DYNAMIC_COLOR] ?: false
         }
 
-    /**
-     * Valeur par défaut sûre : « Plus rapide » sur les appareils à faible mémoire,
-     * « Plus beau » ailleurs (le flou reste de toute façon ignoré avant Android 12).
-     */
-    private fun defaultGlassQuality(): GlassQuality {
-        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
-        return if (activityManager?.isLowRamDevice == true) GlassQuality.FAST else GlassQuality.BEAUTIFUL
-    }
-
-    val glassQuality: Flow<GlassQuality> = context.musicProDataStore.data
+    /** Niveau de l'effet verre ; BALANCED par défaut, ancienne clé migrée (voir [resolveGlassMaterial]). */
+    val glassMaterial: Flow<GlassMaterial> = context.musicProDataStore.data
         .catch { exception ->
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
         .map { preferences ->
-            val stored = preferences[KEY_GLASS_QUALITY]
-            GlassQuality.values().firstOrNull { it.name == stored } ?: defaultGlassQuality()
+            resolveGlassMaterial(
+                stored = preferences[KEY_GLASS_MATERIAL],
+                legacy = preferences[KEY_GLASS_QUALITY_LEGACY]
+            )
         }
 
     suspend fun setOnboardingCompleted(completed: Boolean) {
@@ -133,9 +118,10 @@ class UserPreferencesRepository(private val context: Context) {
         }
     }
 
-    suspend fun setGlassQuality(quality: GlassQuality) {
+    suspend fun setGlassMaterial(material: GlassMaterial) {
         context.musicProDataStore.edit { preferences ->
-            preferences[KEY_GLASS_QUALITY] = quality.name
+            preferences[KEY_GLASS_MATERIAL] = material.name
+            preferences.remove(KEY_GLASS_QUALITY_LEGACY)
         }
     }
 

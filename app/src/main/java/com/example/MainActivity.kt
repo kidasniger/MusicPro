@@ -24,11 +24,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.data.preferences.GlassQuality
 import com.example.permissions.PermissionViewModel
 import com.example.playback.MusicPlaybackService
 import com.example.ui.components.AppUpdateDialog
-import com.example.ui.components.glass.LocalGlassBlurAllowed
+import com.example.ui.components.glass.LocalGlassMaterial
 import com.example.ui.navigation.MusicProNavGraph
 import com.example.ui.onboarding.OnboardingViewModel
 import com.example.ui.settings.SettingsViewModel
@@ -55,7 +54,7 @@ class MainActivity : ComponentActivity() {
       val currentThemeMode by settingsViewModel.themeMode.collectAsStateWithLifecycle()
       val mediaUiRequest by mediaUiRequestState
       val isDynamicColor by settingsViewModel.isDynamicColor.collectAsStateWithLifecycle()
-      val glassQuality by settingsViewModel.glassQuality.collectAsStateWithLifecycle()
+      val glassMaterial by settingsViewModel.glassMaterial.collectAsStateWithLifecycle()
 
       MusicProTheme(themeMode = currentThemeMode, dynamicColor = isDynamicColor) {
         val context = LocalContext.current
@@ -88,10 +87,8 @@ class MainActivity : ComponentActivity() {
           }
         }
 
-        // Réglage « Effet verre » : « Plus rapide » désactive le flou dans toute l'application.
-        CompositionLocalProvider(
-          LocalGlassBlurAllowed provides (glassQuality == GlassQuality.BEAUTIFUL)
-        ) {
+        // Réglage « Effet verre » : le niveau choisi s'applique à toute l'application.
+        CompositionLocalProvider(LocalGlassMaterial provides glassMaterial) {
           Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background

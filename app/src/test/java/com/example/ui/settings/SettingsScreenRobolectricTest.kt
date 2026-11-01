@@ -11,7 +11,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
 import com.example.data.preferences.AppThemeMode
-import com.example.data.preferences.GlassQuality
+import com.example.data.preferences.GlassMaterial
 import com.example.data.preferences.UserPreferencesRepository
 import com.example.data.security.GroqApiKeyStore
 import com.example.ui.theme.MusicProTheme
@@ -61,15 +61,18 @@ class SettingsScreenRobolectricTest {
     }
 
     @Test
-    fun testGlassQualityPersistence() = runTest {
+    fun testGlassMaterialPersistence() = runTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val repo = UserPreferencesRepository(context)
 
-        repo.setGlassQuality(GlassQuality.FAST)
-        assertEquals(GlassQuality.FAST, repo.glassQuality.first())
+        repo.setGlassMaterial(GlassMaterial.FASTEST)
+        assertEquals(GlassMaterial.FASTEST, repo.glassMaterial.first())
 
-        repo.setGlassQuality(GlassQuality.BEAUTIFUL)
-        assertEquals(GlassQuality.BEAUTIFUL, repo.glassQuality.first())
+        repo.setGlassMaterial(GlassMaterial.QUALITY)
+        assertEquals(GlassMaterial.QUALITY, repo.glassMaterial.first())
+
+        repo.setGlassMaterial(GlassMaterial.BALANCED)
+        assertEquals(GlassMaterial.BALANCED, repo.glassMaterial.first())
     }
 
     @Test
