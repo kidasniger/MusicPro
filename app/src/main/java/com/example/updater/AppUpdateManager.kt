@@ -155,19 +155,24 @@ class AppUpdateManager(
                 .get()
                 .build()
 
-            val response = httpClient.newCall(request).execute()
-            if (!response.isSuccessful) {
-                val err = if (response.code == 404) {
-                    "Aucune release trouvée sur GitHub pour le moment."
+            val (isOk, httpCode, responseBody) = httpClient.newCall(request).execute().use { response ->
+                Triple(
+                    response.isSuccessful,
+                    response.code,
+                    if (response.isSuccessful) response.body?.string().orEmpty() else ""
+                )
+            }
+            if (!isOk) {
+                val err = if (httpCode == 404) {
+                    "Aucune release trouvée pour le moment."
                 } else {
-                    "Erreur GitHub HTTP ${response.code}"
+                    "Erreur serveur HTTP $httpCode"
                 }
                 val errorState = UpdateCheckState.Error(err)
                 _updateCheckState.value = errorState
                 return@withContext errorState
             }
 
-            val responseBody = response.body?.string() ?: ""
             val adapter = moshi.adapter(GitHubRelease::class.java)
             val release = adapter.fromJson(responseBody)
                 ?: return@withContext UpdateCheckState.Error("Données de release invalides").also {
@@ -234,11 +239,13 @@ class AppUpdateManager(
             val response = httpClient.newCall(request).execute()
             if (!response.isSuccessful) {
                 _downloadState.value = DownloadState.Error("Échec du téléchargement (HTTP ${response.code})")
+                response.close()
                 return@withContext
             }
 
             val body = response.body ?: run {
                 _downloadState.value = DownloadState.Error("Réponse de téléchargement vide")
+                response.close()
                 return@withContext
             }
 
@@ -252,29 +259,30 @@ class AppUpdateManager(
             updatesDir.listFiles()?.forEach { it.delete() }
 
             val destinationFile = File(updatesDir, "MusicPro_update.apk")
-            val inputStream = body.byteStream()
-            val outputStream = FileOutputStream(destinationFile)
 
-            val buffer = ByteArray(8 * 1024)
-            var bytesCopied: Long = 0
-            var read: Int
+            response.use {
+                body.byteStream().use { inputStream ->
+                    FileOutputStream(destinationFile).use { outputStream ->
+                        val buffer = ByteArray(8 * 1024)
+                        var bytesCopied: Long = 0
+                        var read: Int
 
-            while (inputStream.read(buffer).also { read = it } != -1) {
-                outputStream.write(buffer, 0, read)
-                bytesCopied += read
-                if (totalBytes > 0) {
-                    val progress = ((bytesCopied * 100) / totalBytes).toInt()
-                    _downloadState.value = DownloadState.Downloading(
-                        progressPercent = progress,
-                        downloadedBytes = bytesCopied,
-                        totalBytes = totalBytes
-                    )
+                        while (inputStream.read(buffer).also { read = it } != -1) {
+                            outputStream.write(buffer, 0, read)
+                            bytesCopied += read
+                            if (totalBytes > 0) {
+                                val progress = ((bytesCopied * 100) / totalBytes).toInt()
+                                _downloadState.value = DownloadState.Downloading(
+                                    progressPercent = progress,
+                                    downloadedBytes = bytesCopied,
+                                    totalBytes = totalBytes
+                                )
+                            }
+                        }
+                        outputStream.flush()
+                    }
                 }
             }
-
-            outputStream.flush()
-            outputStream.close()
-            inputStream.close()
 
             _downloadState.value = DownloadState.Downloaded(destinationFile.absolutePath)
 
@@ -289,13 +297,16 @@ class AppUpdateManager(
 
     /**
      * Vérifie si l'application a la permission d'installer des paquets et lance l'intent d'installation.
+     * Ne plante jamais : en cas d'échec, l'état de téléchargement passe en erreur.
      */
     fun installApk(apkFile: File) {
         if (!apkFile.exists()) return
 
-        // Sur Android 8.0+, vérifier si l'autorisation d'installer des paquets est accordée
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (!context.packageManager.canRequestPackageInstalls()) {
+        try {
+            // Sur Android 8.0+, vérifier si l'autorisation d'installer des paquets est accordée
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                !context.packageManager.canRequestPackageInstalls()
+            ) {
                 val permissionIntent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
                     data = Uri.parse("package:${context.packageName}")
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -303,21 +314,25 @@ class AppUpdateManager(
                 context.startActivity(permissionIntent)
                 return
             }
+
+            val apkUri: Uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.provider",
+                apkFile
+            )
+
+            val installIntent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(apkUri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+
+            context.startActivity(installIntent)
+        } catch (e: Exception) {
+            _downloadState.value = DownloadState.Error(
+                "Impossible d'ouvrir l'installateur : ${e.localizedMessage ?: "erreur inconnue"}"
+            )
         }
-
-        val apkUri: Uri = FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.provider",
-            apkFile
-        )
-
-        val installIntent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(apkUri, "application/vnd.android.package-archive")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-
-        context.startActivity(installIntent)
     }
 
     fun resetState() {
