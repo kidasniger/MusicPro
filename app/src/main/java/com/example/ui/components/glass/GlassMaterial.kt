@@ -14,13 +14,13 @@ import androidx.compose.ui.unit.dp
  */
 @Immutable
 data class GlassMaterial(
-    /** Rayon du flou du contenu derrière (ignoré sous API 31). */
+    /** Rayon du flou du contenu derrière (ignoré sous API 31 ou avec l'option « Plus rapide »). */
     val blurRadius: Dp,
     /** Couleur du voile (Film). */
     val filmColor: Color,
     /** Opacité du film quand le flou est actif. */
     val filmAlpha: Float,
-    /** Opacité du film quand le flou est indisponible (API < 31 ou pas de fond). */
+    /** Opacité de l'aplat quand le flou est indisponible ou désactivé (voir [GlassFlatFallbackAlpha]). */
     val fallbackFilmAlpha: Float,
     /** Couleur du contenu posé sur le verre (texte, icônes). */
     val contentColor: Color,
@@ -54,7 +54,7 @@ object GlassMaterials {
             blurRadius = blur,
             filmColor = scheme.surface,
             filmAlpha = if (isDark) dark else light,
-            fallbackFilmAlpha = 0.92f,
+            fallbackFilmAlpha = GlassFlatFallbackAlpha,
             contentColor = scheme.onSurface
         )
     }

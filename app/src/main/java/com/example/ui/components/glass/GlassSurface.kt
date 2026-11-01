@@ -1,6 +1,5 @@
 package com.example.ui.components.glass
 
-import android.os.Build
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -34,10 +33,14 @@ import kotlin.math.roundToInt
 
 /**
  * Surface « verre liquide » unique de l'application.
- * Empile : (1) fond flouté, (2) film, (3) reflet haut→bas, (4) bordure 1 dp en dégradé.
  *
- * Sans [GlassBackdropHost] parent, ou sous API 31, le flou est remplacé par un film plus opaque
- * (lisibilité et contraste conservés).
+ * Flou actif (Android 12+, option « Plus beau », [GlassBackdropHost] présent) :
+ * (1) copie du fond rendue dans un calque avec un RenderEffect de flou, (2) film,
+ * (3) reflet haut→bas, (4) bordure 1 dp en dégradé.
+ *
+ * Sinon (API < 31, option « Plus rapide » ou pas de fond) : aplat translucide
+ * d'opacité [GlassFlatFallbackAlpha], sans flou ni reflet, avec la fine bordure.
+ * Rien n'est enregistré ni mesuré dans ce mode.
  */
 @Composable
 fun GlassSurface(
@@ -47,11 +50,13 @@ fun GlassSurface(
     content: @Composable BoxScope.() -> Unit
 ) {
     val backdrop = LocalGlassBackdrop.current
+    val blurAllowed = LocalGlassBlurAllowed.current
     val blurLayer = rememberGraphicsLayer()
     var origin by remember { mutableStateOf(Offset.Zero) }
 
     val blurOn = backdrop != null &&
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+        blurAllowed &&
+        glassBlurSupported &&
         material.blurRadius > 0.dp
 
     val radiusPx = with(LocalDensity.current) { material.blurRadius.toPx() }
@@ -79,10 +84,17 @@ fun GlassSurface(
 
     Box(
         modifier = modifier
-            .onGloballyPositioned { origin = it.positionInWindow() }
+            // La position n'est utile qu'au flou : pas de suivi en mode aplat.
+            .then(
+                if (blurOn) {
+                    Modifier.onGloballyPositioned { origin = it.positionInWindow() }
+                } else {
+                    Modifier
+                }
+            )
             .clip(shape)
             .drawWithContent {
-                // (1) fond flouté
+                // (1) copie du fond, floutée par le RenderEffect du calque
                 if (blurOn && backdrop != null) {
                     val dx = backdrop.origin.x - origin.x
                     val dy = backdrop.origin.y - origin.y
@@ -95,14 +107,16 @@ fun GlassSurface(
                     }
                     drawLayer(blurLayer)
                 }
-                // (2) film
+                // (2) film (ou aplat translucide quand il n'y a pas de flou)
                 drawRect(
                     material.filmColor.copy(
                         alpha = if (blurOn) material.filmAlpha else material.fallbackFilmAlpha
                     )
                 )
-                // (3) reflet haut → bas
-                drawRect(brush = highlightBrush)
+                // (3) reflet haut → bas : uniquement avec le flou
+                if (blurOn) {
+                    drawRect(brush = highlightBrush)
+                }
                 drawContent()
             }
             // (4) bordure en dégradé

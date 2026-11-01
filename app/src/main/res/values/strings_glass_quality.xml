@@ -1,0 +1,10 @@
+<resources>
+    <!-- Réglage : effet verre -->
+    <string name="glass_quality_title">Effet verre</string>
+    <string name="glass_quality_subtitle">Barre de navigation et mini-lecteur</string>
+    <string name="glass_quality_beautiful">Plus beau</string>
+    <string name="glass_quality_beautiful_desc">Flou en temps réel derrière les éléments en verre</string>
+    <string name="glass_quality_fast">Plus rapide</string>
+    <string name="glass_quality_fast_desc">Fond translucide sans flou, plus fluide sur les petits téléphones</string>
+    <string name="glass_quality_unsupported">Le flou nécessite Android 12 ou plus. Un fond translucide est utilisé sur cet appareil.</string>
+</resources>

@@ -39,25 +39,35 @@ fun rememberGlassBackdropState(): GlassBackdropState {
 /**
  * Enregistre le contenu de ce Modifier dans le calque du backdrop, puis le dessine normalement.
  * Ne jamais y placer de GlassSurface (récursion).
+ *
+ * Avec [enabled] = false (API < 31 ou option « Plus rapide »), rien n'est enregistré :
+ * le contenu n'est dessiné qu'une seule fois, ce qui garde l'application fluide.
  */
-fun Modifier.glassBackdropSource(state: GlassBackdropState): Modifier =
-    this
-        .onGloballyPositioned { state.origin = it.positionInWindow() }
-        .drawWithContent {
-            state.layer.record(
-                density = this,
-                layoutDirection = layoutDirection,
-                size = IntSize(size.width.roundToInt(), size.height.roundToInt())
-            ) {
-                this@drawWithContent.drawContent()
+fun Modifier.glassBackdropSource(state: GlassBackdropState, enabled: Boolean = true): Modifier =
+    if (!enabled) {
+        this
+    } else {
+        this
+            .onGloballyPositioned { state.origin = it.positionInWindow() }
+            .drawWithContent {
+                state.layer.record(
+                    density = this,
+                    layoutDirection = layoutDirection,
+                    size = IntSize(size.width.roundToInt(), size.height.roundToInt())
+                ) {
+                    this@drawWithContent.drawContent()
+                }
+                drawLayer(state.layer)
             }
-            drawLayer(state.layer)
-        }
+    }
 
 /**
  * Conteneur à deux plans :
  *  - [background] : ce qui sera visible (et flouté) derrière le verre ;
  *  - [foreground] : barres, mini-lecteur, boutons… qui utilisent [GlassSurface].
+ *
+ * Quand le flou est indisponible ou désactivé, le fond n'est pas enregistré et les
+ * [GlassSurface] reçoivent `null` : elles affichent l'aplat translucide.
  */
 @Composable
 fun GlassBackdropHost(
@@ -66,14 +76,17 @@ fun GlassBackdropHost(
     background: @Composable BoxScope.() -> Unit,
     foreground: @Composable BoxScope.() -> Unit
 ) {
+    val recordBackdrop = LocalGlassBlurAllowed.current && glassBlurSupported
     Box(modifier) {
         val boxScope = this
         // matchParentSize est un membre de BoxScope (pas d'import nécessaire).
         Box(
-            modifier = Modifier.matchParentSize().glassBackdropSource(state),
+            modifier = Modifier
+                .matchParentSize()
+                .glassBackdropSource(state, enabled = recordBackdrop),
             content = background
         )
-        CompositionLocalProvider(LocalGlassBackdrop provides state) {
+        CompositionLocalProvider(LocalGlassBackdrop provides (if (recordBackdrop) state else null)) {
             boxScope.foreground()
         }
     }
