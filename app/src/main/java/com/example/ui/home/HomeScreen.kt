@@ -38,11 +38,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
@@ -121,8 +119,11 @@ import com.example.ui.components.EqualizerSheet
 import com.example.ui.components.KaraokeSettingsDialog
 import com.example.ui.components.EmptyAudioStateView
 import com.example.ui.components.glass.GlassBackdropHost
+import com.example.ui.components.glass.GlassMiniPlayer
 import com.example.ui.components.glass.GlassNavBar
 import com.example.ui.components.glass.GlassNavItem
+import com.example.ui.components.glass.SharedCoverHost
+import com.example.ui.components.glass.SharedCoverVisibility
 import com.example.ui.settings.SettingsViewModel
 import com.example.updater.UpdateCheckState
 import com.example.ui.library.LibraryScreen
@@ -177,7 +178,8 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     var currentSectionName by rememberSaveable { mutableStateOf(NavigationSection.HOME.name) }
-    val currentSection = NavigationSection.valueOf(currentSectionName)
+    val currentSection = NavigationSection.entries.firstOrNull { it.name == currentSectionName }
+        ?: NavigationSection.HOME
     var isNowPlayingOpen by rememberSaveable { mutableStateOf(initialOpenNowPlaying) }
     var isLyricsOpen by rememberSaveable { mutableStateOf(false) }
     var isLrclibSearchOpen by rememberSaveable { mutableStateOf(false) }
@@ -372,7 +374,7 @@ fun HomeScreen(
         }
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
+    SharedCoverHost(modifier = modifier.fillMaxSize()) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = MaterialTheme.colorScheme.background
@@ -497,20 +499,18 @@ fun HomeScreen(
                             .fillMaxWidth()
                             .onSizeChanged { overlayHeightPx = it.height }
                     ) {
-                        // Mini-lecteur persistant s'il y a un morceau
+                        // Mini-lecteur flottant en verre (56 dp, 8 dp au-dessus de la barre)
                         if (activeTrack != null) {
-                            MiniPlayerBar(
+                            GlassMiniPlayer(
+                                visible = !isNowPlayingOpen,
                                 track = activeTrack,
                                 isPlaying = isPlaying,
-                                progressMs = progressMs,
                                 onPlayPauseToggle = { audioViewModel.togglePlayPause() },
                                 onNext = { audioViewModel.playNext() },
                                 onPrevious = { audioViewModel.playPrevious() },
-                                onClick = { isNowPlayingOpen = true },
-                                onOpenLyrics = { isLyricsOpen = true },
+                                onOpen = { isNowPlayingOpen = true },
                                 modifier = Modifier.testTag("mini_player_bar")
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
                         }
 
                         // Barre de navigation flottante en pilule de verre
@@ -524,12 +524,8 @@ fun HomeScreen(
             )
         }
 
-        // Modal plein écran Now Playing avec animations néon
-        AnimatedVisibility(
-            visible = isNowPlayingOpen,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
+        // Modal plein écran Now Playing avec transition partagée de la pochette
+        SharedCoverVisibility(visible = isNowPlayingOpen) {
             NowPlayingScreen(
                 track = activeTrack,
                 isPlaying = isPlaying,
@@ -715,14 +711,14 @@ fun HomeScreen(
         }
 
         // Dialogue d'ajout de morceaux à la playlist active
-        if (isAddTracksToPlaylistOpen && selectedPlaylist != null) {
+        selectedPlaylist?.takeIf { isAddTracksToPlaylistOpen }?.let { openPlaylist ->
             AddTracksToPlaylistDialog(
                 allTracks = tracks,
                 existingTrackIds = selectedPlaylistTracks.map { it.id }.toSet(),
-                playlistName = selectedPlaylist!!.name,
+                playlistName = openPlaylist.name,
                 onDismiss = { isAddTracksToPlaylistOpen = false },
                 onAddTracks = { trackIds ->
-                    audioViewModel.addTracksToPlaylist(selectedPlaylist!!.id, trackIds)
+                    audioViewModel.addTracksToPlaylist(openPlaylist.id, trackIds)
                     isAddTracksToPlaylistOpen = false
                 }
             )
@@ -1167,175 +1163,5 @@ private fun StatCard(
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-    }
-}
-
-@Composable
-private fun MiniPlayerBar(
-    track: AudioTrackEntity,
-    isPlaying: Boolean,
-    progressMs: Long,
-    onPlayPauseToggle: () -> Unit,
-    onNext: () -> Unit,
-    onPrevious: () -> Unit,
-    onClick: () -> Unit = {},
-    onOpenLyrics: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
-) {
-    val progressFraction = if (track.duration > 0) {
-        (progressMs.toFloat() / track.duration.toFloat()).coerceIn(0f, 1f)
-    } else 0f
-
-    var horizontalDrag by remember(track.id) { mutableStateOf(0f) }
-
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .pointerInput(track.id) {
-                detectHorizontalDragGestures(
-                    onDragStart = { horizontalDrag = 0f },
-                    onHorizontalDrag = { change, amount ->
-                        change.consume()
-                        horizontalDrag += amount
-                    },
-                    onDragEnd = {
-                        when {
-                            horizontalDrag > 80f -> onPrevious()
-                            horizontalDrag < -80f -> onNext()
-                        }
-                        horizontalDrag = 0f
-                    },
-                    onDragCancel = { horizontalDrag = 0f }
-                )
-            }
-            .clickable(onClick = onClick)
-            .shadow(16.dp, spotColor = MusicProVioletGlow),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.35f))
-    ) {
-        Column {
-            // Glowing progress line
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(2.5.dp)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f))
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(progressFraction)
-                        .height(2.5.dp)
-                        .background(MusicProPrimaryGradient)
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Mini album art
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.16f), RoundedCornerShape(8.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (!track.albumArtUri.isNullOrBlank()) {
-                        AsyncImage(
-                            model = track.albumArtUri,
-                            contentDescription = track.album,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.GraphicEq,
-                            contentDescription = null,
-                            tint = MusicProCyanNeon,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = track.title,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = "${track.artist} • ${track.getAudioFormat()}",
-                        fontSize = 11.sp,
-                        color = MusicProCyanNeon,
-                        maxLines = 1
-                    )
-                }
-
-                IconButton(
-                    onClick = onPrevious,
-                    modifier = Modifier .size(48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.SkipPrevious,
-                        contentDescription = "Précédent",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-
-                IconButton(
-                    onClick = onPlayPauseToggle,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(MusicProVioletPrimary)
-                        .testTag("mini_player_play_pause_button")
-                ) {
-                    Icon(
-                        imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = if (isPlaying) "Pause" else "Lecture",
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-
-                IconButton(
-                    onClick = onNext,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.SkipNext,
-                        contentDescription = "Suivant",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-
-                if (onOpenLyrics != null) {
-                    IconButton(
-                        onClick = onOpenLyrics,
-                        modifier = Modifier
-                            .size(48.dp)
-                            .testTag("mini_player_lyrics_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Subtitles,
-                            contentDescription = "Paroles",
-                            tint = MusicProCyanNeon,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
-            }
-        }
     }
 }

@@ -105,6 +105,7 @@ import androidx.media3.common.Player
 import coil.compose.AsyncImage
 import com.example.data.local.AudioTrackEntity
 import com.example.lyrics.LyricsData
+import com.example.ui.components.glass.sharedCover
 import com.example.ui.theme.MusicProCyanGlow
 import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
@@ -407,10 +408,11 @@ fun NowPlayingScreen(
                             .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.08f), CircleShape)
                     )
 
-                    // Pochette centrale rotative
+                    // Pochette centrale rotative (élément partagé avec le mini-lecteur)
                     val centerArtSize = vinylSize * 0.62f
                     Box(
                         modifier = Modifier
+                            .sharedCover()
                             .size(centerArtSize)
                             .clip(CircleShape)
                             .rotate(if (isPlaying) vinylRotation else 0f)
