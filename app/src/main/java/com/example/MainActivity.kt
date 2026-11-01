@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,9 +24,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.data.preferences.GlassQuality
 import com.example.permissions.PermissionViewModel
 import com.example.playback.MusicPlaybackService
 import com.example.ui.components.AppUpdateDialog
+import com.example.ui.components.glass.LocalGlassBlurAllowed
 import com.example.ui.navigation.MusicProNavGraph
 import com.example.ui.onboarding.OnboardingViewModel
 import com.example.ui.settings.SettingsViewModel
@@ -52,6 +55,7 @@ class MainActivity : ComponentActivity() {
       val currentThemeMode by settingsViewModel.themeMode.collectAsStateWithLifecycle()
       val mediaUiRequest by mediaUiRequestState
       val isDynamicColor by settingsViewModel.isDynamicColor.collectAsStateWithLifecycle()
+      val glassQuality by settingsViewModel.glassQuality.collectAsStateWithLifecycle()
 
       MusicProTheme(themeMode = currentThemeMode, dynamicColor = isDynamicColor) {
         val context = LocalContext.current
@@ -84,29 +88,34 @@ class MainActivity : ComponentActivity() {
           }
         }
 
-        Surface(
-          modifier = Modifier.fillMaxSize(),
-          color = MaterialTheme.colorScheme.background
+        // Réglage « Effet verre » : « Plus rapide » désactive le flou dans toute l'application.
+        CompositionLocalProvider(
+          LocalGlassBlurAllowed provides (glassQuality == GlassQuality.BEAUTIFUL)
         ) {
-          val openNowPlaying = intent?.action == MusicPlaybackService.ACTION_SHOW_NOW_PLAYING
-          MusicProNavGraph(
-            uiState = uiState,
-            isOnboardingCompleted = isOnboardingCompleted,
-            settingsViewModel = settingsViewModel,
-            initialOpenNowPlaying = openNowPlaying,
-            initialOpenQueue = mediaUiRequest?.first == MusicPlaybackService.ACTION_SHOW_QUEUE,
-            initialOpenLyrics = mediaUiRequest?.first == MusicPlaybackService.ACTION_SHOW_LYRICS,
-            mediaUiRequestId = mediaUiRequest?.second ?: 0L,
-            onCompleteOnboarding = {
-              onboardingViewModel.completeOnboarding()
-            },
-            onRequestPermissions = { result ->
-              permissionViewModel.onPermissionsResult(context, result)
-            },
-            onManualCheck = {
-              permissionViewModel.checkPermissions(context)
-            }
-          )
+          Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+          ) {
+            val openNowPlaying = intent?.action == MusicPlaybackService.ACTION_SHOW_NOW_PLAYING
+            MusicProNavGraph(
+              uiState = uiState,
+              isOnboardingCompleted = isOnboardingCompleted,
+              settingsViewModel = settingsViewModel,
+              initialOpenNowPlaying = openNowPlaying,
+              initialOpenQueue = mediaUiRequest?.first == MusicPlaybackService.ACTION_SHOW_QUEUE,
+              initialOpenLyrics = mediaUiRequest?.first == MusicPlaybackService.ACTION_SHOW_LYRICS,
+              mediaUiRequestId = mediaUiRequest?.second ?: 0L,
+              onCompleteOnboarding = {
+                onboardingViewModel.completeOnboarding()
+              },
+              onRequestPermissions = { result ->
+                permissionViewModel.onPermissionsResult(context, result)
+              },
+              onManualCheck = {
+                permissionViewModel.checkPermissions(context)
+              }
+            )
+          }
         }
 
         val currentUpdate = updateCheckState
@@ -161,4 +170,3 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 fun GreetingPreview() {
   MyApplicationTheme { Greeting("Android") }
 }
-

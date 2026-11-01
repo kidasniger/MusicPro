@@ -123,6 +123,7 @@ fun SettingsScreen(
     // États du ViewModel (Thème, Dynamic Color, Cache)
     val currentTheme by settingsViewModel.themeMode.collectAsStateWithLifecycle()
     val isDynamicColor by settingsViewModel.isDynamicColor.collectAsStateWithLifecycle()
+    val glassQuality by settingsViewModel.glassQuality.collectAsStateWithLifecycle()
     val autoPlay by settingsViewModel.autoPlay.collectAsStateWithLifecycle()
     val gaplessPlayback by settingsViewModel.gaplessPlayback.collectAsStateWithLifecycle()
     val resumePlayback by settingsViewModel.resumePlayback.collectAsStateWithLifecycle()
@@ -178,6 +179,14 @@ fun SettingsScreen(
                 onThemeSelected = { settingsViewModel.setThemeMode(it) },
                 isDynamicColor = isDynamicColor,
                 onDynamicColorChanged = { settingsViewModel.setDynamicColor(it) }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            GlassQualityCard(
+                quality = glassQuality,
+                blurSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
+                onQualitySelected = { settingsViewModel.setGlassQuality(it) }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
