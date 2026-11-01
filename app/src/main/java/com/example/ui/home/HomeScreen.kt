@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -45,27 +46,32 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.material.icons.automirrored.outlined.QueueMusic
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Subtitles
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.NewReleases
+import androidx.compose.material.icons.outlined.Radio
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -75,6 +81,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
@@ -87,7 +94,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -105,10 +115,14 @@ import com.example.ui.audio.AudioViewModel
 import com.example.ui.audio.LibraryTab
 import com.example.ui.components.AppUpdateDialog
 import com.example.ui.components.FavoritesScreen
+import com.example.ui.components.PlaceholderScreen
 import com.example.ui.components.QueueSheet
 import com.example.ui.components.EqualizerSheet
 import com.example.ui.components.KaraokeSettingsDialog
 import com.example.ui.components.EmptyAudioStateView
+import com.example.ui.components.glass.GlassBackdropHost
+import com.example.ui.components.glass.GlassNavBar
+import com.example.ui.components.glass.GlassNavItem
 import com.example.ui.settings.SettingsViewModel
 import com.example.updater.UpdateCheckState
 import com.example.ui.library.LibraryScreen
@@ -133,10 +147,20 @@ import com.example.ui.theme.MusicProVioletPastel
 import com.example.ui.theme.MusicProVioletPrimary
 import com.example.ui.theme.MusicProVioletVibrant
 
-enum class NavigationSection(val label: String, val icon: ImageVector) {
-    HOME("Accueil", Icons.Default.Home),
-    LIBRARY("Bibliothèque", Icons.AutoMirrored.Filled.QueueMusic),
-    SEARCH("Recherche", Icons.Default.Search)
+/**
+ * Sections de la barre de navigation flottante, dans l'ordre d'affichage.
+ * Les noms (HOME, LIBRARY, SEARCH) sont conservés : ils servent de clé de sauvegarde d'état.
+ */
+enum class NavigationSection(
+    @StringRes val labelRes: Int,
+    val icon: ImageVector,
+    val selectedIcon: ImageVector
+) {
+    HOME(R.string.nav_home, Icons.Outlined.Home, Icons.Default.Home),
+    NEW(R.string.nav_new, Icons.Outlined.NewReleases, Icons.Default.NewReleases),
+    RADIO(R.string.nav_radio, Icons.Outlined.Radio, Icons.Default.Radio),
+    LIBRARY(R.string.nav_library, Icons.AutoMirrored.Outlined.QueueMusic, Icons.AutoMirrored.Filled.QueueMusic),
+    SEARCH(R.string.nav_search, Icons.Outlined.Search, Icons.Default.Search)
 }
 
 @Composable
@@ -161,6 +185,19 @@ fun HomeScreen(
     var isQueueOpen by rememberSaveable { mutableStateOf(false) }
     var isEqualizerOpen by rememberSaveable { mutableStateOf(false) }
     var isKaraokeSettingsOpen by rememberSaveable { mutableStateOf(false) }
+
+    // Onglets de la barre de navigation flottante
+    val navItems = remember {
+        NavigationSection.entries.map { section ->
+            GlassNavItem(
+                key = section.name,
+                labelRes = section.labelRes,
+                icon = section.icon,
+                selectedIcon = section.selectedIcon,
+                testTag = "nav_tab_" + section.name.lowercase()
+            )
+        }
+    }
 
     // Ouvre l'écran demandé depuis la notification, y compris lorsque l'application
     // était déjà ouverte et reçoit un nouvel Intent via onNewIntent().
@@ -289,7 +326,7 @@ fun HomeScreen(
 
     // Gestion intelligente du retour arrière :
     // 1. Fermer les dialogues / sous-écrans ouverts (Paroles, Recherche Lrclib, Plein écran Now Playing, Détail Playlist)
-    // 2. Si on est sur l'onglet Bibliothèque ou Recherche, revenir à l'onglet Accueil
+    // 2. Si on est sur un autre onglet que l'Accueil, revenir à l'onglet Accueil
     // 3. Si on est déjà sur l'onglet Accueil, demander deux retours pour quitter l'application
     var lastBackPressTime by remember { mutableStateOf(0L) }
 
@@ -338,397 +375,434 @@ fun HomeScreen(
     Box(modifier = modifier.fillMaxSize()) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            containerColor = MaterialTheme.colorScheme.background,
-            bottomBar = {
-                Column {
-                    // Persistent Mini Player if there is a track
-                    if (activeTrack != null) {
-                        MiniPlayerBar(
-                            track = activeTrack,
-                            isPlaying = isPlaying,
-                            progressMs = progressMs,
-                            onPlayPauseToggle = { audioViewModel.togglePlayPause() },
-                            onNext = { audioViewModel.playNext() },
-                            onPrevious = { audioViewModel.playPrevious() },
-                            onClick = { isNowPlayingOpen = true },
-                            onOpenLyrics = { isLyricsOpen = true },
-                            modifier = Modifier.testTag("mini_player_bar")
-                        )
-                    }
-
-                    // Bottom Navigation Bar with neon accents
-                    MusicProBottomNavBar(
-                        currentSection = currentSection,
-                        onSelectSection = { currentSectionName = it.name }
-                    )
-                }
-            }
+            containerColor = MaterialTheme.colorScheme.background
         ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            when (currentSection) {
-                NavigationSection.HOME -> {
-                    HomeExplorerContent(
-                        tracks = tracks,
-                        recentTracks = recentTracks,
-                        albumsCount = albums.size,
-                        artistsCount = artists.size,
-                        foldersCount = folders.size,
-                        albums = albums,
-                        playlists = playlists,
-                        isScanning = isScanning,
-                        currentPlayingTrack = currentTrack,
-                        isPlaying = isPlaying,
-                        favorites = favorites,
-                        onOpenSettings = onOpenSettings,
-                        onOpenOnboarding = onOpenOnboarding,
-                        onNavigateToLibrary = { currentSectionName = NavigationSection.LIBRARY.name },
-                        onNavigateToRecent = {
-                            currentSectionName = NavigationSection.LIBRARY.name
-                            audioViewModel.selectTab(LibraryTab.RECENT)
-                        },
-                        onNavigateToSearch = { currentSectionName = NavigationSection.SEARCH.name },
-                        onOpenFavorites = { isFavoritesOpen = true },
-                        onTrackClick = { audioViewModel.playTrack(it) },
-                        onToggleFavorite = { audioViewModel.toggleFavorite(it) },
-                        onRefreshScan = { audioViewModel.refreshScan() }
-                    )
-                }
-                NavigationSection.LIBRARY -> {
-                    LibraryScreen(
-                        tracks = tracks,
-                        recentTracks = recentTracks,
-                        albums = albums,
-                        artists = artists,
-                        folders = folders,
-                        selectedTab = selectedLibraryTab,
-                        isScanning = isScanning,
-                        statusMessage = statusMessage,
-                        currentPlayingTrack = currentTrack,
-                        isPlaying = isPlaying,
-                        favorites = favorites,
-                        playlists = playlists,
-                        onPlaylistClick = { pl -> audioViewModel.selectPlaylist(pl.id) },
-                        onPlayPlaylistDirectly = { pl -> audioViewModel.playPlaylistDirectly(pl.id) },
-                        onCreatePlaylist = { name, desc -> audioViewModel.createPlaylist(name, desc) },
-                        onRenamePlaylist = { id, name, desc -> audioViewModel.updatePlaylistName(id, name, desc) },
-                        onDeletePlaylist = { id -> audioViewModel.deletePlaylist(id) },
-                        onSelectTab = { audioViewModel.selectTab(it) },
-                        onTrackClick = { audioViewModel.playTrack(it) },
-                        onToggleFavorite = { audioViewModel.toggleFavorite(it) },
-                        onRefreshScan = { audioViewModel.refreshScan() }
-                    )
-                }
-                NavigationSection.SEARCH -> {
-                    SearchScreen(
-                        query = searchQuery,
-                        filter = searchFilter,
-                        searchResults = searchResults,
-                        allTracks = tracks,
-                        currentPlayingTrack = currentTrack,
-                        isPlaying = isPlaying,
-                        favorites = favorites,
-                        onQueryChange = { audioViewModel.setSearchQuery(it) },
-                        onFilterChange = { audioViewModel.setSearchFilter(it) },
-                        onTrackClick = { audioViewModel.playTrack(it) },
-                        onToggleFavorite = { audioViewModel.toggleFavorite(it) },
-                        searchHistory = searchHistory,
-                        onSearchSubmit = { audioViewModel.addSearchToHistory(it) },
-                        onClearSearchHistory = { audioViewModel.clearSearchHistory() },
-                        playlists = playlists,
-                        onPlaylistClick = { playlist ->
-                            audioViewModel.selectPlaylist(playlist.id)
-                            currentSectionName = NavigationSection.LIBRARY.name
-                            audioViewModel.selectTab(LibraryTab.PLAYLISTS)
-                        }
-                    )
-                }
-            }
-        }
-    }
+            // Hauteur de la zone flottante (mini-lecteur + barre de navigation) pour réserver
+            // l'espace en bas du contenu.
+            var overlayHeightPx by remember { mutableIntStateOf(0) }
+            val overlayHeight = with(LocalDensity.current) { overlayHeightPx.toDp() }
+            val layoutDirection = LocalLayoutDirection.current
 
-    // Modal plein écran Now Playing avec animations néon
-    AnimatedVisibility(
-        visible = isNowPlayingOpen,
-        enter = fadeIn(),
-        exit = fadeOut()
-    ) {
-        NowPlayingScreen(
-            track = activeTrack,
-            isPlaying = isPlaying,
-            progressMs = progressMs,
-            durationMs = durationMs,
-            repeatMode = repeatMode,
-            isShuffleEnabled = isShuffleEnabled,
-            playbackSpeed = playbackSpeed,
-            isFavorite = favorites.contains(activeTrack?.id ?: -1L),
-            onBack = { isNowPlayingOpen = false },
-            onPlayPause = { audioViewModel.togglePlayPause() },
-            onNext = { audioViewModel.playNext() },
-            onPrevious = { audioViewModel.playPrevious() },
-            onSeekTo = { audioViewModel.seekTo(it) },
-            onToggleRepeat = { audioViewModel.toggleRepeatMode() },
-            onToggleShuffle = { audioViewModel.toggleShuffle() },
-            onToggleFavorite = { activeTrack?.let { audioViewModel.toggleFavorite(it.id) } },
-            onSetSpeed = { audioViewModel.setPlaybackSpeed(it) },
-            onOpenQueue = { isQueueOpen = true },
-            onOpenEqualizer = { isEqualizerOpen = true },
-            onOpenKaraokeSettings = { isKaraokeSettingsOpen = true },
-            onAddToPlaylist = { activeTrack?.let { trackForAddToPlaylistChooser = it } },
-            onShare = {
-                activeTrack?.let { track ->
-                    val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(android.content.Intent.EXTRA_TEXT, track.title + " — " + track.artist)
-                    }
-                    context.startActivity(android.content.Intent.createChooser(shareIntent, "Partager le morceau"))
-                }
-            },
-            lyricsData = lyricsData,
-            onOpenLyrics = { isLyricsOpen = true }
-        )
-    }
-
-    // Modal plein écran Paroles Synchronisées (LRC / ID3 SYLT)
-    AnimatedVisibility(
-        visible = isLyricsOpen,
-        enter = fadeIn(),
-        exit = fadeOut()
-    ) {
-        LyricsScreen(
-            track = activeTrack,
-            lyricsData = lyricsData,
-            currentPositionMs = progressMs,
-            durationMs = durationMs,
-            isPlaying = isPlaying,
-            isLoading = isLyricsLoading,
-            onBack = { isLyricsOpen = false },
-            onPlayPause = { audioViewModel.togglePlayPause() },
-            onNext = { audioViewModel.playNext() },
-            onPrevious = { audioViewModel.playPrevious() },
-            onSeekTo = { audioViewModel.seekTo(it) },
-            onImportLrcText = { text -> activeTrack?.let { audioViewModel.importLrcText(it, text) } },
-            onEmbedLyricsInAudioFile = {
-                activeTrack?.let { track ->
-                    audioViewModel.requestEmbedCurrentLyrics(track, lyricsData)
-                }
-            },
-            onOpenLrclibSearch = { isLrclibSearchOpen = true },
-            onStartGroqTranscription = { activeTrack?.let { audioViewModel.startGroqTranscription(it) } },
-            isGroqTranscribing = isGroqTranscribing,
-            groqProgressMessage = groqProgressMessage,
-            groqErrorMessage = groqErrorMessage,
-            onClearGroqError = { audioViewModel.clearGroqError() },
-            onOpenSettings = onOpenSettings,
-            karaokeFontSize = karaokeFontSize,
-            karaokeActiveColor = karaokeActiveColor,
-            karaokeOffsetMs = karaokeOffsetMs,
-            onOpenKaraokeSettings = { isKaraokeSettingsOpen = true }
-        )
-    }
-
-    // Aperçu interactif du résultat Groq Whisper avant intégration ID3 SYLT / .LRC
-    groqTranscriptionResult?.let { result ->
-        GroqPreviewDialog(
-            result = result,
-            onDismiss = {
-                audioViewModel.dismissGroqPreview()
-            },
-            onIntegrate = { res ->
-                activeTrack?.let { track ->
-                    audioViewModel.requestApplyGroq(track, res)
-                }
-            }
-        )
-    }
-
-    // Modal plein écran Recherche de paroles lrclib.net
-    AnimatedVisibility(
-        visible = isLrclibSearchOpen,
-        enter = fadeIn(),
-        exit = fadeOut()
-    ) {
-        val searchState by audioViewModel.lrclibSearchState.collectAsStateWithLifecycle()
-        val aiQuerySuggestion by audioViewModel.aiLyricsQuerySuggestion.collectAsStateWithLifecycle()
-
-        LrclibSearchScreen(
-            track = activeTrack,
-            searchState = searchState,
-            saveFeedback = saveFeedbackMessage,
-            onBack = {
-                isLrclibSearchOpen = false
-                audioViewModel.resetLrclibSearch()
-            },
-            onSearch = { title, artist, durationSec ->
-                audioViewModel.searchOnlineLyrics(title, artist, durationSec)
-            },
-            onSelectAndSave = { result ->
-                activeTrack?.let { track ->
-                    audioViewModel.requestApplyLrclib(track, result)
-                }
-            },
-            onClearFeedback = { audioViewModel.clearSaveFeedback() },
-            aiQuerySuggestion = aiQuerySuggestion,
-            onAiAssist = { title, artist ->
-                activeTrack?.let { track ->
-                    audioViewModel.suggestLrclibQueryWithAi(
-                        track = track,
-                        currentTitle = title,
-                        currentArtist = artist,
-                        durationSec = track.duration.takeIf { it > 0 }?.div(1000)?.toInt()
-                    )
-                }
-            }
-        )
-    }
-
-    // Modal plein écran Détail de playlist
-    AnimatedVisibility(
-        visible = selectedPlaylist != null,
-        enter = fadeIn(),
-        exit = fadeOut()
-    ) {
-        selectedPlaylist?.let { pl ->
-            PlaylistDetailScreen(
-                playlist = pl,
-                tracks = selectedPlaylistTracks,
-                currentPlayingTrack = currentTrack,
-                isPlaying = isPlaying,
-                onBack = { audioViewModel.selectPlaylist(null) },
-                onPlayAll = { startIndex, shuffle ->
-                    audioViewModel.playPlaylist(selectedPlaylistTracks, startIndex, shuffle)
-                },
-                onTrackClick = { track, queue ->
-                    audioViewModel.playTrack(track, queue)
-                },
-                onRemoveTrack = { trackId ->
-                    audioViewModel.removeTrackFromPlaylist(pl.id, trackId)
-                },
-                onReorderTracks = { orderedTrackIds ->
-                    audioViewModel.reorderPlaylistTracks(pl.id, orderedTrackIds)
-                },
-                onDeletePlaylist = {
-                    audioViewModel.deletePlaylist(pl.id)
-                },
-                onRenamePlaylist = { newName, newDesc ->
-                    audioViewModel.updatePlaylistName(pl.id, newName, newDesc)
-                },
-                onOpenAddTracks = {
-                    isAddTracksToPlaylistOpen = true
-                },
-                onShare = {
-                    val shareText = buildString {
-                        append(pl.name)
-                        if (pl.description.isNotBlank()) append("\n\n").append(pl.description)
-                        if (selectedPlaylistTracks.isNotEmpty()) {
-                            append("\n\n")
-                            selectedPlaylistTracks.forEachIndexed { index, track ->
-                                append(index + 1).append(". ").append(track.title).append(" — ").append(track.artist).append("\n")
+            GlassBackdropHost(
+                modifier = Modifier.fillMaxSize(),
+                background = {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(
+                                start = innerPadding.calculateStartPadding(layoutDirection),
+                                top = innerPadding.calculateTopPadding(),
+                                end = innerPadding.calculateEndPadding(layoutDirection),
+                                bottom = overlayHeight
+                            )
+                    ) {
+                        when (currentSection) {
+                            NavigationSection.HOME -> {
+                                HomeExplorerContent(
+                                    tracks = tracks,
+                                    recentTracks = recentTracks,
+                                    albumsCount = albums.size,
+                                    artistsCount = artists.size,
+                                    foldersCount = folders.size,
+                                    albums = albums,
+                                    playlists = playlists,
+                                    isScanning = isScanning,
+                                    currentPlayingTrack = currentTrack,
+                                    isPlaying = isPlaying,
+                                    favorites = favorites,
+                                    onOpenSettings = onOpenSettings,
+                                    onOpenOnboarding = onOpenOnboarding,
+                                    onNavigateToLibrary = { currentSectionName = NavigationSection.LIBRARY.name },
+                                    onNavigateToRecent = {
+                                        currentSectionName = NavigationSection.LIBRARY.name
+                                        audioViewModel.selectTab(LibraryTab.RECENT)
+                                    },
+                                    onNavigateToSearch = { currentSectionName = NavigationSection.SEARCH.name },
+                                    onOpenFavorites = { isFavoritesOpen = true },
+                                    onTrackClick = { audioViewModel.playTrack(it) },
+                                    onToggleFavorite = { audioViewModel.toggleFavorite(it) },
+                                    onRefreshScan = { audioViewModel.refreshScan() }
+                                )
+                            }
+                            NavigationSection.NEW -> {
+                                PlaceholderScreen(
+                                    titleRes = R.string.placeholder_title,
+                                    messageRes = R.string.placeholder_new_desc,
+                                    icon = Icons.Default.NewReleases
+                                )
+                            }
+                            NavigationSection.RADIO -> {
+                                PlaceholderScreen(
+                                    titleRes = R.string.placeholder_title,
+                                    messageRes = R.string.placeholder_radio_desc,
+                                    icon = Icons.Default.Radio
+                                )
+                            }
+                            NavigationSection.LIBRARY -> {
+                                LibraryScreen(
+                                    tracks = tracks,
+                                    recentTracks = recentTracks,
+                                    albums = albums,
+                                    artists = artists,
+                                    folders = folders,
+                                    selectedTab = selectedLibraryTab,
+                                    isScanning = isScanning,
+                                    statusMessage = statusMessage,
+                                    currentPlayingTrack = currentTrack,
+                                    isPlaying = isPlaying,
+                                    favorites = favorites,
+                                    playlists = playlists,
+                                    onPlaylistClick = { pl -> audioViewModel.selectPlaylist(pl.id) },
+                                    onPlayPlaylistDirectly = { pl -> audioViewModel.playPlaylistDirectly(pl.id) },
+                                    onCreatePlaylist = { name, desc -> audioViewModel.createPlaylist(name, desc) },
+                                    onRenamePlaylist = { id, name, desc -> audioViewModel.updatePlaylistName(id, name, desc) },
+                                    onDeletePlaylist = { id -> audioViewModel.deletePlaylist(id) },
+                                    onSelectTab = { audioViewModel.selectTab(it) },
+                                    onTrackClick = { audioViewModel.playTrack(it) },
+                                    onToggleFavorite = { audioViewModel.toggleFavorite(it) },
+                                    onRefreshScan = { audioViewModel.refreshScan() }
+                                )
+                            }
+                            NavigationSection.SEARCH -> {
+                                SearchScreen(
+                                    query = searchQuery,
+                                    filter = searchFilter,
+                                    searchResults = searchResults,
+                                    allTracks = tracks,
+                                    currentPlayingTrack = currentTrack,
+                                    isPlaying = isPlaying,
+                                    favorites = favorites,
+                                    onQueryChange = { audioViewModel.setSearchQuery(it) },
+                                    onFilterChange = { audioViewModel.setSearchFilter(it) },
+                                    onTrackClick = { audioViewModel.playTrack(it) },
+                                    onToggleFavorite = { audioViewModel.toggleFavorite(it) },
+                                    searchHistory = searchHistory,
+                                    onSearchSubmit = { audioViewModel.addSearchToHistory(it) },
+                                    onClearSearchHistory = { audioViewModel.clearSearchHistory() },
+                                    playlists = playlists,
+                                    onPlaylistClick = { playlist ->
+                                        audioViewModel.selectPlaylist(playlist.id)
+                                        currentSectionName = NavigationSection.LIBRARY.name
+                                        audioViewModel.selectTab(LibraryTab.PLAYLISTS)
+                                    }
+                                )
                             }
                         }
                     }
-                    val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(android.content.Intent.EXTRA_TEXT, shareText)
+                },
+                foreground = {
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .onSizeChanged { overlayHeightPx = it.height }
+                    ) {
+                        // Mini-lecteur persistant s'il y a un morceau
+                        if (activeTrack != null) {
+                            MiniPlayerBar(
+                                track = activeTrack,
+                                isPlaying = isPlaying,
+                                progressMs = progressMs,
+                                onPlayPauseToggle = { audioViewModel.togglePlayPause() },
+                                onNext = { audioViewModel.playNext() },
+                                onPrevious = { audioViewModel.playPrevious() },
+                                onClick = { isNowPlayingOpen = true },
+                                onOpenLyrics = { isLyricsOpen = true },
+                                modifier = Modifier.testTag("mini_player_bar")
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+
+                        // Barre de navigation flottante en pilule de verre
+                        GlassNavBar(
+                            items = navItems,
+                            selectedKey = currentSection.name,
+                            onSelect = { currentSectionName = it }
+                        )
                     }
-                    context.startActivity(android.content.Intent.createChooser(shareIntent, "Partager la playlist"))
                 }
             )
         }
-    }
 
-    // Dialogue d'ajout de morceaux à la playlist active
-    if (isAddTracksToPlaylistOpen && selectedPlaylist != null) {
-        AddTracksToPlaylistDialog(
-            allTracks = tracks,
-            existingTrackIds = selectedPlaylistTracks.map { it.id }.toSet(),
-            playlistName = selectedPlaylist!!.name,
-            onDismiss = { isAddTracksToPlaylistOpen = false },
-            onAddTracks = { trackIds ->
-                audioViewModel.addTracksToPlaylist(selectedPlaylist!!.id, trackIds)
-                isAddTracksToPlaylistOpen = false
+        // Modal plein écran Now Playing avec animations néon
+        AnimatedVisibility(
+            visible = isNowPlayingOpen,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            NowPlayingScreen(
+                track = activeTrack,
+                isPlaying = isPlaying,
+                progressMs = progressMs,
+                durationMs = durationMs,
+                repeatMode = repeatMode,
+                isShuffleEnabled = isShuffleEnabled,
+                playbackSpeed = playbackSpeed,
+                isFavorite = favorites.contains(activeTrack?.id ?: -1L),
+                onBack = { isNowPlayingOpen = false },
+                onPlayPause = { audioViewModel.togglePlayPause() },
+                onNext = { audioViewModel.playNext() },
+                onPrevious = { audioViewModel.playPrevious() },
+                onSeekTo = { audioViewModel.seekTo(it) },
+                onToggleRepeat = { audioViewModel.toggleRepeatMode() },
+                onToggleShuffle = { audioViewModel.toggleShuffle() },
+                onToggleFavorite = { activeTrack?.let { audioViewModel.toggleFavorite(it.id) } },
+                onSetSpeed = { audioViewModel.setPlaybackSpeed(it) },
+                onOpenQueue = { isQueueOpen = true },
+                onOpenEqualizer = { isEqualizerOpen = true },
+                onOpenKaraokeSettings = { isKaraokeSettingsOpen = true },
+                onAddToPlaylist = { activeTrack?.let { trackForAddToPlaylistChooser = it } },
+                onShare = {
+                    activeTrack?.let { track ->
+                        val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(android.content.Intent.EXTRA_TEXT, track.title + " — " + track.artist)
+                        }
+                        context.startActivity(android.content.Intent.createChooser(shareIntent, "Partager le morceau"))
+                    }
+                },
+                lyricsData = lyricsData,
+                onOpenLyrics = { isLyricsOpen = true }
+            )
+        }
+
+        // Modal plein écran Paroles Synchronisées (LRC / ID3 SYLT)
+        AnimatedVisibility(
+            visible = isLyricsOpen,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            LyricsScreen(
+                track = activeTrack,
+                lyricsData = lyricsData,
+                currentPositionMs = progressMs,
+                durationMs = durationMs,
+                isPlaying = isPlaying,
+                isLoading = isLyricsLoading,
+                onBack = { isLyricsOpen = false },
+                onPlayPause = { audioViewModel.togglePlayPause() },
+                onNext = { audioViewModel.playNext() },
+                onPrevious = { audioViewModel.playPrevious() },
+                onSeekTo = { audioViewModel.seekTo(it) },
+                onImportLrcText = { text -> activeTrack?.let { audioViewModel.importLrcText(it, text) } },
+                onEmbedLyricsInAudioFile = {
+                    activeTrack?.let { track ->
+                        audioViewModel.requestEmbedCurrentLyrics(track, lyricsData)
+                    }
+                },
+                onOpenLrclibSearch = { isLrclibSearchOpen = true },
+                onStartGroqTranscription = { activeTrack?.let { audioViewModel.startGroqTranscription(it) } },
+                isGroqTranscribing = isGroqTranscribing,
+                groqProgressMessage = groqProgressMessage,
+                groqErrorMessage = groqErrorMessage,
+                onClearGroqError = { audioViewModel.clearGroqError() },
+                onOpenSettings = onOpenSettings,
+                karaokeFontSize = karaokeFontSize,
+                karaokeActiveColor = karaokeActiveColor,
+                karaokeOffsetMs = karaokeOffsetMs,
+                onOpenKaraokeSettings = { isKaraokeSettingsOpen = true }
+            )
+        }
+
+        // Aperçu interactif du résultat Groq Whisper avant intégration ID3 SYLT / .LRC
+        groqTranscriptionResult?.let { result ->
+            GroqPreviewDialog(
+                result = result,
+                onDismiss = {
+                    audioViewModel.dismissGroqPreview()
+                },
+                onIntegrate = { res ->
+                    activeTrack?.let { track ->
+                        audioViewModel.requestApplyGroq(track, res)
+                    }
+                }
+            )
+        }
+
+        // Modal plein écran Recherche de paroles lrclib.net
+        AnimatedVisibility(
+            visible = isLrclibSearchOpen,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            val searchState by audioViewModel.lrclibSearchState.collectAsStateWithLifecycle()
+            val aiQuerySuggestion by audioViewModel.aiLyricsQuerySuggestion.collectAsStateWithLifecycle()
+
+            LrclibSearchScreen(
+                track = activeTrack,
+                searchState = searchState,
+                saveFeedback = saveFeedbackMessage,
+                onBack = {
+                    isLrclibSearchOpen = false
+                    audioViewModel.resetLrclibSearch()
+                },
+                onSearch = { title, artist, durationSec ->
+                    audioViewModel.searchOnlineLyrics(title, artist, durationSec)
+                },
+                onSelectAndSave = { result ->
+                    activeTrack?.let { track ->
+                        audioViewModel.requestApplyLrclib(track, result)
+                    }
+                },
+                onClearFeedback = { audioViewModel.clearSaveFeedback() },
+                aiQuerySuggestion = aiQuerySuggestion,
+                onAiAssist = { title, artist ->
+                    activeTrack?.let { track ->
+                        audioViewModel.suggestLrclibQueryWithAi(
+                            track = track,
+                            currentTitle = title,
+                            currentArtist = artist,
+                            durationSec = track.duration.takeIf { it > 0 }?.div(1000)?.toInt()
+                        )
+                    }
+                }
+            )
+        }
+
+        // Modal plein écran Détail de playlist
+        AnimatedVisibility(
+            visible = selectedPlaylist != null,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            selectedPlaylist?.let { pl ->
+                PlaylistDetailScreen(
+                    playlist = pl,
+                    tracks = selectedPlaylistTracks,
+                    currentPlayingTrack = currentTrack,
+                    isPlaying = isPlaying,
+                    onBack = { audioViewModel.selectPlaylist(null) },
+                    onPlayAll = { startIndex, shuffle ->
+                        audioViewModel.playPlaylist(selectedPlaylistTracks, startIndex, shuffle)
+                    },
+                    onTrackClick = { track, queue ->
+                        audioViewModel.playTrack(track, queue)
+                    },
+                    onRemoveTrack = { trackId ->
+                        audioViewModel.removeTrackFromPlaylist(pl.id, trackId)
+                    },
+                    onReorderTracks = { orderedTrackIds ->
+                        audioViewModel.reorderPlaylistTracks(pl.id, orderedTrackIds)
+                    },
+                    onDeletePlaylist = {
+                        audioViewModel.deletePlaylist(pl.id)
+                    },
+                    onRenamePlaylist = { newName, newDesc ->
+                        audioViewModel.updatePlaylistName(pl.id, newName, newDesc)
+                    },
+                    onOpenAddTracks = {
+                        isAddTracksToPlaylistOpen = true
+                    },
+                    onShare = {
+                        val shareText = buildString {
+                            append(pl.name)
+                            if (pl.description.isNotBlank()) append("\n\n").append(pl.description)
+                            if (selectedPlaylistTracks.isNotEmpty()) {
+                                append("\n\n")
+                                selectedPlaylistTracks.forEachIndexed { index, track ->
+                                    append(index + 1).append(". ").append(track.title).append(" — ").append(track.artist).append("\n")
+                                }
+                            }
+                        }
+                        val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(android.content.Intent.EXTRA_TEXT, shareText)
+                        }
+                        context.startActivity(android.content.Intent.createChooser(shareIntent, "Partager la playlist"))
+                    }
+                )
             }
-        )
-    }
+        }
 
-    // Dialogue pour ajouter un morceau spécifique à une playlist
-    trackForAddToPlaylistChooser?.let { trk ->
-        AddToPlaylistChooserDialog(
-            track = trk,
-            playlists = playlists,
-            onDismiss = { trackForAddToPlaylistChooser = null },
-            onSelectPlaylist = { plId ->
-                audioViewModel.addTracksToPlaylist(plId, listOf(trk.id))
-                trackForAddToPlaylistChooser = null
-            },
-            onCreateAndAdd = { name, desc ->
-                audioViewModel.createPlaylist(name, desc, initialTrackIds = listOf(trk.id))
-                trackForAddToPlaylistChooser = null
-            }
-        )
-    }
+        // Dialogue d'ajout de morceaux à la playlist active
+        if (isAddTracksToPlaylistOpen && selectedPlaylist != null) {
+            AddTracksToPlaylistDialog(
+                allTracks = tracks,
+                existingTrackIds = selectedPlaylistTracks.map { it.id }.toSet(),
+                playlistName = selectedPlaylist!!.name,
+                onDismiss = { isAddTracksToPlaylistOpen = false },
+                onAddTracks = { trackIds ->
+                    audioViewModel.addTracksToPlaylist(selectedPlaylist!!.id, trackIds)
+                    isAddTracksToPlaylistOpen = false
+                }
+            )
+        }
 
-    if (isFavoritesOpen) {
-        FavoritesScreen(
-            tracks = tracks,
-            favorites = favorites,
-            currentTrack = currentTrack,
-            isPlaying = isPlaying,
-            onPlayAll = { audioViewModel.playPlaylist(tracks.filter { favorites.contains(it.id) }) },
-            onShuffle = { audioViewModel.playPlaylist(tracks.filter { favorites.contains(it.id) }, shuffle = true) },
-            onTrackClick = { audioViewModel.playTrack(it, tracks.filter { tr -> favorites.contains(tr.id) }) },
-            onToggleFavorite = { audioViewModel.toggleFavorite(it) },
-            onAddToQueue = { audioViewModel.addToQueue(it) },
-            onBack = { isFavoritesOpen = false },
-            modifier = Modifier.fillMaxSize()
-        )
-    }
+        // Dialogue pour ajouter un morceau spécifique à une playlist
+        trackForAddToPlaylistChooser?.let { trk ->
+            AddToPlaylistChooserDialog(
+                track = trk,
+                playlists = playlists,
+                onDismiss = { trackForAddToPlaylistChooser = null },
+                onSelectPlaylist = { plId ->
+                    audioViewModel.addTracksToPlaylist(plId, listOf(trk.id))
+                    trackForAddToPlaylistChooser = null
+                },
+                onCreateAndAdd = { name, desc ->
+                    audioViewModel.createPlaylist(name, desc, initialTrackIds = listOf(trk.id))
+                    trackForAddToPlaylistChooser = null
+                }
+            )
+        }
 
-    if (isQueueOpen) {
-        QueueSheet(
-            queue = queue,
-            currentIndex = queueIndex,
-            isPlaying = isPlaying,
-            onPlayTrack = { track -> audioViewModel.playQueuedTrack(track) },
-            onRemove = { audioViewModel.removeFromQueue(it) },
-            onMove = { from, to -> audioViewModel.moveQueueItem(from, to) },
-            onClear = { audioViewModel.clearQueue() },
-            onClose = { isQueueOpen = false }
-        )
-    }
+        if (isFavoritesOpen) {
+            FavoritesScreen(
+                tracks = tracks,
+                favorites = favorites,
+                currentTrack = currentTrack,
+                isPlaying = isPlaying,
+                onPlayAll = { audioViewModel.playPlaylist(tracks.filter { favorites.contains(it.id) }) },
+                onShuffle = { audioViewModel.playPlaylist(tracks.filter { favorites.contains(it.id) }, shuffle = true) },
+                onTrackClick = { audioViewModel.playTrack(it, tracks.filter { tr -> favorites.contains(tr.id) }) },
+                onToggleFavorite = { audioViewModel.toggleFavorite(it) },
+                onAddToQueue = { audioViewModel.addToQueue(it) },
+                onBack = { isFavoritesOpen = false },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
 
-    if (isEqualizerOpen) {
-        EqualizerSheet(
-            enabled = eqEnabled,
-            preset = eqPreset,
-            levels = eqLevels,
-            onEnabledChange = { audioViewModel.setEqualizerEnabled(it) },
-            onPresetChange = { audioViewModel.setEqualizerPreset(it) },
-            onBandChange = { index, value -> audioViewModel.setEqualizerBand(index, value) },
-            onReset = { audioViewModel.resetEqualizer() },
-            onClose = { isEqualizerOpen = false }
-        )
-    }
+        if (isQueueOpen) {
+            QueueSheet(
+                queue = queue,
+                currentIndex = queueIndex,
+                isPlaying = isPlaying,
+                onPlayTrack = { track -> audioViewModel.playQueuedTrack(track) },
+                onRemove = { audioViewModel.removeFromQueue(it) },
+                onMove = { from, to -> audioViewModel.moveQueueItem(from, to) },
+                onClear = { audioViewModel.clearQueue() },
+                onClose = { isQueueOpen = false }
+            )
+        }
 
-    if (isKaraokeSettingsOpen) {
-        KaraokeSettingsDialog(
-            fontSize = karaokeFontSize,
-            activeColor = karaokeActiveColor,
-            offsetMs = karaokeOffsetMs,
-            onFontSizeChange = { audioViewModel.setKaraokeFontSize(it) },
-            onColorChange = { audioViewModel.setKaraokeActiveColor(it) },
-            onOffsetChange = { audioViewModel.setKaraokeOffsetMs(it) },
-            onReset = { audioViewModel.resetKaraokeSettings() },
-            onDismiss = { isKaraokeSettingsOpen = false }
-        )
-    }
+        if (isEqualizerOpen) {
+            EqualizerSheet(
+                enabled = eqEnabled,
+                preset = eqPreset,
+                levels = eqLevels,
+                onEnabledChange = { audioViewModel.setEqualizerEnabled(it) },
+                onPresetChange = { audioViewModel.setEqualizerPreset(it) },
+                onBandChange = { index, value -> audioViewModel.setEqualizerBand(index, value) },
+                onReset = { audioViewModel.resetEqualizer() },
+                onClose = { isEqualizerOpen = false }
+            )
+        }
 
-    // Les nouvelles releases ne sont plus affichées automatiquement au démarrage.
-    // La vérification et l'installation restent disponibles depuis les paramètres.
-}
+        if (isKaraokeSettingsOpen) {
+            KaraokeSettingsDialog(
+                fontSize = karaokeFontSize,
+                activeColor = karaokeActiveColor,
+                offsetMs = karaokeOffsetMs,
+                onFontSizeChange = { audioViewModel.setKaraokeFontSize(it) },
+                onColorChange = { audioViewModel.setKaraokeActiveColor(it) },
+                onOffsetChange = { audioViewModel.setKaraokeOffsetMs(it) },
+                onReset = { audioViewModel.resetKaraokeSettings() },
+                onDismiss = { isKaraokeSettingsOpen = false }
+            )
+        }
+
+        // Les nouvelles releases ne sont plus affichées automatiquement au démarrage.
+        // La vérification et l'installation restent disponibles depuis les paramètres.
+    }
 }
 
 @Composable
@@ -1093,49 +1167,6 @@ private fun StatCard(
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-    }
-}
-
-@Composable
-private fun MusicProBottomNavBar(
-    currentSection: NavigationSection,
-    onSelectSection: (NavigationSection) -> Unit
-) {
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 0.dp
-    ) {
-        NavigationSection.entries.forEach { section ->
-            val isSelected = section == currentSection
-            NavigationBarItem(
-                selected = isSelected,
-                onClick = { onSelectSection(section) },
-                icon = {
-                    Icon(
-                        imageVector = section.icon,
-                        contentDescription = null,
-                        modifier = Modifier.size(22.dp)
-                    )
-                },
-                label = {
-                    Text(
-                        text = section.label,
-                        fontSize = 12.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                    )
-                },
-                colors = androidx.compose.material3.NavigationBarItemDefaults.colors(
-                    selectedIconColor = MusicProCyanNeon,
-                    selectedTextColor = MusicProCyanNeon,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    indicatorColor = MusicProVioletPrimary.copy(alpha = 0.18f)
-                ),
-                modifier = Modifier
-                    .heightIn(min = 48.dp)
-                    .testTag("nav_tab_"+section.name.lowercase())
-            )
-        }
     }
 }
 
