@@ -2,7 +2,6 @@ package com.example.ui.components.glass
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.matchParentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Stable
@@ -69,6 +68,7 @@ fun GlassBackdropHost(
 ) {
     Box(modifier) {
         val boxScope = this
+        // matchParentSize est un membre de BoxScope (pas d'import nécessaire).
         Box(
             modifier = Modifier.matchParentSize().glassBackdropSource(state),
             content = background
