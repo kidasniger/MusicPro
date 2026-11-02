@@ -45,6 +45,8 @@ import androidx.compose.material.icons.filled.NetworkCheck
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Visibility
@@ -152,6 +154,19 @@ fun SettingsScreen(
     // Dialog de confirmation pour effacer le cache
     var showClearCacheDialog by remember { mutableStateOf(false) }
     var expandedGroups by remember { mutableStateOf(setOf("APPARENCE")) }
+    var settingsSearch by remember { mutableStateOf("") }
+    val normalizedSearch = settingsSearch.trim().lowercase()
+    val searchResults = remember(normalizedSearch) {
+        settingsSearchIndex.filter { entry ->
+            normalizedSearch.isNotEmpty() &&
+                (entry.label.lowercase().contains(normalizedSearch) ||
+                 entry.keywords.any { it.lowercase().contains(normalizedSearch) })
+        }
+    }
+    val matchingGroups = remember(searchResults) { searchResults.map { it.group }.toSet() }
+    androidx.compose.runtime.LaunchedEffect(matchingGroups, normalizedSearch) {
+        if (normalizedSearch.isNotEmpty()) expandedGroups = expandedGroups + matchingGroups
+    }
 
     // Interception du bouton retour Android pour revenir proprement à l'écran précédent
     BackHandler {
@@ -180,7 +195,49 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            SettingsGroupCard(
+            OutlinedTextField(
+                value = settingsSearch,
+                onValueChange = { settingsSearch = it },
+                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp).testTag("settings_search_field"),
+                singleLine = true,
+                placeholder = { Text("Rechercher un réglage…") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Rechercher") },
+                trailingIcon = {
+                    if (settingsSearch.isNotEmpty()) {
+                        IconButton(onClick = { settingsSearch = "" }) {
+                            Icon(Icons.Default.Close, contentDescription = "Effacer la recherche")
+                        }
+                    }
+                },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                shape = RoundedCornerShape(18.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                )
+            )
+            if (normalizedSearch.isNotEmpty()) {
+                if (searchResults.isEmpty()) {
+                    Text(
+                        text = "Aucun réglage trouvé",
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 13.sp
+                    )
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(bottom = 12.dp)) {
+                        searchResults.forEach { result ->
+                            SettingsSearchResultRow(
+                                label = result.label,
+                                group = result.group,
+                                query = normalizedSearch,
+                                onClick = { expandedGroups = expandedGroups + result.group }
+                            )
+                        }
+                    }
+                }
+            }
+            if (normalizedSearch.isEmpty() || "APPARENCE" in matchingGroups) SettingsGroupCard(
                 title = "APPARENCE",
                 value = "Thème, couleurs et style",
                 icon = Icons.Default.AutoAwesome,
@@ -205,7 +262,7 @@ fun SettingsScreen(
                 GlassSettingsEntry(onClick = onOpenGlassSettings)
             }
 
-            SettingsGroupCard(
+            if (normalizedSearch.isEmpty() || "LECTURE" in matchingGroups) SettingsGroupCard(
                 title = "LECTURE",
                 value = "Comportement du lecteur",
                 icon = Icons.Default.MusicNote,
@@ -222,7 +279,7 @@ fun SettingsScreen(
                 )
             }
 
-            SettingsGroupCard(
+            if (normalizedSearch.isEmpty() || "PAROLES" in matchingGroups) SettingsGroupCard(
                 title = "PAROLES",
                 value = "Affichage et synchronisation",
                 icon = Icons.Default.GraphicEq,
@@ -232,7 +289,7 @@ fun SettingsScreen(
                 SettingsInfoRow("Les réglages des paroles sont gérés depuis l’écran de lecture.")
             }
 
-            SettingsGroupCard(
+            if (normalizedSearch.isEmpty() || "INTELLIGENCE ARTIFICIELLE" in matchingGroups) SettingsGroupCard(
                 title = "INTELLIGENCE ARTIFICIELLE",
                 value = if (isConfigured) "Clé Groq configurée" else "Configuration de Groq",
                 icon = Icons.Default.AutoAwesome,
@@ -297,7 +354,7 @@ fun SettingsScreen(
                 )
             }
 
-            SettingsGroupCard(
+            if (normalizedSearch.isEmpty() || "STOCKAGE" in matchingGroups) SettingsGroupCard(
                 title = "STOCKAGE",
                 value = "Cache et bibliothèque locale",
                 icon = Icons.Default.Storage,
@@ -316,7 +373,7 @@ fun SettingsScreen(
                 )
             }
 
-            SettingsGroupCard(
+            if (normalizedSearch.isEmpty() || "NOTIFICATIONS" in matchingGroups) SettingsGroupCard(
                 title = "NOTIFICATIONS",
                 value = "Alertes de l’application",
                 icon = Icons.Default.Warning,
@@ -326,7 +383,7 @@ fun SettingsScreen(
                 SettingsInfoRow("Aucune préférence de notification supplémentaire n’est disponible actuellement.")
             }
 
-            SettingsGroupCard(
+            if (normalizedSearch.isEmpty() || "À PROPOS" in matchingGroups) SettingsGroupCard(
                 title = "À PROPOS",
                 value = "Version, mises à jour et système",
                 icon = Icons.Default.Info,
@@ -396,6 +453,68 @@ fun SettingsScreen(
     }
 }
 
+
+
+private data class SettingsSearchEntry(
+    val label: String,
+    val group: String,
+    val keywords: List<String>
+)
+
+private val settingsSearchIndex = listOf(
+    SettingsSearchEntry("Thème clair, sombre ou automatique", "APPARENCE", listOf("theme", "thème", "clair", "sombre", "apparence", "mode")),
+    SettingsSearchEntry("Style Minimal, Néon ou Verre", "APPARENCE", listOf("style", "glass", "liquid glass", "verre")),
+    SettingsSearchEntry("Couleur d’accent", "APPARENCE", listOf("couleur", "color", "accent", "teinte")),
+    SettingsSearchEntry("Couleurs dynamiques", "APPARENCE", listOf("couleur", "color", "dynamique", "palette")),
+    SettingsSearchEntry("Flou et transparence du verre", "APPARENCE", listOf("flou", "blur", "frost", "transparence", "verre", "glass")),
+    SettingsSearchEntry("Lecture automatique", "LECTURE", listOf("lecture", "lecteur", "auto play", "autoplay")),
+    SettingsSearchEntry("Lecture sans interruption", "LECTURE", listOf("gapless", "enchaînement", "transition")),
+    SettingsSearchEntry("Reprendre la lecture", "LECTURE", listOf("reprise", "continuer", "resume")),
+    SettingsSearchEntry("Affichage et synchronisation des paroles", "PAROLES", listOf("lyrics", "synchronisation", "texte")),
+    SettingsSearchEntry("Clé API Groq", "INTELLIGENCE ARTIFICIELLE", listOf("ia", "intelligence artificielle", "api", "groq", "clé")),
+    SettingsSearchEntry("Cache audio et pochettes", "STOCKAGE", listOf("cache", "stockage", "mémoire", "temporaire")),
+    SettingsSearchEntry("Nettoyage de la bibliothèque", "STOCKAGE", listOf("bibliothèque", "nettoyer", "analyse", "rescan")),
+    SettingsSearchEntry("Notifications", "NOTIFICATIONS", listOf("alertes", "notifications")),
+    SettingsSearchEntry("Version et mises à jour", "À PROPOS", listOf("version", "update", "mise à jour", "apk")),
+    SettingsSearchEntry("Permissions", "À PROPOS", listOf("autorisation", "accès", "permission", "système"))
+)
+
+@Composable
+private fun SettingsSearchResultRow(
+    label: String,
+    group: String,
+    query: String,
+    onClick: () -> Unit
+) {
+    val start = label.lowercase().indexOf(query)
+    val annotated = androidx.compose.ui.text.buildAnnotatedString {
+        if (start >= 0) {
+            append(label.substring(0, start))
+            pushStyle(androidx.compose.ui.text.SpanStyle(
+                background = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold
+            ))
+            append(label.substring(start, start + query.length))
+            pop()
+            append(label.substring(start + query.length))
+        } else append(label)
+    }
+    Surface(
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).clickable(onClick = onClick),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
+        shape = RoundedCornerShape(14.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(annotated, modifier = Modifier.weight(1f), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
+            Text(group.lowercase().replaceFirstChar { it.uppercase() }, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(Icons.Default.ChevronRight, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
 
 private fun toggleSettingsGroup(current: Set<String>, group: String): Set<String> =
     if (group in current) current - group else current + group
