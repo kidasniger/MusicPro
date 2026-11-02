@@ -13,6 +13,12 @@
     <string name="nav_search">Recherche</string>
     <string name="nav_stats">Stats</string>
     <string name="nav_chat">Chat IA</string>
+    <string name="home_greeting_morning">Bonjour</string>
+    <string name="home_greeting_afternoon">Bon après-midi</string>
+    <string name="home_greeting_evening">Bonsoir</string>
+    <string name="home_greeting_night">Bonne nuit</string>
+    <string name="home_welcome_back">Heureux de vous retrouver sur MusicPro.</string>
+    <string name="home_resume_playback">Reprendre où vous en étiez</string>
     <string name="chat_welcome_title">Que voulez-vous découvrir ?</string>
     <string name="chat_welcome_subtitle">Votre assistant musical, propulsé par Groq.</string>
     <string name="chat_suggestion_playlist">Une playlist calme pour travailler</string>
