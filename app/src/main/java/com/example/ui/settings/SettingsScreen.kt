@@ -142,6 +142,7 @@ fun SettingsScreen(
     val resumePlayback by settingsViewModel.resumePlayback.collectAsStateWithLifecycle()
     val textSizePreference by settingsViewModel.textSizePreference.collectAsStateWithLifecycle()
     val listDensityPreference by settingsViewModel.listDensityPreference.collectAsStateWithLifecycle()
+    val reduceAnimations by settingsViewModel.reduceAnimations.collectAsStateWithLifecycle()
     val cacheSize by settingsViewModel.cacheSize.collectAsStateWithLifecycle()
     val isClearingCache by settingsViewModel.isClearingCache.collectAsStateWithLifecycle()
     val isCleaningLibrary by settingsViewModel.isCleaningLibrary.collectAsStateWithLifecycle()
@@ -281,7 +282,9 @@ fun SettingsScreen(
                     textSize = textSizePreference,
                     onTextSizeSelected = { settingsViewModel.setTextSizePreference(it) },
                     listDensity = listDensityPreference,
-                    onListDensitySelected = { settingsViewModel.setListDensityPreference(it) }
+                    onListDensitySelected = { settingsViewModel.setListDensityPreference(it) },
+                    reduceAnimations = reduceAnimations,
+                    onReduceAnimationsChanged = { settingsViewModel.setReduceAnimations(it) }
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 GlassSettingsEntry(onClick = onOpenGlassSettings)
@@ -618,6 +621,7 @@ private val settingsSearchIndex = listOf(
     SettingsSearchEntry("Couleurs dynamiques", "APPARENCE", listOf("couleur", "color", "dynamique", "palette")),
     SettingsSearchEntry("Taille du texte", "APPARENCE", listOf("texte", "taille", "police", "font", "petit", "grand")),
     SettingsSearchEntry("Densité des listes", "APPARENCE", listOf("densité", "density", "compact", "compacte", "confortable", "hauteur", "ligne")),
+    SettingsSearchEntry("Réduire les animations", "APPARENCE", listOf("animations", "animation", "mouvement", "motion", "parallaxe", "vinyle", "flou")),
     SettingsSearchEntry("Flou et transparence du verre", "APPARENCE", listOf("flou", "blur", "frost", "transparence", "verre", "glass")),
     SettingsSearchEntry("Lecture automatique", "LECTURE", listOf("lecture", "lecteur", "auto play", "autoplay")),
     SettingsSearchEntry("Lecture sans interruption", "LECTURE", listOf("gapless", "enchaînement", "transition")),
