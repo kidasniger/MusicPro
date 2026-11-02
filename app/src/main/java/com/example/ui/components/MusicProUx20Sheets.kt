@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.local.AudioTrackEntity
+import com.example.ui.queue.QueueScreen
 import com.example.ui.theme.*
 import kotlin.math.roundToInt
 
@@ -56,7 +57,7 @@ fun FavoritesScreen(
             IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Retour", tint = MaterialTheme.colorScheme.onBackground) }
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.Favorite, contentDescription = null, tint = MusicProCyanNeon, modifier = Modifier.size(24.dp)); Spacer(Modifier.width(8.dp)); Text("Favoris", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) }
-                Text(favoriteTracks.size.toString() + " morceau(s) • " + formatDuration(totalDuration), fontSize = 12.sp, color = MusicProCyanNeon)
+                Text(favoriteTracks.size.toString() + " morceau(x) • " + formatDuration(totalDuration), fontSize = 12.sp, color = MusicProCyanNeon)
             }
         }
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -97,7 +98,10 @@ fun FavoritesScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Mise à jour 027 : la file d'attente est désormais l'écran plein écran [QueueScreen]
+ * (ui/queue). Cette fonction conserve sa signature pour les appelants existants.
+ */
 @Composable
 fun QueueSheet(
     queue: List<AudioTrackEntity>,
@@ -109,133 +113,16 @@ fun QueueSheet(
     onClear: () -> Unit,
     onClose: () -> Unit
 ) {
-    ModalBottomSheet(onDismissRequest = onClose, containerColor = MaterialTheme.colorScheme.surface) {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 18.dp, vertical = 8.dp)
-        ) {
-            val safeCurrentIndex = currentIndex.coerceIn(0, (queue.size - 1).coerceAtLeast(0))
-            val startIndex = (safeCurrentIndex - 4).coerceAtLeast(0)
-            val endIndex = (safeCurrentIndex + 8).coerceAtMost(queue.lastIndex)
-            val visibleQueue = if (queue.isEmpty()) emptyList() else queue.subList(startIndex, endIndex + 1)
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text("À suivre", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                    Text(
-                        if (queue.isEmpty()) "Aucun morceau"
-                        else "Position " + (safeCurrentIndex + 1) + "/" + queue.size,
-                        fontSize = 12.sp,
-                        color = MusicProCyanNeon
-                    )
-                }
-                TextButton(onClick = onClear, enabled = queue.size > 1) {
-                    Text("Vider", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-
-            if (queue.isEmpty()) {
-                Column(
-                    Modifier.fillMaxWidth().padding(vertical = 42.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.QueueMusic,
-                        contentDescription = null,
-                        tint = MusicProVioletLight,
-                        modifier = Modifier.size(48.dp)
-                    )
-                    Text(
-                        "Aucune file de lecture",
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(top = 10.dp)
-                    )
-                    Text(
-                        "Les morceaux suivants apparaîtront ici.",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 12.sp
-                    )
-                }
-            } else {
-                LazyColumn(contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp)) {
-                    itemsIndexed(
-                        visibleQueue,
-                        key = { localIndex, item -> (startIndex + localIndex).toString() + "_" + item.id.toString() }
-                    ) { localIndex, track ->
-                        val index = startIndex + localIndex
-                        val isCurrent = index == safeCurrentIndex
-
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .background(
-                                    if (isCurrent) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent,
-                                    RoundedCornerShape(10.dp)
-                                )
-                                .padding(6.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Surface(
-                                Modifier.size(42.dp),
-                                shape = RoundedCornerShape(8.dp),
-                                color = MaterialTheme.colorScheme.surface
-                            ) {
-                                if (!track.albumArtUri.isNullOrBlank()) {
-                                    AsyncImage(track.albumArtUri, null, contentScale = ContentScale.Crop)
-                                } else {
-                                    Icon(Icons.Default.MusicNote, null, tint = MusicProVioletLight)
-                                }
-                            }
-
-                            Spacer(Modifier.width(10.dp))
-
-                            Column(Modifier.weight(1f)) {
-                                Text(
-                                    text = track.title,
-                                    color = if (isCurrent) MusicProCyanNeon else MaterialTheme.colorScheme.onBackground,
-                                    fontSize = 13.sp,
-                                    fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.SemiBold,
-                                    maxLines = 1
-                                )
-                                Text(
-                                    track.artist,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 11.sp,
-                                    maxLines = 1
-                                )
-                            }
-
-                            if (!isCurrent) {
-                                IconButton(onClick = { onPlayTrack(track) }) {
-                                    Icon(Icons.Default.PlayArrow, "Lire maintenant", tint = MusicProCyanNeon)
-                                }
-                                IconButton(
-                                    onClick = {
-                                        if (index > safeCurrentIndex) onMove(index, index - 1)
-                                        else onMove(index, index + 1)
-                                    },
-                                    enabled = queue.size > 1
-                                ) {
-                                    Icon(
-                                        if (index > safeCurrentIndex) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                        "Déplacer",
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                IconButton(onClick = { onRemove(index) }) {
-                                    Icon(Icons.Default.DeleteOutline, "Retirer", tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    QueueScreen(
+        queue = queue,
+        currentIndex = currentIndex,
+        isPlaying = isPlaying,
+        onPlayTrack = onPlayTrack,
+        onRemove = onRemove,
+        onMove = onMove,
+        onClear = onClear,
+        onClose = onClose
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
