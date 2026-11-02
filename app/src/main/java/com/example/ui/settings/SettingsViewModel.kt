@@ -66,6 +66,15 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val glassActiveTabOpacity: StateFlow<Int> = preferencesRepository.glassActiveTabOpacity
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DefaultGlassActiveTabOpacity)
 
+    val autoPlay: StateFlow<Boolean> = preferencesRepository.autoPlay
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val gaplessPlayback: StateFlow<Boolean> = preferencesRepository.gaplessPlayback
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val resumePlayback: StateFlow<Boolean> = preferencesRepository.resumePlayback
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
     // --- Aperçu en direct du verre (mise à jour 010) ---------------------------------------------
 
     private val _glassPreview = MutableStateFlow(GlassPreviewState())
