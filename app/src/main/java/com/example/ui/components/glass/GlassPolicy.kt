@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.data.preferences.DefaultGlassActiveTabOpacity
@@ -20,6 +21,9 @@ val glassBlurSupported: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
 /** Niveau d'effet verre choisi dans les réglages ; fourni une fois pour toute l'application. */
 val LocalGlassMaterial = staticCompositionLocalOf { GlassMaterial.BALANCED }
+
+/** Réduction des animations activée dans les réglages de MusicPro. */
+val LocalReduceAnimations = staticCompositionLocalOf { false }
 
 /**
  * Force de couleur du verre (0 à 100 %), réglée par le curseur « Couleur du verre ».
