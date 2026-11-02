@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="album_type">Album</string>
+    <string name="album_shuffle">Lecture aléatoire</string>
+    <string name="album_play">Lecture</string>
+    <string name="album_download">Télécharger</string>
+    <string name="album_download_local">Cet album est déjà sur votre appareil.</string>
+    <string name="album_back">Retour</string>
+    <string name="album_add">Créer une playlist avec cet album</string>
+    <string name="album_added_playlist">Playlist « %1$s » créée</string>
+    <string name="album_search">Rechercher</string>
+    <string name="album_menu">Plus d\'options</string>
+    <string name="album_share">Partager l\'album</string>
+    <string name="album_more">PLUS</string>
+    <string name="album_less">MOINS</string>
+    <string name="album_minutes">%1$d min</string>
+    <string name="album_description">%1$s · %2$s · %3$s.</string>
+    <string name="album_description_extra">Les titres sont lus depuis votre appareil, dans l\'ordre des fichiers de l\'album.</string>
+    <string name="album_explicit_badge">E</string>
+    <string name="album_explicit_cd">Contenu explicite</string>
+    <plurals name="album_track_count">
+        <item quantity="one">%d morceau</item>
+        <item quantity="other">%d morceaux</item>
+    </plurals>
+</resources>
