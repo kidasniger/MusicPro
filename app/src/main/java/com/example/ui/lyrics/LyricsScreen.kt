@@ -107,12 +107,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import coil.compose.AsyncImage
 import com.example.R
 import com.example.data.local.AudioTrackEntity
 import com.example.lyrics.LyricLine
 import com.example.lyrics.LyricsData
 import com.example.lyrics.LyricsSource
+import com.example.ui.audio.AudioViewModel
 import com.example.ui.components.glass.rememberAnimationsEnabled
 import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
@@ -132,6 +135,22 @@ private fun immersiveColorScheme(): ColorScheme = MaterialTheme.colorScheme.copy
     surfaceVariant = Color(0xFF22222E),
     onSurfaceVariant = Color(0xFFC9C9D6)
 )
+
+/**
+ * Enregistre le décalage karaoké dans le AudioViewModel du même écran (même propriétaire de
+ * ViewModel que l'écran d'accueil). Le ViewModel n'est résolu qu'au moment du clic.
+ * Un appelant peut fournir son propre callback via le paramètre de LyricsScreen.
+ */
+@Composable
+private fun rememberKaraokeOffsetSetter(): (Long) -> Unit {
+    val owner = LocalViewModelStoreOwner.current
+    return remember(owner) {
+        { offsetMs: Long ->
+            owner?.let { ViewModelProvider(it)[AudioViewModel::class.java].setKaraokeOffsetMs(offsetMs) }
+            Unit
+        }
+    }
+}
 
 @Composable
 fun LyricsScreen(
@@ -159,7 +178,7 @@ fun LyricsScreen(
     karaokeActiveColor: String = "cyan",
     karaokeOffsetMs: Long = 0L,
     onOpenKaraokeSettings: () -> Unit = {},
-    onKaraokeOffsetChange: (Long) -> Unit = {},
+    onKaraokeOffsetChange: (Long) -> Unit = rememberKaraokeOffsetSetter(),
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
