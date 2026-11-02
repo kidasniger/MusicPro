@@ -94,7 +94,7 @@ class SettingsScreenRobolectricTest {
         composeTestRule.onNodeWithTag("theme_settings_card").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_light_button").assertIsDisplayed()
         // L'entrée « Glass » se trouve entre le thème et la clé : on fait défiler jusqu'à la clé.
-        composeTestRule.onNodeWithText("INTELLIGENCE ARTIFICIELLE").performScrollTo().performClick()
+        composeTestRule.onNodeWithText(ApplicationProvider.getApplicationContext<Application>().getString(com.example.R.string.settings_group_ai)).performScrollTo().performClick()
         composeTestRule.onNodeWithTag("groq_settings_card").performScrollTo().assertIsDisplayed()
     }
 
@@ -165,7 +165,7 @@ class SettingsScreenRobolectricTest {
         composeTestRule.onNodeWithTag("theme_settings_card").performScrollTo().assertIsDisplayed()
         // Mise à jour 025 : les réglages du verre sont sur settings/glass ; la page garde une entrée.
         composeTestRule.onNodeWithTag("glass_settings_entry").performScrollTo().assertIsDisplayed()
-        composeTestRule.onNodeWithText("INTELLIGENCE ARTIFICIELLE").performScrollTo().performClick()
+        composeTestRule.onNodeWithText(ApplicationProvider.getApplicationContext<Application>().getString(com.example.R.string.settings_group_ai)).performScrollTo().performClick()
         composeTestRule.onNodeWithTag("groq_settings_card").performScrollTo().assertIsDisplayed()
 
         // Verify Theme buttons : on défile d'abord jusqu'au premier bouton (Clair) ; le défilement
@@ -178,9 +178,9 @@ class SettingsScreenRobolectricTest {
         composeTestRule.onNodeWithTag("theme_light_button").performClick()
 
         // Scroll to and verify Cache Card
-        composeTestRule.onNodeWithText("STOCKAGE").performScrollTo().performClick()
+        composeTestRule.onNodeWithText(ApplicationProvider.getApplicationContext<Application>().getString(com.example.R.string.settings_group_storage)).performScrollTo().performClick()
         composeTestRule.onNodeWithTag("cache_settings_card").performScrollTo().assertIsDisplayed()
-        composeTestRule.onNodeWithText("À PROPOS").performScrollTo().performClick()
+        composeTestRule.onNodeWithText(ApplicationProvider.getApplicationContext<Application>().getString(com.example.R.string.settings_group_about)).performScrollTo().performClick()
         composeTestRule.onNodeWithTag("about_settings_card").performScrollTo().assertIsDisplayed()
 
         // Click on Clear Cache button to trigger dialog

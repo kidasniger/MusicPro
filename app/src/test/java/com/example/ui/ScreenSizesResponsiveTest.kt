@@ -53,7 +53,7 @@ class ScreenSizesResponsiveTest {
         composeTestRule.onNodeWithTag("theme_settings_card").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_dark_button").performScrollTo().assertIsDisplayed()
         // Sur petit écran, la carte Groq est sous la ligne de flottaison : on défile jusqu'à elle.
-        composeTestRule.onNodeWithText("INTELLIGENCE ARTIFICIELLE").performScrollTo().performClick()
+        composeTestRule.onNodeWithText(ApplicationProvider.getApplicationContext<Application>().getString(com.example.R.string.settings_group_ai)).performScrollTo().performClick()
         composeTestRule.onNodeWithTag("groq_settings_card").performScrollTo().assertIsDisplayed()
     }
 
@@ -81,11 +81,11 @@ class ScreenSizesResponsiveTest {
         composeTestRule.onNodeWithTag("quick_appearance_card").assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_settings_card").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_light_button").assertIsDisplayed()
-        composeTestRule.onNodeWithText("INTELLIGENCE ARTIFICIELLE").performScrollTo().performClick()
+        composeTestRule.onNodeWithText(ApplicationProvider.getApplicationContext<Application>().getString(com.example.R.string.settings_group_ai)).performScrollTo().performClick()
         composeTestRule.onNodeWithTag("groq_settings_card").performScrollTo().assertIsDisplayed()
-        composeTestRule.onNodeWithText("STOCKAGE").performScrollTo().performClick()
+        composeTestRule.onNodeWithText(ApplicationProvider.getApplicationContext<Application>().getString(com.example.R.string.settings_group_storage)).performScrollTo().performClick()
         composeTestRule.onNodeWithTag("cache_settings_card").performScrollTo().assertIsDisplayed()
-        composeTestRule.onNodeWithText("À PROPOS").performScrollTo().performClick()
+        composeTestRule.onNodeWithText(ApplicationProvider.getApplicationContext<Application>().getString(com.example.R.string.settings_group_about)).performScrollTo().performClick()
         composeTestRule.onNodeWithTag("about_settings_card").performScrollTo().assertIsDisplayed()
     }
 
@@ -112,11 +112,11 @@ class ScreenSizesResponsiveTest {
         composeTestRule.onNodeWithTag("settings_back_button").assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_settings_card").assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_system_button").assertIsDisplayed()
-        composeTestRule.onNodeWithText("INTELLIGENCE ARTIFICIELLE").performScrollTo().performClick()
+        composeTestRule.onNodeWithText(ApplicationProvider.getApplicationContext<Application>().getString(com.example.R.string.settings_group_ai)).performScrollTo().performClick()
         composeTestRule.onNodeWithTag("groq_settings_card").performScrollTo().assertIsDisplayed()
-        composeTestRule.onNodeWithText("STOCKAGE").performScrollTo().performClick()
+        composeTestRule.onNodeWithText(ApplicationProvider.getApplicationContext<Application>().getString(com.example.R.string.settings_group_storage)).performScrollTo().performClick()
         composeTestRule.onNodeWithTag("cache_settings_card").performScrollTo().assertIsDisplayed()
-        composeTestRule.onNodeWithText("À PROPOS").performScrollTo().performClick()
+        composeTestRule.onNodeWithText(ApplicationProvider.getApplicationContext<Application>().getString(com.example.R.string.settings_group_about)).performScrollTo().performClick()
         composeTestRule.onNodeWithTag("about_settings_card").performScrollTo().assertIsDisplayed()
     }
 
