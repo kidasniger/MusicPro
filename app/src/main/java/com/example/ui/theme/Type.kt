@@ -1,6 +1,7 @@
 package com.example.ui.theme
 
 import androidx.compose.material3.Typography
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -24,6 +25,7 @@ import com.example.data.preferences.AppStyle
  */
 
 /** Une entrée de famille : même fichier variable, graisse réglée par l'axe `wght`. */
+@OptIn(ExperimentalTextApi::class)
 private fun variableFont(resId: Int, weight: FontWeight): Font = Font(
     resId = resId,
     weight = weight,
