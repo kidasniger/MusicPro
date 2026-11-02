@@ -84,6 +84,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -99,6 +101,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.data.preferences.AppThemeMode
+import com.example.data.preferences.AppearanceMode
+import com.example.data.preferences.AppStyle
 import com.example.data.security.GroqApiKeyStore
 import com.example.groq.GroqTranscriptionManager
 import com.example.ui.theme.MusicProCyanLight
@@ -195,6 +199,19 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
+            val haptic = LocalHapticFeedback.current
+            QuickAppearanceCard(
+                appearance = appearance,
+                style = appStyle,
+                onAppearanceSelected = {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    settingsViewModel.setAppearanceMode(it)
+                },
+                onStyleSelected = {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    settingsViewModel.setAppStyle(it)
+                }
+            )
             OutlinedTextField(
                 value = settingsSearch,
                 onValueChange = { settingsSearch = it },
@@ -454,6 +471,131 @@ fun SettingsScreen(
 }
 
 
+
+
+@Composable
+private fun QuickAppearanceCard(
+    appearance: AppearanceMode,
+    style: AppStyle,
+    onAppearanceSelected: (AppearanceMode) -> Unit,
+    onStyleSelected: (AppStyle) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp).testTag("quick_appearance_card"),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text("Apparence", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                QuickAppearanceOption(
+                    label = "Clair", selected = appearance == AppearanceMode.LIGHT,
+                    background = Color(0xFFF4F5F8), foreground = Color(0xFF252936),
+                    accent = Color(0xFF6478D3), modifier = Modifier.weight(1f),
+                    tag = "quick_theme_light"
+                ) { onAppearanceSelected(AppearanceMode.LIGHT) }
+                QuickAppearanceOption(
+                    label = "Sombre", selected = appearance == AppearanceMode.DARK,
+                    background = Color(0xFF171923), foreground = Color(0xFFF1F2F8),
+                    accent = Color(0xFF9B8CFF), modifier = Modifier.weight(1f),
+                    tag = "quick_theme_dark"
+                ) { onAppearanceSelected(AppearanceMode.DARK) }
+                QuickAppearanceOption(
+                    label = "Auto", selected = appearance == AppearanceMode.AUTO,
+                    background = MaterialTheme.colorScheme.surfaceVariant,
+                    foreground = MaterialTheme.colorScheme.onSurfaceVariant,
+                    accent = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f), tag = "quick_theme_auto",
+                    splitPreview = true
+                ) { onAppearanceSelected(AppearanceMode.AUTO) }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                QuickAppearanceOption(
+                    label = "Minimal", selected = style == AppStyle.MINIMAL,
+                    background = Color(0xFFF0F1F4), foreground = Color(0xFF333642),
+                    accent = Color(0xFF7C8498), modifier = Modifier.weight(1f),
+                    tag = "quick_style_minimal"
+                ) { onStyleSelected(AppStyle.MINIMAL) }
+                QuickAppearanceOption(
+                    label = "Néon", selected = style == AppStyle.NEON,
+                    background = Color(0xFF171329), foreground = Color(0xFFF5F0FF),
+                    accent = Color(0xFFB45CFF), modifier = Modifier.weight(1f),
+                    tag = "quick_style_neon"
+                ) { onStyleSelected(AppStyle.NEON) }
+                QuickAppearanceOption(
+                    label = "Verre", selected = style == AppStyle.GLASS,
+                    background = Color(0xFF24364B), foreground = Color(0xFFF3F8FF),
+                    accent = Color(0xFF8BD8F5), modifier = Modifier.weight(1f),
+                    tag = "quick_style_glass"
+                ) { onStyleSelected(AppStyle.GLASS) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuickAppearanceOption(
+    label: String,
+    selected: Boolean,
+    background: Color,
+    foreground: Color,
+    accent: Color,
+    modifier: Modifier = Modifier,
+    tag: String,
+    splitPreview: Boolean = false,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.09f) else Color.Transparent)
+            .border(
+                width = if (selected) 2.dp else 1.dp,
+                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                shape = RoundedCornerShape(14.dp)
+            )
+            .clickable(onClick = onClick)
+            .padding(7.dp)
+            .testTag(tag),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Box(
+            modifier = Modifier.fillMaxWidth().height(42.dp).clip(RoundedCornerShape(9.dp))
+                .background(background).border(1.dp, foreground.copy(alpha = 0.12f), RoundedCornerShape(9.dp))
+        ) {
+            if (splitPreview) {
+                Row(Modifier.fillMaxSize()) {
+                    Box(Modifier.weight(1f).fillMaxSize().background(Color(0xFFF4F5F8)))
+                    Box(Modifier.weight(1f).fillMaxSize().background(Color(0xFF171923)))
+                }
+            }
+            Column(
+                modifier = Modifier.align(Alignment.Center).padding(6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Box(Modifier.fillMaxWidth(0.72f).height(4.dp).clip(RoundedCornerShape(4.dp)).background(if (splitPreview) Color(0xFF858B9A) else foreground.copy(alpha = 0.7f)))
+                Box(Modifier.fillMaxWidth(0.48f).height(4.dp).clip(RoundedCornerShape(4.dp)).background(accent))
+            }
+            if (selected) {
+                Icon(Icons.Default.Check, contentDescription = "Sélectionné",
+                    tint = if (splitPreview) MaterialTheme.colorScheme.primary else accent,
+                    modifier = Modifier.align(Alignment.TopEnd).padding(3.dp).size(13.dp))
+            }
+        }
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            softWrap = false
+        )
+    }
+}
 
 private data class SettingsSearchEntry(
     val label: String,
