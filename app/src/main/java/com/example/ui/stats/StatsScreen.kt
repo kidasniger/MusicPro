@@ -180,9 +180,14 @@ private fun RankingList(entries: List<Pair<String, Long>>) {
     }
 }
 
+@Composable
 private fun formatDuration(milliseconds: Long): String {
     val minutes = (milliseconds / 60_000L).toInt()
     val hours = minutes / 60
     val remaining = minutes % 60
-    return if (hours > 0) hours.toString() + " h " + remaining + " min" else minutes.toString() + " min"
+    return if (hours > 0) {
+        stringResource(R.string.stats_duration_hours_minutes, hours, remaining)
+    } else {
+        stringResource(R.string.stats_duration_minutes, minutes)
+    }
 }
