@@ -301,4 +301,5 @@
     <string name="settings_purge">تنظيف</string>
 <string name="settings_version_format">v%1$s</string>
 <string name="appearance_text_size">حجم النص</string><string name="appearance_list_density">كثافة القوائم</string><string name="appearance_reduce_animations">تقليل الرسوم المتحركة</string><string name="appearance_reduce_animations_desc">تلاشي بسيط لمدة 120 مللي ثانية دون تأثير اختلاف المنظور أو ضبابية متحركة أو دوران الأسطوانة</string>
+<string name="settings_expand">توسيع</string><string name="settings_collapse">طي</string>
 </resources>
