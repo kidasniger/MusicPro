@@ -38,6 +38,7 @@ import com.example.data.preferences.GlassMaterial
 import com.example.data.preferences.clampGlassFrostDp
 import com.example.data.preferences.glassBlurActive
 import com.example.data.preferences.glassSaturation
+import com.example.data.preferences.glassScaledFilmAlpha
 import com.example.data.preferences.glassTintAlpha
 import kotlin.math.roundToInt
 
@@ -59,10 +60,14 @@ import kotlin.math.roundToInt
  * 0,6 à 0 % (neutre, désaturé) jusqu'à 1,4 à 100 % (couleurs de la pochette amplifiées).
  * Le film, les reflets, la bordure et le contenu ne sont pas affectés.
  *
+ * Film : l'opacité du film de la recette du niveau est multipliée par le curseur « Film »
+ * ([LocalGlassStyle], voir [glassScaledFilmAlpha]) : 50 % (défaut) la laisse inchangée, 0 % la
+ * supprime, 100 % la double (bornée à 1).
+ *
  * Teinte : si une teinte est choisie ([LocalGlassTintHue], `null` = Aucune), un voile de cette
- * couleur est posé juste après le film, avec une opacité de film x 0,5 (voir [glassTintAlpha]).
- * Il s'applique à tous les niveaux, y compris « Le plus rapide » (aplat), sans coût GPU
- * supplémentaire : c'est un simple aplat.
+ * couleur est posé juste après le film, avec une opacité de film x 0,5 (voir [glassTintAlpha]),
+ * le film étant celui obtenu après réglage du curseur. Il s'applique à tous les niveaux, y compris
+ * « Le plus rapide » (aplat), sans coût GPU supplémentaire : c'est un simple aplat.
  *
  * Sans [GlassBackdropHost] parent ou avant Android 12, tous les niveaux se replient sur l'aplat.
  * En mode aplat, rien n'est enregistré ni mesuré.
@@ -79,6 +84,7 @@ fun GlassSurface(
     val colorStrength = LocalGlassColorStrength.current
     val frostDp = clampGlassFrostDp(LocalGlassFrostDp.current)
     val tintHue = LocalGlassTintHue.current
+    val style = LocalGlassStyle.current
     val blurLayer = rememberGraphicsLayer()
     var origin by remember { mutableStateOf(Offset.Zero) }
 
@@ -102,11 +108,13 @@ fun GlassSurface(
         blurLayer.colorFilter = if (blurOn) saturationFilter else null
     }
 
-    val filmAlpha = when {
+    // Film de la recette selon le niveau, puis curseur « Film » (50 % = inchangé).
+    val baseFilmAlpha = when {
         !blurOn -> material.fallbackFilmAlpha
         level == GlassMaterial.BALANCED -> maxOf(material.filmAlpha, GlassBalancedMinFilmAlpha)
         else -> material.filmAlpha
     }
+    val filmAlpha = glassScaledFilmAlpha(baseFilmAlpha, style.filmOpacity)
 
     val highlightBrush = remember(material.highlightTopAlpha, material.highlightBottomAlpha) {
         Brush.verticalGradient(

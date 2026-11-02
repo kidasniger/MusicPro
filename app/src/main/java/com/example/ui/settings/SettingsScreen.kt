@@ -127,6 +127,8 @@ fun SettingsScreen(
     val glassColorStrength by settingsViewModel.glassColorStrength.collectAsStateWithLifecycle()
     val glassFrostDp by settingsViewModel.glassFrostDp.collectAsStateWithLifecycle()
     val glassTintHue by settingsViewModel.glassTintHue.collectAsStateWithLifecycle()
+    val glassFilmOpacity by settingsViewModel.glassFilmOpacity.collectAsStateWithLifecycle()
+    val glassActiveTabOpacity by settingsViewModel.glassActiveTabOpacity.collectAsStateWithLifecycle()
     val autoPlay by settingsViewModel.autoPlay.collectAsStateWithLifecycle()
     val gaplessPlayback by settingsViewModel.gaplessPlayback.collectAsStateWithLifecycle()
     val resumePlayback by settingsViewModel.resumePlayback.collectAsStateWithLifecycle()
@@ -201,6 +203,15 @@ fun SettingsScreen(
             GlassTintCard(
                 hue = glassTintHue,
                 onHueChange = { settingsViewModel.setGlassTintHue(it) }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            GlassFilmCard(
+                filmOpacity = glassFilmOpacity,
+                onFilmOpacityChange = { settingsViewModel.setGlassFilmOpacity(it) },
+                activeTabOpacity = glassActiveTabOpacity,
+                onActiveTabOpacityChange = { settingsViewModel.setGlassActiveTabOpacity(it) }
             )
 
             Spacer(modifier = Modifier.height(16.dp))

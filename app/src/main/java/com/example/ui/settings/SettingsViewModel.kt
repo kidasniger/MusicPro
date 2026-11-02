@@ -4,7 +4,9 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.preferences.AppThemeMode
+import com.example.data.preferences.DefaultGlassActiveTabOpacity
 import com.example.data.preferences.DefaultGlassColorStrength
+import com.example.data.preferences.DefaultGlassFilmOpacity
 import com.example.data.preferences.DefaultGlassFrostDp
 import com.example.data.preferences.GlassMaterial
 import com.example.data.preferences.UserPreferencesRepository
@@ -53,6 +55,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     /** Teinte du verre en degrés (0-360) ; `null` = Aucune, par défaut. */
     val glassTintHue: StateFlow<Float?> = preferencesRepository.glassTintHue
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    /** Film du verre en % (0-100), 50 % par défaut. */
+    val glassFilmOpacity: StateFlow<Int> = preferencesRepository.glassFilmOpacity
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DefaultGlassFilmOpacity)
+
+    /** Opacité de la capsule de l'onglet actif en % (0-100), 26 % par défaut. */
+    val glassActiveTabOpacity: StateFlow<Int> = preferencesRepository.glassActiveTabOpacity
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DefaultGlassActiveTabOpacity)
 
     val autoPlay: StateFlow<Boolean> = preferencesRepository.autoPlay
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
@@ -113,6 +123,18 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setGlassTintHue(hue: Float?) {
         viewModelScope.launch {
             preferencesRepository.setGlassTintHue(hue)
+        }
+    }
+
+    fun setGlassFilmOpacity(percent: Int) {
+        viewModelScope.launch {
+            preferencesRepository.setGlassFilmOpacity(percent)
+        }
+    }
+
+    fun setGlassActiveTabOpacity(percent: Int) {
+        viewModelScope.launch {
+            preferencesRepository.setGlassActiveTabOpacity(percent)
         }
     }
 

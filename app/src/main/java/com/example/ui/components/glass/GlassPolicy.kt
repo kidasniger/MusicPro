@@ -1,10 +1,14 @@
 package com.example.ui.components.glass
 
 import android.os.Build
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.data.preferences.DefaultGlassActiveTabOpacity
 import com.example.data.preferences.DefaultGlassColorStrength
+import com.example.data.preferences.DefaultGlassFilmOpacity
 import com.example.data.preferences.DefaultGlassFrostDp
 import com.example.data.preferences.GlassMaterial
 import com.example.data.preferences.GlassTintSaturation
@@ -35,6 +39,23 @@ val LocalGlassFrostDp = staticCompositionLocalOf { DefaultGlassFrostDp }
  * (voir `glassTintAlpha`).
  */
 val LocalGlassTintHue = staticCompositionLocalOf<Float?> { null }
+
+/**
+ * Réglages de style du verre lus par [GlassSurface] et [GlassNavBar] (mise à jour 009), réunis dans
+ * un seul objet pour ne pas passer de paramètres d'un composant à l'autre.
+ *
+ *  - [filmOpacity] : curseur « Film », 0 à 100 %, 50 % par défaut (film de la recette inchangé).
+ *  - [activeTabOpacity] : curseur « Onglet actif », 0 à 100 %, 26 % par défaut (capsule de l'onglet
+ *    sélectionné).
+ */
+@Immutable
+data class GlassStyle(
+    val filmOpacity: Int = DefaultGlassFilmOpacity,
+    val activeTabOpacity: Int = DefaultGlassActiveTabOpacity
+)
+
+/** Style du verre fourni une fois pour toute l'application ; valeurs par défaut sans fournisseur. */
+val LocalGlassStyle = compositionLocalOf { GlassStyle() }
 
 /** Couleur du voile pour une teinte donnée (saturation et luminosité fixes, voir GlassTint.kt). */
 fun glassTintColor(hue: Float): Color =

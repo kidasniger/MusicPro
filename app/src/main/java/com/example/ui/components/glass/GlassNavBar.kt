@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -42,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.data.preferences.clampGlassOpacity
 
 /** Un onglet de la barre de navigation en verre. */
 @Immutable
@@ -69,6 +71,44 @@ fun rememberAnimationsEnabled(): Boolean {
 }
 
 /**
+ * Couleur de la capsule de l'onglet actif, réglée par le curseur « Onglet actif »
+ * ([LocalGlassStyle], 26 % par défaut, 0 à 100 %). Elle se détache du verre : blanche en thème
+ * sombre, de la couleur du texte en thème clair.
+ */
+@Composable
+fun glassActiveCapsuleColor(): Color {
+    val scheme = MaterialTheme.colorScheme
+    val isDark = scheme.surface.luminance() < 0.5f
+    val opacity = clampGlassOpacity(LocalGlassStyle.current.activeTabOpacity) / 100f
+    val base = if (isDark) Color.White else scheme.onSurface
+    return base.copy(alpha = opacity)
+}
+
+/**
+ * Couleur du texte et de l'icône de l'onglet actif. C'est [base] tant que son contraste avec la
+ * capsule (posée sur la surface) reste d'au moins 4,5:1 (WCAG AA) ; sinon la couleur, claire ou
+ * sombre, qui contraste le mieux. Sans cela, une capsule très opaque rendrait l'onglet illisible.
+ */
+@Composable
+fun glassActiveTabContentColor(capsule: Color, base: Color): Color {
+    val surface = MaterialTheme.colorScheme.surface
+    val capsuleOverSurface = capsule.compositeOver(surface)
+    if (contrastRatio(base, capsuleOverSurface) >= 4.5f) return base
+    val flipped = if (base.luminance() > 0.5f) Color(0xFF1C1B1F) else Color.White
+    return if (contrastRatio(flipped, capsuleOverSurface) > contrastRatio(base, capsuleOverSurface)) {
+        flipped
+    } else {
+        base
+    }
+}
+
+private fun contrastRatio(a: Color, b: Color): Float {
+    val la = a.luminance()
+    val lb = b.luminance()
+    return (maxOf(la, lb) + 0.05f) / (minOf(la, lb) + 0.05f)
+}
+
+/**
  * Barre de navigation flottante en pilule de verre.
  * Marges : 16 dp latérales, 12 dp au-dessus de la barre système. Hauteur : 64 dp.
  */
@@ -80,9 +120,8 @@ fun GlassNavBar(
     modifier: Modifier = Modifier
 ) {
     val animationsEnabled = rememberAnimationsEnabled()
-    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-    // Capsule « Active tab » : plus claire que le verre environnant.
-    val activeCapsule = if (isDark) Color.White.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.80f)
+    // Capsule « Active tab » : opacité réglée dans les réglages (LocalGlassStyle).
+    val activeCapsule = glassActiveCapsuleColor()
 
     GlassSurface(
         modifier = modifier
@@ -93,6 +132,7 @@ fun GlassNavBar(
         shape = RoundedCornerShape(32.dp),
         material = GlassMaterials.regular()
     ) {
+        val selectedContent = glassActiveTabContentColor(activeCapsule, LocalContentColor.current)
         Row(
             modifier = Modifier
                 .fillMaxSize()
@@ -106,6 +146,7 @@ fun GlassNavBar(
                     selected = item.key == selectedKey,
                     animationsEnabled = animationsEnabled,
                     activeCapsule = activeCapsule,
+                    selectedContent = selectedContent,
                     onClick = { onSelect(item.key) },
                     modifier = Modifier.weight(1f)
                 )
@@ -120,6 +161,7 @@ private fun GlassNavTab(
     selected: Boolean,
     animationsEnabled: Boolean,
     activeCapsule: Color,
+    selectedContent: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -130,8 +172,8 @@ private fun GlassNavTab(
         label = "glass_nav_capsule"
     )
     val baseColor = LocalContentColor.current
-    // Onglet actif : pleine opacité ; autres onglets : 70 %.
-    val tint = if (selected) baseColor else baseColor.copy(alpha = 0.70f)
+    // Onglet actif : pleine opacité (et contraste vérifié sur la capsule) ; autres onglets : 70 %.
+    val tint = if (selected) selectedContent else baseColor.copy(alpha = 0.70f)
 
     Box(
         modifier = modifier

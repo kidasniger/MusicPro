@@ -14,6 +14,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.DisposableEffect
@@ -27,9 +28,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.permissions.PermissionViewModel
 import com.example.playback.MusicPlaybackService
 import com.example.ui.components.AppUpdateDialog
+import com.example.ui.components.glass.GlassStyle
 import com.example.ui.components.glass.LocalGlassColorStrength
 import com.example.ui.components.glass.LocalGlassFrostDp
 import com.example.ui.components.glass.LocalGlassMaterial
+import com.example.ui.components.glass.LocalGlassStyle
 import com.example.ui.components.glass.LocalGlassTintHue
 import com.example.ui.navigation.MusicProNavGraph
 import com.example.ui.onboarding.OnboardingViewModel
@@ -61,6 +64,11 @@ class MainActivity : ComponentActivity() {
       val glassColorStrength by settingsViewModel.glassColorStrength.collectAsStateWithLifecycle()
       val glassFrostDp by settingsViewModel.glassFrostDp.collectAsStateWithLifecycle()
       val glassTintHue by settingsViewModel.glassTintHue.collectAsStateWithLifecycle()
+      val glassFilmOpacity by settingsViewModel.glassFilmOpacity.collectAsStateWithLifecycle()
+      val glassActiveTabOpacity by settingsViewModel.glassActiveTabOpacity.collectAsStateWithLifecycle()
+      val glassStyle = remember(glassFilmOpacity, glassActiveTabOpacity) {
+        GlassStyle(filmOpacity = glassFilmOpacity, activeTabOpacity = glassActiveTabOpacity)
+      }
 
       MusicProTheme(themeMode = currentThemeMode, dynamicColor = isDynamicColor) {
         val context = LocalContext.current
@@ -93,13 +101,14 @@ class MainActivity : ComponentActivity() {
           }
         }
 
-        // Réglages « Effet verre », « Givre », « Couleur du verre » et « Teinte du verre » :
-        // appliqués à toute l'application.
+        // Réglages « Effet verre », « Givre », « Couleur du verre », « Teinte du verre »,
+        // « Film » et « Onglet actif » : appliqués à toute l'application.
         CompositionLocalProvider(
           LocalGlassMaterial provides glassMaterial,
           LocalGlassColorStrength provides glassColorStrength,
           LocalGlassFrostDp provides glassFrostDp,
-          LocalGlassTintHue provides glassTintHue
+          LocalGlassTintHue provides glassTintHue,
+          LocalGlassStyle provides glassStyle
         ) {
           Surface(
             modifier = Modifier.fillMaxSize(),

@@ -45,6 +45,10 @@ class UserPreferencesRepository(private val context: Context) {
         val KEY_GLASS_FROST_DP = intPreferencesKey("glass_frost_dp")
         /** Teinte du verre, en degrés (0-360 exclu). Absente : aucune teinte. */
         val KEY_GLASS_TINT_HUE = floatPreferencesKey("glass_tint_hue")
+        /** Film du verre (opacité du voile de couleur), en % (0-100). Absente : 50 %. */
+        val KEY_GLASS_FILM_OPACITY = intPreferencesKey("glass_film_opacity")
+        /** Opacité de la capsule de l'onglet actif, en % (0-100). Absente : 26 %. */
+        val KEY_GLASS_ACTIVE_TAB_OPACITY = intPreferencesKey("glass_active_tab_opacity")
         /** Ancienne clé (mise à jour 004, valeurs BEAUTIFUL / FAST) : migrée à la lecture. */
         val KEY_GLASS_QUALITY_LEGACY = stringPreferencesKey("glass_quality")
         val KEY_FAVORITE_TRACK_IDS = stringSetPreferencesKey("favorite_track_ids")
@@ -135,6 +139,20 @@ class UserPreferencesRepository(private val context: Context) {
         }
         .map { preferences -> resolveGlassTintHue(preferences[KEY_GLASS_TINT_HUE]) }
 
+    /** Film du verre en % (0-100) ; 50 % par défaut (voir [resolveGlassFilmOpacity]). */
+    val glassFilmOpacity: Flow<Int> = context.musicProDataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { preferences -> resolveGlassFilmOpacity(preferences[KEY_GLASS_FILM_OPACITY]) }
+
+    /** Opacité de la capsule de l'onglet actif en % (0-100) ; 26 % par défaut. */
+    val glassActiveTabOpacity: Flow<Int> = context.musicProDataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { preferences -> resolveGlassActiveTabOpacity(preferences[KEY_GLASS_ACTIVE_TAB_OPACITY]) }
+
     suspend fun setOnboardingCompleted(completed: Boolean) {
         context.musicProDataStore.edit { preferences ->
             preferences[KEY_ONBOARDING_COMPLETED] = completed
@@ -175,6 +193,18 @@ class UserPreferencesRepository(private val context: Context) {
             } else {
                 preferences[KEY_GLASS_TINT_HUE] = resolved
             }
+        }
+    }
+
+    suspend fun setGlassFilmOpacity(percent: Int) {
+        context.musicProDataStore.edit { preferences ->
+            preferences[KEY_GLASS_FILM_OPACITY] = clampGlassOpacity(percent)
+        }
+    }
+
+    suspend fun setGlassActiveTabOpacity(percent: Int) {
+        context.musicProDataStore.edit { preferences ->
+            preferences[KEY_GLASS_ACTIVE_TAB_OPACITY] = clampGlassOpacity(percent)
         }
     }
 
