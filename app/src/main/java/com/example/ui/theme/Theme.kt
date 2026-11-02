@@ -25,6 +25,7 @@ import com.example.data.preferences.AppThemeMode
 import com.example.data.preferences.AppearanceMode
 import com.example.ui.components.glass.rememberAnimationsEnabled
 import com.example.ui.components.glass.LocalReduceAnimations
+import com.example.ui.components.glass.rememberSystemAnimationsEnabled
 
 val LocalMusicProListRowHeight = staticCompositionLocalOf { 64.dp }
 
@@ -146,7 +147,7 @@ fun MusicProTheme(
     val systemDark = isSystemInDarkTheme()
     val isDark = resolveIsDark(appearance, eveningDark, systemDark)
     val context = LocalContext.current
-    val animationsEnabled = rememberAnimationsEnabled()
+    val systemAnimationsEnabled = rememberSystemAnimationsEnabled()
     val useDynamic = dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
     val baseScheme = if (useDynamic) {
@@ -157,8 +158,16 @@ fun MusicProTheme(
         musicProBaseScheme(style, isDark)
     }
 
-    val fadeMillis = if (animationsEnabled) MusicProTokens.Duration.ThemeFade else 0
-    val accentMillis = if (animationsEnabled) MusicProTokens.Duration.AccentFade else 0
+    val fadeMillis = when {
+        !systemAnimationsEnabled -> 0
+        reduceAnimations -> 120
+        else -> MusicProTokens.Duration.ThemeFade
+    }
+    val accentMillis = when {
+        !systemAnimationsEnabled -> 0
+        reduceAnimations -> 120
+        else -> MusicProTokens.Duration.AccentFade
+    }
     val animatedBase = animateColorScheme(baseScheme, fadeMillis)
 
     val accentOverride = if (useDynamic) {
