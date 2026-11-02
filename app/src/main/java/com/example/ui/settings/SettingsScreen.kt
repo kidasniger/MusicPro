@@ -103,6 +103,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.data.preferences.AppThemeMode
 import com.example.data.preferences.AppearanceMode
 import com.example.data.preferences.AppStyle
+import com.example.data.preferences.TextSizePreference
+import com.example.data.preferences.ListDensityPreference
 import com.example.data.security.GroqApiKeyStore
 import com.example.groq.GroqTranscriptionManager
 import com.example.ui.theme.MusicProCyanLight
@@ -138,6 +140,8 @@ fun SettingsScreen(
     val autoPlay by settingsViewModel.autoPlay.collectAsStateWithLifecycle()
     val gaplessPlayback by settingsViewModel.gaplessPlayback.collectAsStateWithLifecycle()
     val resumePlayback by settingsViewModel.resumePlayback.collectAsStateWithLifecycle()
+    val textSizePreference by settingsViewModel.textSizePreference.collectAsStateWithLifecycle()
+    val listDensityPreference by settingsViewModel.listDensityPreference.collectAsStateWithLifecycle()
     val cacheSize by settingsViewModel.cacheSize.collectAsStateWithLifecycle()
     val isClearingCache by settingsViewModel.isClearingCache.collectAsStateWithLifecycle()
     val isCleaningLibrary by settingsViewModel.isCleaningLibrary.collectAsStateWithLifecycle()
@@ -273,7 +277,11 @@ fun SettingsScreen(
                     onEveningStartChange = { settingsViewModel.setEveningStartMinutes(it) },
                     onEveningEndChange = { settingsViewModel.setEveningEndMinutes(it) },
                     isDynamicColor = isDynamicColor,
-                    onDynamicColorChanged = { settingsViewModel.setDynamicColor(it) }
+                    onDynamicColorChanged = { settingsViewModel.setDynamicColor(it) },
+                    textSize = textSizePreference,
+                    onTextSizeSelected = { settingsViewModel.setTextSizePreference(it) },
+                    listDensity = listDensityPreference,
+                    onListDensitySelected = { settingsViewModel.setListDensityPreference(it) }
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 GlassSettingsEntry(onClick = onOpenGlassSettings)
@@ -608,6 +616,8 @@ private val settingsSearchIndex = listOf(
     SettingsSearchEntry("Style Minimal, Néon ou Verre", "APPARENCE", listOf("style", "glass", "liquid glass", "verre")),
     SettingsSearchEntry("Couleur d’accent", "APPARENCE", listOf("couleur", "color", "accent", "teinte")),
     SettingsSearchEntry("Couleurs dynamiques", "APPARENCE", listOf("couleur", "color", "dynamique", "palette")),
+    SettingsSearchEntry("Taille du texte", "APPARENCE", listOf("texte", "taille", "police", "font", "petit", "grand")),
+    SettingsSearchEntry("Densité des listes", "APPARENCE", listOf("densité", "density", "compact", "compacte", "confortable", "hauteur", "ligne")),
     SettingsSearchEntry("Flou et transparence du verre", "APPARENCE", listOf("flou", "blur", "frost", "transparence", "verre", "glass")),
     SettingsSearchEntry("Lecture automatique", "LECTURE", listOf("lecture", "lecteur", "auto play", "autoplay")),
     SettingsSearchEntry("Lecture sans interruption", "LECTURE", listOf("gapless", "enchaînement", "transition")),
