@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Density
 import androidx.compose.runtime.staticCompositionLocalOf
 import com.example.data.preferences.ListDensityPreference
 import com.example.data.preferences.AccentChoice
@@ -175,7 +176,7 @@ fun MusicProTheme(
     }
 
     val density = LocalDensity.current
-    CompositionLocalProvider(LocalDensity provides density.copy(fontScale = density.fontScale * fontScale)) {
+    CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = density.fontScale * fontScale)) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = musicProTypography(style)
