@@ -88,7 +88,7 @@ fun GlassSurface(
     val blurLayer = rememberGraphicsLayer()
     var origin by remember { mutableStateOf(Offset.Zero) }
 
-    val blurOn = backdrop != null &&
+    val blurOn = !LocalReduceAnimations.current && backdrop != null &&
         glassBlurActive(level, glassBlurSupported, frostDp) &&
         material.blurRadius > 0.dp
     val quality = blurOn && level == GlassMaterial.QUALITY
