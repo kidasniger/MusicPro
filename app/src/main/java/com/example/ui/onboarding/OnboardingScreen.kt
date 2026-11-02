@@ -64,6 +64,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -162,7 +163,7 @@ fun OnboardingScreen(
                 .padding(horizontal = 24.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Top Bar: Logo on left, "Passer" (Skip) button on right
+            // Top Bar: Logo on left, stringResource(R.string.onboarding_skip) (Skip) button on right
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -507,13 +508,13 @@ private fun OnboardingPageView(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Playlist: Nuit Néon",
+                                text = stringResource(R.string.onboarding_playlist_preview),
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onBackground
                             )
                             Text(
-                                text = "12 morceaux • Widget d'accueil actif",
+                                text = stringResource(R.string.onboarding_track_widget),
                                 fontSize = 12.sp,
                                 color = MusicProCyanLight
                             )
@@ -530,7 +531,7 @@ private fun OnboardingPageView(
                     modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("THÈME", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.onboarding_theme), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         listOf(
                             AppearanceMode.LIGHT to "Clair",
@@ -548,7 +549,7 @@ private fun OnboardingPageView(
                             }
                         }
                     }
-                    Text("STYLE VISUEL", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.onboarding_visual_style), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         listOf(AppStyle.GLASS to "Glass", AppStyle.NEON to "Néon", AppStyle.MINIMAL to "Minimal").forEach { (style, label) ->
                             Surface(
