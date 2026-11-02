@@ -87,6 +87,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.local.AudioTrackEntity
+import com.example.R
 import com.example.lyrics.remote.LrclibSearchResult
 import com.example.ui.audio.LrclibSearchUiState
 import com.example.ui.theme.MusicProBackground

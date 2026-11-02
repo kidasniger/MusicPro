@@ -77,6 +77,7 @@ fun GroqPreviewDialog(
     onIntegrate: (GroqTranscriptionResult) -> Unit
 ) {
     val context = LocalContext.current
+    val copiedMsg = stringResource(R.string.groq_clipboard_copied)
 
     Dialog(
         onDismissRequest = onDismiss,
