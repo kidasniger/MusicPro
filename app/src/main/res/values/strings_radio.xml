@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="mixes_screen_title">Radio</string>
-    <string name="mixes_screen_subtitle">Des mixes créés sur votre appareil, à partir de votre écoute et de vos favoris.</string>
-    <string name="mixes_empty_message">Ajoutez de la musique pour que vos mixes soient générés automatiquement.</string>
-    <string name="mixes_discovery">Découverte</string>
-    <string name="mixes_discovery_desc">Des morceaux que vous n\'avez jamais écoutés, les plus récents d\'abord.</string>
-    <string name="mixes_energy">Énergie</string>
-    <string name="mixes_energy_desc">Des titres courts et nerveux, vos favoris en tête.</string>
-    <string name="mixes_calm">Calme</string>
-    <string name="mixes_calm_desc">Des titres longs et posés pour se détendre ou travailler.</string>
-    <string name="mixes_party">Soirée</string>
-    <string name="mixes_party_desc">Un mélange de vos favoris et de vos écoutes, dans un ordre qui change chaque jour.</string>
-    <string name="mixes_memories">Souvenirs</string>
-    <string name="mixes_memories_desc">Ce que vous n\'avez pas écouté depuis longtemps, favoris d\'abord.</string>
-    <string name="mixes_live">En direct</string>
-    <string name="mixes_play_cd">Lire le mix %1$s</string>
-    <plurals name="mixes_track_count">
+    <string  translatable="false" name="mixes_screen_title">Radio</string>
+    <string  translatable="false" name="mixes_screen_subtitle">Des mixes créés sur votre appareil, à partir de votre écoute et de vos favoris.</string>
+    <string  translatable="false" name="mixes_empty_message">Ajoutez de la musique pour que vos mixes soient générés automatiquement.</string>
+    <string  translatable="false" name="mixes_discovery">Découverte</string>
+    <string  translatable="false" name="mixes_discovery_desc">Des morceaux que vous n\'avez jamais écoutés, les plus récents d\'abord.</string>
+    <string  translatable="false" name="mixes_energy">Énergie</string>
+    <string  translatable="false" name="mixes_energy_desc">Des titres courts et nerveux, vos favoris en tête.</string>
+    <string  translatable="false" name="mixes_calm">Calme</string>
+    <string  translatable="false" name="mixes_calm_desc">Des titres longs et posés pour se détendre ou travailler.</string>
+    <string  translatable="false" name="mixes_party">Soirée</string>
+    <string  translatable="false" name="mixes_party_desc">Un mélange de vos favoris et de vos écoutes, dans un ordre qui change chaque jour.</string>
+    <string  translatable="false" name="mixes_memories">Souvenirs</string>
+    <string  translatable="false" name="mixes_memories_desc">Ce que vous n\'avez pas écouté depuis longtemps, favoris d\'abord.</string>
+    <string  translatable="false" name="mixes_live">En direct</string>
+    <string  translatable="false" name="mixes_play_cd">Lire le mix %1$s</string>
+    <plurals  translatable="false" name="mixes_track_count">
         <item quantity="one">%d morceau</item>
         <item quantity="other">%d morceaux</item>
     </plurals>
