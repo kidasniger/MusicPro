@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -74,6 +75,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import coil.compose.AsyncImage
 import com.example.R
 import com.example.data.local.AudioTrackEntity
+import com.example.ui.detail.DetailRouter
 import com.example.ui.theme.MusicProTokens
 import com.example.ui.theme.dominantAccentArgb
 import kotlinx.coroutines.Dispatchers
@@ -207,7 +209,17 @@ fun AlbumScreen(
                             style = MaterialTheme.typography.titleMedium,
                             color = scheme.onBackground,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
+                            // Mise à jour 024 : le nom de l'artiste ouvre sa page.
+                            modifier = if (artist.isNotBlank()) {
+                                Modifier
+                                    .heightIn(min = MusicProTokens.Size.Touch)
+                                    .clickable(role = Role.Button) { DetailRouter.openArtist(artist) }
+                                    .wrapContentHeight(Alignment.CenterVertically)
+                                    .testTag("album_artist")
+                            } else {
+                                Modifier
+                            }
                         )
                         Text(
                             text = stringResource(R.string.album_type),
