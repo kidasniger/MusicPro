@@ -737,7 +737,7 @@ private fun SettingsGroupCard(
                 }
                 Icon(
                     imageVector = Icons.Default.ChevronRight,
-                    contentDescription = if (expanded) "Réduire" else "Développer",
+                    contentDescription = if (expanded) stringResource(R.string.settings_collapse) else stringResource(R.string.settings_expand),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .size(20.dp)
