@@ -49,7 +49,8 @@ class ScreenSizesResponsiveTest {
 
         // Vérification présence et affichage correct
         composeTestRule.onNodeWithTag("settings_back_button").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("quick_appearance_card").assertIsDisplayed()\n        composeTestRule.onNodeWithTag("theme_settings_card").performScrollTo().assertIsDisplayed()
+        composeTestRule.onNodeWithTag("quick_appearance_card").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("theme_settings_card").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_dark_button").assertIsDisplayed()
         // Sur petit écran, la carte Groq est sous la ligne de flottaison : on défile jusqu'à elle.
         composeTestRule.onNodeWithText("INTELLIGENCE ARTIFICIELLE").performScrollTo().performClick()
