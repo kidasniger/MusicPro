@@ -2,6 +2,7 @@ package com.example.playback
 
 import android.content.ComponentName
 import android.os.Bundle
+import android.os.SystemClock
 import android.content.Context
 import android.net.Uri
 import android.util.Log
@@ -56,7 +57,7 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
     val queueIndex: StateFlow<Int> = _queueIndex.asStateFlow()
     private var positionTickerJob: Job? = null
     private var statsTrack: AudioTrackEntity? = null
-    private var statsLastPositionMs: Long? = null
+    private var statsLastElapsedMs: Long? = null
     private var pendingStatsMs: Long = 0L
     private var pendingTrackToPlay: AudioTrackEntity? = null
     private var pendingPlaylistToPlay: List<AudioTrackEntity> = emptyList()
@@ -714,7 +715,7 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
                         _currentPositionMs.value = position
                         val dur = controller.duration
                         if (dur > 0) _durationMs.value = dur
-                        recordListeningProgress(_currentTrack.value, position)
+                        recordListeningProgress(_currentTrack.value)
                     }
                 }
                 delay(250)
@@ -722,18 +723,19 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
         }
     }
 
-    private fun recordListeningProgress(track: AudioTrackEntity?, positionMs: Long) {
+    private fun recordListeningProgress(track: AudioTrackEntity?) {
         if (track == null) return
+        val now = SystemClock.elapsedRealtime()
         if (statsTrack?.id != track.id) {
             flushListeningStats()
             statsTrack = track
-            statsLastPositionMs = positionMs
+            statsLastElapsedMs = now
             return
         }
-        val previous = statsLastPositionMs
-        statsLastPositionMs = positionMs
+        val previous = statsLastElapsedMs
+        statsLastElapsedMs = now
         if (previous != null) {
-            val delta = positionMs - previous
+            val delta = now - previous
             if (delta in 1L..1_000L) pendingStatsMs += delta
         }
         if (pendingStatsMs >= 1_000L) flushListeningStats()
@@ -757,7 +759,7 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
         positionTickerJob?.cancel()
         positionTickerJob = null
         flushListeningStats()
-        statsLastPositionMs = null
+        statsLastElapsedMs = null
     }
 
     private fun AudioTrackEntity.toMediaItem(preferDirectFile: Boolean = false): MediaItem {
