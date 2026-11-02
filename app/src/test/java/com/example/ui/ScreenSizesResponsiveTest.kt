@@ -76,7 +76,8 @@ class ScreenSizesResponsiveTest {
         composeTestRule.onNodeWithTag("settings_back_button").assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_settings_card").assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_light_button").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("groq_settings_card").assertIsDisplayed()
+        // Les cartes de verre (effet, teinte) sont au-dessus : la carte Groq est sous la ligne de flottaison.
+        composeTestRule.onNodeWithTag("groq_settings_card").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithTag("cache_settings_card").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithTag("about_settings_card").performScrollTo().assertIsDisplayed()
     }
@@ -104,7 +105,8 @@ class ScreenSizesResponsiveTest {
         composeTestRule.onNodeWithTag("settings_back_button").assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_settings_card").assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_system_button").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("groq_settings_card").assertIsDisplayed()
+        // Les cartes de verre (effet, teinte) sont au-dessus : la carte Groq est sous la ligne de flottaison.
+        composeTestRule.onNodeWithTag("groq_settings_card").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithTag("cache_settings_card").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithTag("about_settings_card").performScrollTo().assertIsDisplayed()
     }
