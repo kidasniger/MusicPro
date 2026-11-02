@@ -89,6 +89,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
@@ -118,23 +119,38 @@ import com.example.lyrics.LyricsSource
 import com.example.ui.audio.AudioViewModel
 import com.example.ui.components.glass.rememberAnimationsEnabled
 import com.example.ui.theme.MusicProCyanLight
-import com.example.ui.theme.MusicProCyanNeon
+import com.example.ui.theme.MaterialTheme.colorScheme.primary
 import com.example.ui.theme.MusicProPrimaryGradient
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPrimary
 import kotlinx.coroutines.delay
 
-/** Palette sombre propre à la vue immersive : le texte blanc reste lisible (WCAG AA) en thème clair comme sombre. */
+/** Palette immersive dérivée du thème actif : le mode clair/sombre reste synchronisé sans redémarrage. */
 @Composable
-private fun immersiveColorScheme(): ColorScheme = MaterialTheme.colorScheme.copy(
-    background = Color(0xFF0B0B12),
-    onBackground = Color(0xFFF2F2F7),
-    surface = Color(0xFF16161F),
-    onSurface = Color(0xFFF2F2F7),
-    surfaceVariant = Color(0xFF22222E),
-    onSurfaceVariant = Color(0xFFC9C9D6)
-)
+private fun immersiveColorScheme(): ColorScheme {
+    val active = MaterialTheme.colorScheme
+    val isLight = active.background.luminance() > 0.5f
+    return if (isLight) {
+        active.copy(
+            background = Color(0xFFF7F6F2),
+            onBackground = Color(0xFF20201F),
+            surface = Color(0xFFFFFFFF),
+            onSurface = Color(0xFF20201F),
+            surfaceVariant = Color(0xFFEAE9E4),
+            onSurfaceVariant = Color(0xFF55544F)
+        )
+    } else {
+        active.copy(
+            background = Color(0xFF0B0B12),
+            onBackground = Color(0xFFF2F2F7),
+            surface = Color(0xFF16161F),
+            onSurface = Color(0xFFF2F2F7),
+            surfaceVariant = Color(0xFF22222E),
+            onSurfaceVariant = Color(0xFFC9C9D6)
+        )
+    }
+}
 
 /**
  * Enregistre le décalage karaoké dans le AudioViewModel du même écran (même propriétaire de
@@ -378,7 +394,7 @@ fun LyricsScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 CircularProgressIndicator(
-                                    color = MusicProCyanNeon,
+                                    color = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(36.dp)
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
@@ -530,7 +546,7 @@ fun LyricsScreen(
                             Icon(
                                 imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                                 contentDescription = null,
-                                tint = MusicProCyanNeon,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(14.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
@@ -565,7 +581,7 @@ fun LyricsScreen(
                         Icon(
                             imageVector = Icons.Default.Subtitles,
                             contentDescription = null,
-                            tint = MusicProCyanNeon
+                            tint = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
@@ -599,7 +615,7 @@ fun LyricsScreen(
                                 )
                             },
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MusicProCyanNeon,
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
                                 unfocusedBorderColor = MusicProVioletPrimary.copy(alpha = 0.5f),
                                 focusedTextColor = MaterialTheme.colorScheme.onBackground,
                                 unfocusedTextColor = MaterialTheme.colorScheme.onBackground
@@ -617,7 +633,7 @@ fun LyricsScreen(
                                 manualLrcInput = ""
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         modifier = Modifier.testTag("confirm_import_lrc_button")
                     ) {
                         Text("Appliquer", color = Color.Black, fontWeight = FontWeight.Bold)
@@ -648,7 +664,7 @@ fun LyricsScreen(
                             Icon(
                                 imageVector = Icons.Default.AutoAwesome,
                                 contentDescription = null,
-                                tint = MusicProCyanNeon,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -669,7 +685,7 @@ fun LyricsScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         CircularProgressIndicator(
-                            color = MusicProCyanNeon,
+                            color = MaterialTheme.colorScheme.primary,
                             strokeWidth = 3.dp,
                             modifier = Modifier.size(46.dp)
                         )
@@ -734,7 +750,7 @@ fun LyricsScreen(
                                 onClearGroqError()
                                 onOpenSettings()
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                             shape = RoundedCornerShape(10.dp)
                         ) {
                             Text("Ouvrir Paramètres", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 12.sp)
@@ -742,7 +758,7 @@ fun LyricsScreen(
                     } else {
                         Button(
                             onClick = onClearGroqError,
-                            colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                             shape = RoundedCornerShape(10.dp)
                         ) {
                             Text("D'accord", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 12.sp)
@@ -802,7 +818,7 @@ private fun LyricsOptionsSheet(
                     .fillMaxWidth()
                     .height(52.dp)
                     .testTag("lyrics_karaoke_button"),
-                colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(14.dp)
             ) {
                 Icon(
@@ -858,7 +874,7 @@ private fun LyricsOptionsSheet(
                 }
                 Text(
                     text = stringResource(R.string.lyrics_offset_value, offsetMs.toInt()),
-                    color = MusicProCyanNeon,
+                    color = MaterialTheme.colorScheme.primary,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f),
@@ -887,7 +903,7 @@ private fun LyricsOptionsSheet(
             ) {
                 Text(
                     text = stringResource(R.string.lyrics_offset_reset),
-                    color = if (offsetMs != 0L) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (offsetMs != 0L) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -927,7 +943,7 @@ private fun LyricsTopBar(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Retour",
-                tint = MusicProCyanNeon,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -970,13 +986,13 @@ private fun LyricsTopBar(
                     modifier = Modifier
                         .size(6.dp)
                         .clip(CircleShape)
-                        .background(if (lyricsSource != LyricsSource.NONE) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant)
+                        .background(if (lyricsSource != LyricsSource.NONE) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = lyricsSource.label,
                     fontSize = 12.sp,
-                    color = MusicProCyanNeon,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1
                 )
@@ -997,7 +1013,7 @@ private fun LyricsTopBar(
                 Icon(
                     imageVector = Icons.Default.AutoAwesome,
                     contentDescription = "Générer les paroles",
-                    tint = MusicProCyanNeon,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(19.dp)
                 )
             }
@@ -1016,7 +1032,7 @@ private fun LyricsTopBar(
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = "Rechercher des paroles en ligne",
-                    tint = MusicProCyanNeon,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(19.dp)
                 )
             }
@@ -1051,7 +1067,7 @@ private fun LyricsTopBar(
                             text = {
                                 Text(
                                     text = "Intégrer au fichier audio (ID3)",
-                                    color = MusicProCyanNeon,
+                                    color = MaterialTheme.colorScheme.primary,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.SemiBold
                                 )
@@ -1060,7 +1076,7 @@ private fun LyricsTopBar(
                                 Icon(
                                     imageVector = Icons.Default.Save,
                                     contentDescription = null,
-                                    tint = MusicProCyanNeon,
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(18.dp)
                                 )
                             },
@@ -1117,11 +1133,11 @@ private fun LyricLineItem(
     val targetColor = if (isActive) {
         when (activeColorName) {
             "violet" -> MusicProVioletLight
-            "white" -> Color.White
-            else -> MusicProCyanNeon
+            "white" -> MaterialTheme.colorScheme.onBackground
+            else -> MaterialTheme.colorScheme.primary
         }
     } else {
-        Color.White.copy(alpha = 0.5f)
+        MaterialTheme.colorScheme.onBackground.copy(alpha = 0.58f)
     }
     val textColor by animateColorAsState(
         targetValue = targetColor,
@@ -1189,7 +1205,7 @@ private fun EmptyLyricsView(
             Icon(
                 imageVector = Icons.Default.SubtitlesOff,
                 contentDescription = null,
-                tint = MusicProCyanNeon,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(44.dp)
             )
         }
@@ -1222,9 +1238,9 @@ private fun EmptyLyricsView(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
-                .shadow(12.dp, spotColor = MusicProCyanNeon)
+                .shadow(12.dp, spotColor = MaterialTheme.colorScheme.primary)
                 .testTag("transcribe_whisper_button"),
-            colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             shape = RoundedCornerShape(12.dp)
         ) {
             Icon(
@@ -1345,7 +1361,7 @@ private fun LyricsBottomControlBar(
                 Text(
                     text = formatTimestamp(visiblePositionMs),
                     fontSize = 12.sp,
-                    color = MusicProCyanNeon,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
@@ -1406,7 +1422,7 @@ private fun LyricsBottomControlBar(
                         .fillMaxWidth((visiblePositionMs.toFloat() / safeDuration.toFloat()).coerceIn(0f, 1f))
                         .height(4.dp)
                         .clip(RoundedCornerShape(999.dp))
-                        .background(MusicProCyanNeon)
+                        .background(MaterialTheme.colorScheme.primary)
                         .align(Alignment.CenterStart)
                 )
             }
@@ -1432,7 +1448,7 @@ private fun LyricsBottomControlBar(
                     Icon(
                         imageVector = Icons.Default.Tune,
                         contentDescription = stringResource(R.string.lyrics_options_cd),
-                        tint = MusicProCyanNeon,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(22.dp)
                     )
                 }
