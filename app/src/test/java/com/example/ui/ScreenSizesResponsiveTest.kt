@@ -171,7 +171,8 @@ class ScreenSizesResponsiveTest {
 
         // L'UI en mode paysage doit afficher les contrôles principaux et rester scrollable
         composeTestRule.onNodeWithTag("settings_back_button").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("theme_settings_card").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("theme_dark_button").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("quick_appearance_card").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("theme_settings_card").performScrollTo().assertIsDisplayed()
+        composeTestRule.onNodeWithTag("theme_dark_button").performScrollTo().assertIsDisplayed()
     }
 }
