@@ -27,6 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.permissions.PermissionViewModel
 import com.example.playback.MusicPlaybackService
 import com.example.ui.components.AppUpdateDialog
+import com.example.ui.components.glass.LocalGlassColorStrength
 import com.example.ui.components.glass.LocalGlassMaterial
 import com.example.ui.navigation.MusicProNavGraph
 import com.example.ui.onboarding.OnboardingViewModel
@@ -55,6 +56,7 @@ class MainActivity : ComponentActivity() {
       val mediaUiRequest by mediaUiRequestState
       val isDynamicColor by settingsViewModel.isDynamicColor.collectAsStateWithLifecycle()
       val glassMaterial by settingsViewModel.glassMaterial.collectAsStateWithLifecycle()
+      val glassColorStrength by settingsViewModel.glassColorStrength.collectAsStateWithLifecycle()
 
       MusicProTheme(themeMode = currentThemeMode, dynamicColor = isDynamicColor) {
         val context = LocalContext.current
@@ -87,8 +89,11 @@ class MainActivity : ComponentActivity() {
           }
         }
 
-        // Réglage « Effet verre » : le niveau choisi s'applique à toute l'application.
-        CompositionLocalProvider(LocalGlassMaterial provides glassMaterial) {
+        // Réglages « Effet verre » et « Couleur du verre » : appliqués à toute l'application.
+        CompositionLocalProvider(
+          LocalGlassMaterial provides glassMaterial,
+          LocalGlassColorStrength provides glassColorStrength
+        ) {
           Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background

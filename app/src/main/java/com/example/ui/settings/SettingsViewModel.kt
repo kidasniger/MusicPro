@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.preferences.AppThemeMode
+import com.example.data.preferences.DefaultGlassColorStrength
 import com.example.data.preferences.GlassMaterial
 import com.example.data.preferences.UserPreferencesRepository
 import com.example.data.repository.AudioRepository
@@ -39,6 +40,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     val glassMaterial: StateFlow<GlassMaterial> = preferencesRepository.glassMaterial
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), GlassMaterial.BALANCED)
+
+    /** Force de couleur du verre en % (0-100), 70 % par défaut. */
+    val glassColorStrength: StateFlow<Int> = preferencesRepository.glassColorStrength
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DefaultGlassColorStrength)
 
     val autoPlay: StateFlow<Boolean> = preferencesRepository.autoPlay
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
@@ -80,6 +85,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setGlassMaterial(material: GlassMaterial) {
         viewModelScope.launch {
             preferencesRepository.setGlassMaterial(material)
+        }
+    }
+
+    fun setGlassColorStrength(percent: Int) {
+        viewModelScope.launch {
+            preferencesRepository.setGlassColorStrength(percent)
         }
     }
 

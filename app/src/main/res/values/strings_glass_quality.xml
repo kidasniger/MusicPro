@@ -9,4 +9,10 @@
     <string name="glass_material_quality">Qualité</string>
     <string name="glass_material_quality_desc">Flou réel, reflets, bordure lumineuse, grain léger et ombre douce</string>
     <string name="glass_material_unsupported">Le flou nécessite Android 12 ou plus. Sur cet appareil, un fond translucide est utilisé et le niveau Qualité n’est pas proposé.</string>
+
+    <!-- Réglage : couleur du verre -->
+    <string name="glass_color_strength_title">Couleur du verre</string>
+    <string name="glass_color_strength_desc">Saturation de ce qui transparaît derrière le verre : neutre à 0 %, couleurs de la pochette amplifiées à 100 %.</string>
+    <string name="glass_color_strength_value">%1$d %%</string>
+    <string name="glass_color_strength_unavailable">Sans effet avec « Le plus rapide » ou avant Android 12 : aucun fond n’est visible à travers le verre.</string>
 </resources>

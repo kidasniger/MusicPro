@@ -21,6 +21,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.TileMode
@@ -33,6 +35,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.example.data.preferences.GlassMaterial
+import com.example.data.preferences.glassSaturation
 import com.example.data.preferences.rendersBlur
 import kotlin.math.roundToInt
 
@@ -44,6 +47,11 @@ import kotlin.math.roundToInt
  *  - BALANCED : flou de [GlassBalancedBlurRadius], film plus dense, un seul reflet plat, fine bordure.
  *  - QUALITY  : flou réel (rayon de la recette), reflet dégradé, bordure lumineuse en dégradé,
  *               bruit à [GlassNoiseOpacity] et ombre portée douce.
+ *
+ * Quand le flou est actif, le fond qui transparaît passe aussi par un filtre de saturation réglé
+ * par le curseur « Couleur du verre » ([LocalGlassColorStrength], voir [glassSaturation]) :
+ * 0,6 à 0 % (neutre, désaturé) jusqu'à 1,4 à 100 % (couleurs de la pochette amplifiées).
+ * Le film, les reflets, la bordure et le contenu ne sont pas affectés.
  *
  * Sans [GlassBackdropHost] parent ou avant Android 12, tous les niveaux se replient sur l'aplat.
  * En mode aplat, rien n'est enregistré ni mesuré.
@@ -57,6 +65,7 @@ fun GlassSurface(
 ) {
     val backdrop = LocalGlassBackdrop.current
     val level = LocalGlassMaterial.current
+    val colorStrength = LocalGlassColorStrength.current
     val blurLayer = rememberGraphicsLayer()
     var origin by remember { mutableStateOf(Offset.Zero) }
 
@@ -67,9 +76,16 @@ fun GlassSurface(
 
     val blurRadius = if (level == GlassMaterial.BALANCED) GlassBalancedBlurRadius else material.blurRadius
     val radiusPx = with(LocalDensity.current) { blurRadius.toPx() }
+    // Saturation du fond : recalculée seulement quand le curseur bouge.
+    val saturationFilter = remember(colorStrength) {
+        ColorFilter.colorMatrix(
+            ColorMatrix().apply { setToSaturation(glassSaturation(colorStrength)) }
+        )
+    }
     SideEffect {
         blurLayer.renderEffect =
             if (blurOn) BlurEffect(radiusPx, radiusPx, TileMode.Clamp) else null
+        blurLayer.colorFilter = if (blurOn) saturationFilter else null
     }
 
     val filmAlpha = when {
@@ -126,7 +142,7 @@ fun GlassSurface(
             )
             .clip(shape)
             .drawWithContent {
-                // (1) copie du fond, floutée par le RenderEffect du calque
+                // (1) copie du fond, floutée et resaturée par les effets du calque
                 if (blurOn && backdrop != null) {
                     val dx = backdrop.origin.x - origin.x
                     val dy = backdrop.origin.y - origin.y

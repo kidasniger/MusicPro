@@ -34,3 +34,20 @@ fun resolveGlassMaterial(stored: String?, legacy: String?): GlassMaterial {
         else -> GlassMaterial.BALANCED
     }
 }
+
+/** Force de couleur du verre par défaut, en pourcentage (curseur « Couleur du verre »). */
+const val DefaultGlassColorStrength = 70
+
+/** Ramène une force de couleur dans l'intervalle 0 à 100 %. */
+fun clampGlassColorStrength(percent: Int): Int = percent.coerceIn(0, 100)
+
+/** Lit la force de couleur enregistrée ; 70 % si rien n'est enregistré, valeur bornée à 0-100 %. */
+fun resolveGlassColorStrength(stored: Int?): Int =
+    clampGlassColorStrength(stored ?: DefaultGlassColorStrength)
+
+/**
+ * Saturation appliquée à ce qui transparaît derrière le verre :
+ * 0,6 + 0,8 x force (force de 0 à 1), soit 0,6 à 0 % (neutre, désaturé) et 1,4 à 100 % (couleurs amplifiées).
+ */
+fun glassSaturation(percent: Int): Float =
+    0.6f + 0.8f * (clampGlassColorStrength(percent) / 100f)
