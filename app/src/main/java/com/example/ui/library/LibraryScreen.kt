@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -455,15 +456,18 @@ fun TrackRowItem(
     onSwipeRight: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val targetRowHeight = LocalMusicProListRowHeight.current
+    val compactRow = targetRowHeight < 60.dp
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .heightIn(min = targetRowHeight)
             .clickable(onClick = onClick)
             .background(
                 if (isCurrent) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)
                 else Color.Transparent
             )
-            .padding(horizontal = 16.dp, vertical = 10.dp)
+            .padding(horizontal = 16.dp, vertical = if (compactRow) 3.dp else 9.dp)
             .testTag("track_item_${track.id}"),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -494,7 +498,7 @@ fun TrackRowItem(
 
         Box(
             modifier = Modifier
-                .size(46.dp)
+                .size(if (compactRow) 38.dp else 46.dp)
                 .clip(RoundedCornerShape(10.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .border(
