@@ -49,6 +49,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,12 +63,16 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.R
+import com.example.data.preferences.AppStyle
+import com.example.data.preferences.AppearanceMode
+import com.example.data.preferences.UserPreferencesRepository
 import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProCyanVibrant
@@ -91,27 +99,31 @@ fun OnboardingScreen(
     onFinishOnboarding: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val preferences = remember(context) { UserPreferencesRepository(context) }
+    var selectedAppearance by remember { mutableStateOf(AppearanceMode.AUTO) }
+    var selectedStyle by remember { mutableStateOf(AppStyle.GLASS) }
     val pages = listOf(
         OnboardingPageData(
-            title = "100% Hors ligne",
-            description = "Toute votre bibliothèque scannée localement. Aucun compte, aucun cloud. Vos fichiers audio restent sur votre appareil.",
-            badgeText = "STOCKAGE LOCAL UNIQUEMENT",
+            title = "Votre bibliothèque musicale",
+            description = "Retrouvez vos morceaux, albums et artistes dans une bibliothèque organisée. Vos fichiers restent stockés sur votre appareil.",
+            badgeText = "VOTRE MUSIQUE, AU MÊME ENDROIT",
             icon = Icons.Default.CloudOff,
             accentColor = MusicProVioletPrimary,
             glowColor = MusicProVioletGlow
         ),
         OnboardingPageData(
             title = "Paroles synchronisées",
-            description = "Karaoké précis en direct, défilement avec surbrillance néon et ajustement du décalage. Importez vos paroles ou créez-les directement dans l’application.",
+            description = "Suivez les paroles pendant l’écoute, profitez du mode karaoké et ajustez leur synchronisation selon vos morceaux.",
             badgeText = "PAROLES & KARAOKÉ",
             icon = Icons.Default.Subtitles,
             accentColor = MusicProCyanNeon,
             glowColor = Color(0x6600D4FF)
         ),
         OnboardingPageData(
-            title = "Playlists & Contrôles",
-            description = "Créez, réordonnez et classez vos morceaux hors ligne. Profitez de la notification multimédia native et d'une ergonomie moderne.",
-            badgeText = "LECTEUR PERSISTANT & PLAYLISTS",
+            title = "Personnalisez MusicPro",
+            description = "Choisissez votre apparence et votre style. Vous pourrez modifier ces préférences à tout moment dans les réglages.",
+            badgeText = "VOTRE STYLE, VOS RÈGLES",
             icon = Icons.AutoMirrored.Filled.QueueMusic,
             accentColor = MusicProVioletVibrant,
             glowColor = MusicProVioletGlow
@@ -211,7 +223,7 @@ fun OnboardingScreen(
                     .fillMaxWidth()
             ) { pageIndex ->
                 val page = pages[pageIndex]
-                OnboardingPageView(page = page, pageIndex = pageIndex)
+                OnboardingPageView(page = page, pageIndex = pageIndex, appearanceMode = selectedAppearance, appStyle = selectedStyle, onAppearanceSelected = { mode -> selectedAppearance = mode; coroutineScope.launch { preferences.setAppearanceMode(mode) } }, onStyleSelected = { style -> selectedStyle = style; coroutineScope.launch { preferences.setAppStyle(style) } })
             }
 
             // Bottom Section: Page Indicators + Next/Start Button
@@ -294,7 +306,11 @@ fun OnboardingScreen(
 @Composable
 private fun OnboardingPageView(
     page: OnboardingPageData,
-    pageIndex: Int
+    pageIndex: Int,
+    appearanceMode: AppearanceMode,
+    appStyle: AppStyle,
+    onAppearanceSelected: (AppearanceMode) -> Unit,
+    onStyleSelected: (AppStyle) -> Unit
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "iconFloat")
     val floatOffset by infiniteTransition.animateFloat(
