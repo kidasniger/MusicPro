@@ -143,6 +143,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val listDensityPreference: StateFlow<ListDensityPreference> = preferencesRepository.listDensityPreference
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ListDensityPreference.COMFORTABLE)
 
+    val reduceAnimations: StateFlow<Boolean> = preferencesRepository.reduceAnimations
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     val autoPlay: StateFlow<Boolean> = preferencesRepository.autoPlay
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
@@ -318,6 +321,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             preview = { it.copy(activeTabOpacity = percent) },
             persist = { preferencesRepository.setGlassActiveTabOpacity(percent) }
         )
+    }
+
+    fun setReduceAnimations(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setReduceAnimations(enabled) }
     }
 
     fun setTextSizePreference(value: TextSizePreference) {
