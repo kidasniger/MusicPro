@@ -37,7 +37,11 @@ enum class AppThemeMode(val displayName: String) {
     SYSTEM("Système")
 }
 
-class UserPreferencesRepository(private val context: Context) {
+class UserPreferencesRepository(
+    private val context: Context,
+    /** Injectable pour les tests (fichier et scope isolés) ; par défaut le DataStore unique de l'appli. */
+    private val dataStore: DataStore<Preferences> = context.musicProDataStore
+) {
 
     companion object {
         val KEY_ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
@@ -86,7 +90,7 @@ class UserPreferencesRepository(private val context: Context) {
         val KEY_SHUFFLE_ENABLED = booleanPreferencesKey("shuffle_enabled")
     }
 
-    val isOnboardingCompleted: Flow<Boolean> = context.musicProDataStore.data
+    val isOnboardingCompleted: Flow<Boolean> = dataStore.data
         .catch { exception ->
             if (exception is IOException) {
                 emit(emptyPreferences())
@@ -98,7 +102,7 @@ class UserPreferencesRepository(private val context: Context) {
             preferences[KEY_ONBOARDING_COMPLETED] ?: false
         }
 
-    val themeMode: Flow<AppThemeMode> = context.musicProDataStore.data
+    val themeMode: Flow<AppThemeMode> = dataStore.data
         .catch { exception ->
             if (exception is IOException) {
                 emit(emptyPreferences())
@@ -115,13 +119,13 @@ class UserPreferencesRepository(private val context: Context) {
             }
         }
 
-    private val themeData: Flow<Preferences> = context.musicProDataStore.data
+    private val themeData: Flow<Preferences> = dataStore.data
         .catch { exception ->
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
 
     /** Niveau de l'effet verre ; BALANCED par défaut, ancienne clé migrée (voir [resolveGlassMaterial]). */
-    val glassMaterial: Flow<GlassMaterial> = context.musicProDataStore.data
+    val glassMaterial: Flow<GlassMaterial> = dataStore.data
         .catch { exception ->
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
@@ -139,7 +143,7 @@ class UserPreferencesRepository(private val context: Context) {
 
     val reduceAnimations: Flow<Boolean> = themeData.map { it[KEY_REDUCE_ANIMATIONS] ?: false }
 
-    val isDynamicColorEnabled: Flow<Boolean> = context.musicProDataStore.data
+    val isDynamicColorEnabled: Flow<Boolean> = dataStore.data
         .catch { exception ->
             if (exception is IOException) {
                 emit(emptyPreferences())
@@ -152,35 +156,35 @@ class UserPreferencesRepository(private val context: Context) {
         }
 
     /** Force de couleur du verre en % (0-100) ; 70 % par défaut (voir [resolveGlassColorStrength]). */
-    val glassColorStrength: Flow<Int> = context.musicProDataStore.data
+    val glassColorStrength: Flow<Int> = dataStore.data
         .catch { exception ->
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
         .map { preferences -> resolveGlassColorStrength(preferences[KEY_GLASS_COLOR_STRENGTH]) }
 
     /** Givre du verre en dp (0-24) ; 6 dp par défaut (voir [resolveGlassFrostDp]). */
-    val glassFrostDp: Flow<Int> = context.musicProDataStore.data
+    val glassFrostDp: Flow<Int> = dataStore.data
         .catch { exception ->
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
         .map { preferences -> resolveGlassFrostDp(preferences[KEY_GLASS_FROST_DP]) }
 
     /** Teinte du verre en degrés ; `null` = Aucune, par défaut (voir [resolveGlassTintHue]). */
-    val glassTintHue: Flow<Float?> = context.musicProDataStore.data
+    val glassTintHue: Flow<Float?> = dataStore.data
         .catch { exception ->
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
         .map { preferences -> resolveGlassTintHue(preferences[KEY_GLASS_TINT_HUE]) }
 
     /** Film du verre en % (0-100) ; 50 % par défaut (voir [resolveGlassFilmOpacity]). */
-    val glassFilmOpacity: Flow<Int> = context.musicProDataStore.data
+    val glassFilmOpacity: Flow<Int> = dataStore.data
         .catch { exception ->
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
         .map { preferences -> resolveGlassFilmOpacity(preferences[KEY_GLASS_FILM_OPACITY]) }
 
     /** Opacité de la capsule de l'onglet actif en % (0-100) ; 26 % par défaut. */
-    val glassActiveTabOpacity: Flow<Int> = context.musicProDataStore.data
+    val glassActiveTabOpacity: Flow<Int> = dataStore.data
         .catch { exception ->
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
@@ -214,13 +218,13 @@ class UserPreferencesRepository(private val context: Context) {
     }
 
     suspend fun setOnboardingCompleted(completed: Boolean) {
-        context.musicProDataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_ONBOARDING_COMPLETED] = completed
         }
     }
 
     suspend fun setThemeMode(mode: AppThemeMode) {
-        context.musicProDataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_THEME_MODE] = mode.name
         }
     }
@@ -240,59 +244,59 @@ class UserPreferencesRepository(private val context: Context) {
     }
 
     suspend fun setAppearanceMode(mode: AppearanceMode) {
-        context.musicProDataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             migrateThemeKeys(preferences)
             preferences[KEY_APPEARANCE_MODE] = mode.name
         }
     }
 
     suspend fun setAppStyle(style: AppStyle) {
-        context.musicProDataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             migrateThemeKeys(preferences)
             preferences[KEY_APP_STYLE] = style.name
         }
     }
 
     suspend fun setAccentChoice(choice: AccentChoice) {
-        context.musicProDataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_ACCENT_CHOICE] = choice.name
         }
     }
 
     suspend fun setEveningStartMinutes(minutes: Int) {
-        context.musicProDataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_EVENING_START] = clampDayMinutes(minutes)
         }
     }
 
     suspend fun setEveningEndMinutes(minutes: Int) {
-        context.musicProDataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_EVENING_END] = clampDayMinutes(minutes)
         }
     }
 
     suspend fun setGlassMaterial(material: GlassMaterial) {
-        context.musicProDataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_GLASS_MATERIAL] = material.name
             preferences.remove(KEY_GLASS_QUALITY_LEGACY)
         }
     }
 
     suspend fun setGlassColorStrength(percent: Int) {
-        context.musicProDataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_GLASS_COLOR_STRENGTH] = clampGlassColorStrength(percent)
         }
     }
 
     suspend fun setGlassFrostDp(dp: Int) {
-        context.musicProDataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_GLASS_FROST_DP] = clampGlassFrostDp(dp)
         }
     }
 
     /** Enregistre la teinte du verre ; `null` (Aucune) supprime la clé. */
     suspend fun setGlassTintHue(hue: Float?) {
-        context.musicProDataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             val resolved = resolveGlassTintHue(hue)
             if (resolved == null) {
                 preferences.remove(KEY_GLASS_TINT_HUE)
@@ -303,18 +307,18 @@ class UserPreferencesRepository(private val context: Context) {
     }
 
     suspend fun setGlassFilmOpacity(percent: Int) {
-        context.musicProDataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_GLASS_FILM_OPACITY] = clampGlassOpacity(percent)
         }
     }
 
     suspend fun setGlassActiveTabOpacity(percent: Int) {
-        context.musicProDataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_GLASS_ACTIVE_TAB_OPACITY] = clampGlassOpacity(percent)
         }
     }
 
-    val favoriteTrackIds: Flow<Set<Long>> = context.musicProDataStore.data
+    val favoriteTrackIds: Flow<Set<Long>> = dataStore.data
         .catch { exception ->
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
@@ -324,13 +328,13 @@ class UserPreferencesRepository(private val context: Context) {
                 .toSet()
         }
 
-    val favoriteArtists: Flow<Set<String>> = context.musicProDataStore.data
+    val favoriteArtists: Flow<Set<String>> = dataStore.data
         .catch { exception ->
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
         .map { preferences -> preferences[KEY_FAVORITE_ARTISTS].orEmpty() }
 
-    val searchHistory: Flow<List<String>> = context.musicProDataStore.data
+    val searchHistory: Flow<List<String>> = dataStore.data
         .catch { exception ->
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
@@ -343,31 +347,31 @@ class UserPreferencesRepository(private val context: Context) {
                 .take(12)
         }
 
-    val autoPlay: Flow<Boolean> = context.musicProDataStore.data
+    val autoPlay: Flow<Boolean> = dataStore.data
         .catch { exception -> if (exception is IOException) emit(emptyPreferences()) else throw exception }
         .map { it[KEY_AUTO_PLAY] ?: true }
 
-    val gaplessPlayback: Flow<Boolean> = context.musicProDataStore.data
+    val gaplessPlayback: Flow<Boolean> = dataStore.data
         .catch { exception -> if (exception is IOException) emit(emptyPreferences()) else throw exception }
         .map { it[KEY_GAPLESS] ?: true }
 
-    val resumePlayback: Flow<Boolean> = context.musicProDataStore.data
+    val resumePlayback: Flow<Boolean> = dataStore.data
         .catch { exception -> if (exception is IOException) emit(emptyPreferences()) else throw exception }
         .map { it[KEY_RESUME_PLAYBACK] ?: true }
 
-    val karaokeFontSize: Flow<Float> = context.musicProDataStore.data
+    val karaokeFontSize: Flow<Float> = dataStore.data
         .catch { exception -> if (exception is IOException) emit(emptyPreferences()) else throw exception }
         .map { it[KEY_KARAOKE_FONT_SIZE]?.toFloatOrNull() ?: 18f }
 
-    val karaokeActiveColor: Flow<String> = context.musicProDataStore.data
+    val karaokeActiveColor: Flow<String> = dataStore.data
         .catch { exception -> if (exception is IOException) emit(emptyPreferences()) else throw exception }
         .map { it[KEY_KARAOKE_ACTIVE_COLOR] ?: "cyan" }
 
-    val karaokeOffsetMs: Flow<Long> = context.musicProDataStore.data
+    val karaokeOffsetMs: Flow<Long> = dataStore.data
         .catch { exception -> if (exception is IOException) emit(emptyPreferences()) else throw exception }
         .map { it[KEY_KARAOKE_OFFSET]?.toLongOrNull() ?: 0L }
 
-    val savedPlaybackState: Flow<SavedPlaybackState?> = context.musicProDataStore.data
+    val savedPlaybackState: Flow<SavedPlaybackState?> = dataStore.data
         .catch { exception -> if (exception is IOException) emit(emptyPreferences()) else throw exception }
         .map { preferences ->
             val trackId = preferences[KEY_LAST_PLAYED_TRACK_ID] ?: return@map null
@@ -380,37 +384,37 @@ class UserPreferencesRepository(private val context: Context) {
         }
 
     suspend fun setReduceAnimations(enabled: Boolean) {
-        context.musicProDataStore.edit { it[KEY_REDUCE_ANIMATIONS] = enabled }
+        dataStore.edit { it[KEY_REDUCE_ANIMATIONS] = enabled }
     }
 
     suspend fun setTextSizePreference(value: TextSizePreference) {
-        context.musicProDataStore.edit { it[KEY_TEXT_SIZE] = value.name }
+        dataStore.edit { it[KEY_TEXT_SIZE] = value.name }
     }
 
     suspend fun setListDensityPreference(value: ListDensityPreference) {
-        context.musicProDataStore.edit { it[KEY_LIST_DENSITY] = value.name }
+        dataStore.edit { it[KEY_LIST_DENSITY] = value.name }
     }
 
     suspend fun setDynamicColor(enabled: Boolean) {
-        context.musicProDataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_DYNAMIC_COLOR] = enabled
         }
     }
 
     suspend fun setFavoriteTrackIds(ids: Set<Long>) {
-        context.musicProDataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_FAVORITE_TRACK_IDS] = ids.map(Long::toString).toSet()
         }
     }
 
     suspend fun setFavoriteArtists(names: Set<String>) {
-        context.musicProDataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_FAVORITE_ARTISTS] = names
         }
     }
 
     suspend fun setSearchHistory(values: List<String>) {
-        context.musicProDataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_SEARCH_HISTORY] = values
                 .map(String::trim)
                 .filter(String::isNotBlank)
@@ -421,27 +425,27 @@ class UserPreferencesRepository(private val context: Context) {
     }
 
     suspend fun setAutoPlay(enabled: Boolean) {
-        context.musicProDataStore.edit { preferences -> preferences[KEY_AUTO_PLAY] = enabled }
+        dataStore.edit { preferences -> preferences[KEY_AUTO_PLAY] = enabled }
     }
 
     suspend fun setGaplessPlayback(enabled: Boolean) {
-        context.musicProDataStore.edit { preferences -> preferences[KEY_GAPLESS] = enabled }
+        dataStore.edit { preferences -> preferences[KEY_GAPLESS] = enabled }
     }
 
     suspend fun setResumePlayback(enabled: Boolean) {
-        context.musicProDataStore.edit { preferences -> preferences[KEY_RESUME_PLAYBACK] = enabled }
+        dataStore.edit { preferences -> preferences[KEY_RESUME_PLAYBACK] = enabled }
     }
 
     suspend fun setKaraokeFontSize(size: Float) {
-        context.musicProDataStore.edit { preferences -> preferences[KEY_KARAOKE_FONT_SIZE] = size.toString() }
+        dataStore.edit { preferences -> preferences[KEY_KARAOKE_FONT_SIZE] = size.toString() }
     }
 
     suspend fun setKaraokeActiveColor(value: String) {
-        context.musicProDataStore.edit { preferences -> preferences[KEY_KARAOKE_ACTIVE_COLOR] = value }
+        dataStore.edit { preferences -> preferences[KEY_KARAOKE_ACTIVE_COLOR] = value }
     }
 
     suspend fun setKaraokeOffsetMs(value: Long) {
-        context.musicProDataStore.edit { preferences -> preferences[KEY_KARAOKE_OFFSET] = value.toString() }
+        dataStore.edit { preferences -> preferences[KEY_KARAOKE_OFFSET] = value.toString() }
     }
 
     suspend fun setSavedPlaybackState(
@@ -450,7 +454,7 @@ class UserPreferencesRepository(private val context: Context) {
         wasPlaying: Boolean,
         shuffleEnabled: Boolean
     ) {
-        context.musicProDataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_LAST_PLAYED_TRACK_ID] = trackId
             preferences[KEY_LAST_PLAYED_POSITION_MS] = positionMs.coerceAtLeast(0L)
             preferences[KEY_LAST_PLAYED_WAS_PLAYING] = wasPlaying
@@ -459,7 +463,7 @@ class UserPreferencesRepository(private val context: Context) {
     }
 
     suspend fun setShuffleEnabled(enabled: Boolean) {
-        context.musicProDataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             preferences[KEY_SHUFFLE_ENABLED] = enabled
         }
     }

@@ -10,6 +10,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ApplicationProvider
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import com.example.data.preferences.AppThemeMode
 import com.example.data.preferences.GlassMaterial
 import com.example.data.preferences.UserPreferencesRepository
@@ -17,6 +18,7 @@ import com.example.data.security.GroqApiKeyStore
 import com.example.ui.theme.MusicProTheme
 import com.example.util.CacheManager
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -36,10 +38,17 @@ class SettingsScreenRobolectricTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
+    /** DataStore isolé (fichier temporaire + scope du test) : indépendant du singleton partagé par les autres tests. */
+    private fun TestScope.isolatedRepo(): UserPreferencesRepository {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val file = File.createTempFile("musicpro_prefs_test", ".preferences_pb", context.cacheDir).also { it.delete() }
+        val store = PreferenceDataStoreFactory.create(scope = backgroundScope, produceFile = { file })
+        return UserPreferencesRepository(context, store)
+    }
+
     @Test
     fun testUserPreferencesThemeModePersistence() = runTest {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        val repo = UserPreferencesRepository(context)
+        val repo = isolatedRepo()
 
         // Set to DARK and verify
         repo.setThemeMode(AppThemeMode.DARK)
@@ -62,8 +71,7 @@ class SettingsScreenRobolectricTest {
 
     @Test
     fun testGlassMaterialPersistence() = runTest {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        val repo = UserPreferencesRepository(context)
+        val repo = isolatedRepo()
 
         repo.setGlassMaterial(GlassMaterial.FASTEST)
         assertEquals(GlassMaterial.FASTEST, repo.glassMaterial.first())
