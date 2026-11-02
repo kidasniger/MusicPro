@@ -49,7 +49,8 @@ class ScreenSizesResponsiveTest {
         composeTestRule.onNodeWithTag("settings_back_button").assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_settings_card").assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_dark_button").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("groq_settings_card").assertIsDisplayed()
+        // Sur petit écran, la carte Groq est sous la ligne de flottaison : on défile jusqu'à elle.
+        composeTestRule.onNodeWithTag("groq_settings_card").performScrollTo().assertIsDisplayed()
     }
 
     /**
@@ -163,4 +164,3 @@ class ScreenSizesResponsiveTest {
         composeTestRule.onNodeWithTag("theme_dark_button").assertIsDisplayed()
     }
 }
-
