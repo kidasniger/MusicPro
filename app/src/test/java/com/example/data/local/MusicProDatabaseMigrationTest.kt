@@ -45,7 +45,8 @@ class MusicProDatabaseMigrationTest {
             .allowMainThreadQueries()
             .addMigrations(
                 MusicProDatabase.MIGRATION_1_2,
-                MusicProDatabase.MIGRATION_2_3
+                MusicProDatabase.MIGRATION_2_3,
+                MusicProDatabase.MIGRATION_3_4
             )
             .build()
 
@@ -57,6 +58,7 @@ class MusicProDatabaseMigrationTest {
         assertEquals(501L, tracks.single().id)
         assertEquals("Legacy Track", tracks.single().title)
         assertEquals(0L, tracks.single().lastPlayed)
+        assertEquals("", tracks.single().genre)
     }
 
     @Test
@@ -71,7 +73,8 @@ class MusicProDatabaseMigrationTest {
             .allowMainThreadQueries()
             .addMigrations(
                 MusicProDatabase.MIGRATION_1_2,
-                MusicProDatabase.MIGRATION_2_3
+                MusicProDatabase.MIGRATION_2_3,
+                MusicProDatabase.MIGRATION_3_4
             )
             .build()
 
@@ -83,6 +86,7 @@ class MusicProDatabaseMigrationTest {
         assertEquals(601L, tracks.single().id)
         assertEquals("Playlist Legacy Track", tracks.single().title)
         assertEquals(0L, tracks.single().lastPlayed)
+        assertEquals("", tracks.single().genre)
     }
 
     private fun createVersionOneDatabase() {
