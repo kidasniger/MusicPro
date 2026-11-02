@@ -11,6 +11,19 @@
     <string name="nav_radio">Radio</string>
     <string name="nav_library">Bibliothèque</string>
     <string name="nav_search">Recherche</string>
+    <string name="nav_stats">Stats</string>
+    <string name="stats_title">Statistiques d’écoute</string>
+    <string name="stats_week">Temps d’écoute · 7 derniers jours</string>
+    <string name="stats_top_tracks">Morceaux les plus écoutés</string>
+    <string name="stats_top_artists">Artistes préférés</string>
+    <string name="stats_top_genres">Genres préférés</string>
+    <string name="stats_streak">Série d’écoute</string>
+    <string name="stats_current_streak">Série actuelle</string>
+    <string name="stats_best_streak">Meilleure série</string>
+    <string name="stats_days">%1$d jours</string>
+    <string name="stats_empty">Écoutez de la musique pour afficher vos statistiques.</string>
+    <string name="stats_no_genre">Genre non renseigné</string>
+    <string name="stats_privacy">Ces données restent sur cet appareil. Aucune statistique n’est envoyée.</string>
 
     <!-- Écrans provisoires -->
     <string name="placeholder_title">Bientôt disponible</string>
