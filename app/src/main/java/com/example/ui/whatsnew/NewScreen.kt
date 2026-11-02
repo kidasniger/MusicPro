@@ -84,6 +84,8 @@ internal fun recentAlbums(tracks: List<AudioTrackEntity>): List<NewAlbum> =
  * Écran « Nouveau » (mise à jour 021) : ajouts récents, morceaux jamais écoutés et albums récemment
  * ajoutés, en carrousels horizontaux de pochettes 140 dp à coins 12 dp. Tout est calculé à partir de
  * la liste de morceaux déjà chargée. État vide : illustration simple et bouton « Analyser mon appareil ».
+ *
+ * Mise à jour 023 : toucher un album ouvre sa page ([onOpenAlbum]) au lieu de le lancer directement.
  */
 @Composable
 fun NewScreen(
@@ -92,7 +94,8 @@ fun NewScreen(
     isScanning: Boolean,
     onPlayTrack: (AudioTrackEntity, List<AudioTrackEntity>) -> Unit,
     onScan: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onOpenAlbum: (String) -> Unit = {}
 ) {
     val recent = remember(tracks) { recentTracks(tracks) }
     val unplayed = remember(tracks) { unplayedTracks(tracks) }
@@ -144,7 +147,7 @@ fun NewScreen(
                                 subtitle = album.artist,
                                 coverUri = album.coverUri,
                                 selected = isCurrent,
-                                onClick = { onPlayTrack(album.tracks.first(), album.tracks) }
+                                onClick = { onOpenAlbum(album.name) }
                             )
                         }
                     }

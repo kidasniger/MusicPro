@@ -124,6 +124,8 @@ import com.example.ui.components.glass.GlassNavBar
 import com.example.ui.components.glass.GlassNavItem
 import com.example.ui.components.glass.SharedCoverHost
 import com.example.ui.components.glass.SharedCoverVisibility
+import com.example.ui.detail.DetailHost
+import com.example.ui.detail.DetailTarget
 import com.example.ui.settings.SettingsViewModel
 import com.example.updater.UpdateCheckState
 import com.example.ui.library.LibraryScreen
@@ -189,6 +191,8 @@ fun HomeScreen(
     var isQueueOpen by rememberSaveable { mutableStateOf(false) }
     var isEqualizerOpen by rememberSaveable { mutableStateOf(false) }
     var isKaraokeSettingsOpen by rememberSaveable { mutableStateOf(false) }
+    // Écran de détail plein écran ouvert (album, bientôt artiste) : voir DetailTarget.
+    var openDetailKey by rememberSaveable { mutableStateOf<String?>(null) }
 
     // Onglets de la barre de navigation flottante
     val navItems = remember {
@@ -206,6 +210,9 @@ fun HomeScreen(
     // Ouvre l'écran demandé depuis la notification, y compris lorsque l'application
     // était déjà ouverte et reçoit un nouvel Intent via onNewIntent().
     LaunchedEffect(mediaUiRequestId) {
+        if (initialOpenQueue || initialOpenLyrics || initialOpenNowPlaying) {
+            openDetailKey = null
+        }
         when {
             initialOpenQueue -> {
                 isNowPlayingOpen = false
@@ -355,6 +362,7 @@ fun HomeScreen(
             isEqualizerOpen -> isEqualizerOpen = false
             isQueueOpen -> isQueueOpen = false
             isFavoritesOpen -> isFavoritesOpen = false
+            openDetailKey != null -> openDetailKey = null
             selectedPlaylist != null -> {
                 audioViewModel.selectPlaylist(null)
             }
@@ -423,6 +431,7 @@ fun HomeScreen(
                                     },
                                     onNavigateToSearch = { currentSectionName = NavigationSection.SEARCH.name },
                                     onOpenFavorites = { isFavoritesOpen = true },
+                                    onOpenAlbum = { openDetailKey = DetailTarget.albumKey(it) },
                                     onTrackClick = { audioViewModel.playTrack(it) },
                                     onToggleFavorite = { audioViewModel.toggleFavorite(it) },
                                     onRefreshScan = { audioViewModel.refreshScan() }
@@ -435,7 +444,8 @@ fun HomeScreen(
                                     currentPlayingTrack = currentTrack,
                                     isScanning = isScanning,
                                     onPlayTrack = { track, list -> audioViewModel.playTrack(track, list) },
-                                    onScan = { audioViewModel.refreshScan() }
+                                    onScan = { audioViewModel.refreshScan() },
+                                    onOpenAlbum = { openDetailKey = DetailTarget.albumKey(it) }
                                 )
                             }
                             NavigationSection.RADIO -> {
@@ -765,6 +775,25 @@ fun HomeScreen(
             )
         }
 
+        // Mise à jour 023 : écrans de détail plein écran (album ; l'artiste suivra).
+        DetailHost(
+            targetKey = openDetailKey,
+            tracks = tracks,
+            currentPlayingTrack = currentTrack,
+            isPlaying = isPlaying,
+            onPlay = { list, shuffle -> audioViewModel.playPlaylist(list, 0, shuffle) },
+            onTrackClick = { track, list -> audioViewModel.playTrack(track, list) },
+            onCreatePlaylist = { name, ids ->
+                audioViewModel.createPlaylist(name, "", initialTrackIds = ids)
+            },
+            onSearch = { query ->
+                openDetailKey = null
+                audioViewModel.setSearchQuery(query)
+                currentSectionName = NavigationSection.SEARCH.name
+            },
+            onClose = { openDetailKey = null }
+        )
+
         if (isQueueOpen) {
             QueueSheet(
                 queue = queue,
@@ -828,6 +857,7 @@ private fun HomeExplorerContent(
     onNavigateToRecent: () -> Unit,
     onNavigateToSearch: () -> Unit,
     onOpenFavorites: () -> Unit = {},
+    onOpenAlbum: (String) -> Unit = {},
     onTrackClick: (AudioTrackEntity) -> Unit,
     onToggleFavorite: (Long) -> Unit,
     onRefreshScan: () -> Unit
@@ -1041,7 +1071,7 @@ private fun HomeExplorerContent(
                     ) {
                         items(albums.take(8), key = { it.name }) { album ->
                             Surface(
-                                onClick = onNavigateToLibrary,
+                                onClick = { onOpenAlbum(album.name) },
                                 shape = RoundedCornerShape(14.dp),
                                 color = MaterialTheme.colorScheme.surface,
                                 border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.24f)),
