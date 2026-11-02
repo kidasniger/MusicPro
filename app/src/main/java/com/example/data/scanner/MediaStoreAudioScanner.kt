@@ -111,13 +111,24 @@ class MediaStoreAudioScanner(private val context: Context) : AudioScanner {
                     val dateAdded = if (cursor.isNull(dateAddedColumn)) 0L else cursor.getLong(dateAddedColumn)
 
                     // Normalize unknown values from Android MediaStore
-                    val title = if (rawTitle.isBlank() || rawTitle == "<unknown>") {
-                        File(path).nameWithoutExtension.ifBlank { "Titre Inconnu" }
-                    } else rawTitle
+                    val fileName = File(path).nameWithoutExtension
+                    val tagArtistMissing = rawArtist.isBlank() || rawArtist == "<unknown>"
+                    // Sans balise d'artiste, on lit « Artiste - Titre » dans le nom du fichier.
+                    val fromFileName = if (tagArtistMissing) metadataFromFileName(fileName) else null
 
-                    val artist = if (rawArtist.isBlank() || rawArtist == "<unknown>") {
-                        "Artiste Inconnu"
-                    } else rawArtist
+                    val baseTitle = if (rawTitle.isBlank() || rawTitle == "<unknown>") {
+                        fileName.ifBlank { "Titre Inconnu" }
+                    } else rawTitle
+                    // Le titre n'est remplacé que s'il était lui-même le nom du fichier.
+                    val title = if (fromFileName != null && baseTitle == fileName) {
+                        fromFileName.title
+                    } else baseTitle
+
+                    val artist = when {
+                        !tagArtistMissing -> rawArtist
+                        fromFileName != null -> fromFileName.artist
+                        else -> "Artiste Inconnu"
+                    }
 
                     val album = if (rawAlbum.isBlank() || rawAlbum == "<unknown>") {
                         "Album Inconnu"
@@ -133,6 +144,19 @@ class MediaStoreAudioScanner(private val context: Context) : AudioScanner {
                             albumId
                         ).toString() + "?track_id=" + id
                     } else null
+
+                    // Check for existing synced .lrc file next to audio file
+                    val hasSyncedLyrics = try {
+                        if (path.isNotBlank()) {
+                            val dotIndex = path.lastIndexOf('.')
+                            if (dotIndex != -1) {
+                                val lrcPath = path.substring(0, dotIndex) + ".lrc"
+                                File(lrcPath).exists()
+                            } else false
+                        } else false
+                    } catch (e: Exception) {
+                        false
+                    }
                     val albumArtUri = embeddedArtwork ?: mediaStoreArtwork
 
                     // Content URI for playback
@@ -166,19 +190,6 @@ class MediaStoreAudioScanner(private val context: Context) : AudioScanner {
                             // Fichier supprimé du téléphone mais encore référencé par le cache MediaStore d'Android : on l'ignore
                             continue
                         }
-                    }
-
-                    // Check for existing synced .lrc file next to audio file
-                    val hasSyncedLyrics = try {
-                        if (path.isNotBlank()) {
-                            val dotIndex = path.lastIndexOf('.')
-                            if (dotIndex != -1) {
-                                val lrcPath = path.substring(0, dotIndex) + ".lrc"
-                                File(lrcPath).exists()
-                            } else false
-                        } else false
-                    } catch (e: Exception) {
-                        false
                     }
 
                     tracksList.add(
