@@ -10,6 +10,10 @@
 - Nouveau réglage « Effet verre » à trois niveaux : « Le plus rapide » (fond translucide sans flou), « Équilibré » (léger flou et un reflet, par défaut) et « Qualité » (flou réel, reflets, bordure lumineuse, grain léger et ombre douce, Android 12 et plus).
 - Nouveau réglage « Teinte du verre » : 9 pastilles (Aucune, Violet, Rouge, Orange, Jaune, Vert, Cyan, Bleu, Magenta) et une barre arc-en-ciel pour choisir une teinte libre, avec aperçu en direct.
 - Nouveaux curseurs « Film » (opacité du voile de couleur du verre, 50 % par défaut) et « Onglet actif » (opacité de la capsule de l'onglet sélectionné, 26 % par défaut), avec aperçu en direct.
+- Nouveau style « Minimal » (papier chaud, accent terracotta, contours fins) en clair et en sombre.
+- « Apparence » (Clair, Sombre, Auto, Sombre le soir) et « Style » (Minimal, Néon, Verre) sont deux réglages indépendants, avec trois cartes d'aperçu et un fondu de 250 ms. L'ancien réglage de thème est migré automatiquement.
+- Nouveau choix d'accent (Terracotta, Bleu, Vert, Violet, Selon la pochette) et plage horaire pour « Sombre le soir ».
+- Barres d'état et de gestes transparentes, avec icônes adaptées au thème affiché.
 
 
 - Le lecteur n'utilise plus les curseurs audio standards : progression tactile avec **−10 s / +10 s** et volume avec **− / +**.

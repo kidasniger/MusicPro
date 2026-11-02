@@ -21,4 +21,28 @@
     <string name="glass_preview_description">Aperçu du verre liquide avec vos réglages actuels : mini-lecteur et barre de navigation sur un fond coloré</string>
     <string name="glass_preview_track_title">Titre du morceau</string>
     <string name="glass_preview_track_artist">Artiste</string>
+
+    <!-- Réglages : apparence, style et accent (mises à jour 013 à 018) -->
+    <string name="appearance_title">Apparence</string>
+    <string name="appearance_light">Clair</string>
+    <string name="appearance_dark">Sombre</string>
+    <string name="appearance_auto">Auto (suit le système)</string>
+    <string name="appearance_dark_evening">Sombre le soir</string>
+    <string name="appearance_evening_hint">Le thème est sombre dans cette plage horaire, clair le reste du temps.</string>
+    <string name="appearance_evening_start">Début</string>
+    <string name="appearance_evening_end">Fin</string>
+    <string name="appearance_time_format">%1$02d:%2$02d</string>
+    <string name="style_title">Style</string>
+    <string name="style_minimal">Minimal</string>
+    <string name="style_neon">Néon</string>
+    <string name="style_glass">Verre</string>
+    <string name="accent_title">Accent</string>
+    <string name="accent_terracotta">Terracotta</string>
+    <string name="accent_blue">Bleu</string>
+    <string name="accent_green">Vert</string>
+    <string name="accent_violet">Violet</string>
+    <string name="accent_artwork">Selon la pochette</string>
+    <string name="accent_unavailable">L’accent s’applique aux styles Minimal et Verre, sans couleurs dynamiques.</string>
+    <string name="dynamic_color_title">Couleurs dynamiques</string>
+    <string name="dynamic_color_subtitle">Utilise les couleurs de votre fond d’écran (Android 12 et plus)</string>
 </resources>

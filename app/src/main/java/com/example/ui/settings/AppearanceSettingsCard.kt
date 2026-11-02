@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import com.example.R
 import com.example.data.preferences.AccentChoice
 import com.example.data.preferences.AppStyle
@@ -345,7 +347,7 @@ private fun StylePreviewCard(
 }
 
 @Composable
-private fun MiniScreen(styleOption: AppStyle, scheme: androidx.compose.material3.ColorScheme) {
+private fun MiniScreen(styleOption: AppStyle, scheme: ColorScheme) {
     val cardShape = RoundedCornerShape(MusicProTokens.Radius.Sm)
     val navShape = if (styleOption == AppStyle.GLASS) {
         MusicProTokens.Radius.PillShape

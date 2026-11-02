@@ -120,8 +120,12 @@ fun SettingsScreen(
     val scope = rememberCoroutineScope()
     val apiKeyStore = remember { GroqApiKeyStore.getInstance(context) }
 
-    // États du ViewModel (Thème, Dynamic Color, Cache)
-    val currentTheme by settingsViewModel.themeMode.collectAsStateWithLifecycle()
+    // États du ViewModel (Apparence, Style, Accent, Couleurs dynamiques, Cache)
+    val appearance by settingsViewModel.appearanceMode.collectAsStateWithLifecycle()
+    val appStyle by settingsViewModel.appStyle.collectAsStateWithLifecycle()
+    val accentChoice by settingsViewModel.accentChoice.collectAsStateWithLifecycle()
+    val eveningStart by settingsViewModel.eveningStartMinutes.collectAsStateWithLifecycle()
+    val eveningEnd by settingsViewModel.eveningEndMinutes.collectAsStateWithLifecycle()
     val isDynamicColor by settingsViewModel.isDynamicColor.collectAsStateWithLifecycle()
     val glassMaterial by settingsViewModel.glassMaterial.collectAsStateWithLifecycle()
     val glassColorStrength by settingsViewModel.glassColorStrength.collectAsStateWithLifecycle()
@@ -181,9 +185,17 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            ThemeSelectionCard(
-                currentTheme = currentTheme,
-                onThemeSelected = { settingsViewModel.setThemeMode(it) },
+            AppearanceSettingsCard(
+                appearance = appearance,
+                onAppearanceSelected = { settingsViewModel.setAppearanceMode(it) },
+                style = appStyle,
+                onStyleSelected = { settingsViewModel.setAppStyle(it) },
+                accent = accentChoice,
+                onAccentSelected = { settingsViewModel.setAccentChoice(it) },
+                eveningStartMinutes = eveningStart,
+                eveningEndMinutes = eveningEnd,
+                onEveningStartChange = { settingsViewModel.setEveningStartMinutes(it) },
+                onEveningEndChange = { settingsViewModel.setEveningEndMinutes(it) },
                 isDynamicColor = isDynamicColor,
                 onDynamicColorChanged = { settingsViewModel.setDynamicColor(it) }
             )
