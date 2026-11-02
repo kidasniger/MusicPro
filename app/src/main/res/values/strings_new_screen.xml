@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Mise à jour 021 : écran Nouveau -->
-    <string name="new_screen_title">Nouveau</string>
-    <string name="new_screen_subtitle">Ce qui vient d\'arriver dans votre bibliothèque</string>
-    <string name="new_section_recent">Ajouts récents</string>
-    <string name="new_section_unplayed">Jamais écoutés</string>
-    <string name="new_section_albums">Albums récemment ajoutés</string>
-    <string name="new_empty_title">Rien de nouveau pour l\'instant</string>
-    <string name="new_empty_message">Analysez votre appareil pour retrouver vos morceaux.</string>
-    <string name="new_empty_scan">Analyser mon appareil</string>
-    <string name="new_scanning">Analyse en cours…</string>
+    <string  translatable="false" name="new_screen_title">Nouveau</string>
+    <string  translatable="false" name="new_screen_subtitle">Ce qui vient d\'arriver dans votre bibliothèque</string>
+    <string  translatable="false" name="new_section_recent">Ajouts récents</string>
+    <string  translatable="false" name="new_section_unplayed">Jamais écoutés</string>
+    <string  translatable="false" name="new_section_albums">Albums récemment ajoutés</string>
+    <string  translatable="false" name="new_empty_title">Rien de nouveau pour l\'instant</string>
+    <string  translatable="false" name="new_empty_message">Analysez votre appareil pour retrouver vos morceaux.</string>
+    <string  translatable="false" name="new_empty_scan">Analyser mon appareil</string>
+    <string  translatable="false" name="new_scanning">Analyse en cours…</string>
 </resources>
