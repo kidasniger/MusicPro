@@ -80,6 +80,7 @@ import com.example.data.local.AudioTrackEntity
 import com.example.data.local.PlaylistSummary
 import com.example.ui.audio.AlbumSummary
 import com.example.ui.audio.ArtistSummary
+import com.example.ui.detail.DetailRouter
 import com.example.ui.audio.FolderSummary
 import com.example.ui.audio.LibraryTab
 import com.example.ui.components.EmptyAudioStateView
@@ -344,7 +345,8 @@ fun LibraryScreen(
                         AlbumsGrid(
                             albums = albums,
                             onAlbumClick = { album ->
-                                selectedAlbum = album
+                                // Mise à jour 023 : la grille ouvre l'écran Album.
+                                DetailRouter.openAlbum(album.name)
                             }
                         )
                     }
@@ -370,7 +372,8 @@ fun LibraryScreen(
                             artists = artists,
                             tracks = tracks,
                             onArtistClick = { artist ->
-                                selectedArtist = artist
+                                // Mise à jour 024 : la liste ouvre l'écran Artiste.
+                                DetailRouter.openArtist(artist.name)
                             }
                         )
                     }
