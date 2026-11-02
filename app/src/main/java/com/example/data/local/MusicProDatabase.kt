@@ -11,15 +11,17 @@ import androidx.sqlite.db.SupportSQLiteDatabase
     entities = [
         AudioTrackEntity::class,
         PlaylistEntity::class,
-        PlaylistTrackCrossRef::class
+        PlaylistTrackCrossRef::class,
+        ListeningStatEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class MusicProDatabase : RoomDatabase() {
 
     abstract fun audioTrackDao(): AudioTrackDao
     abstract fun playlistDao(): PlaylistDao
+    abstract fun listeningStatsDao(): ListeningStatsDao
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -56,7 +58,27 @@ abstract class MusicProDatabase : RoomDatabase() {
             }
         }
 
-        private val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE audio_tracks ADD COLUMN genre TEXT NOT NULL DEFAULT ''")
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS listening_stats (
+                        dayEpoch INTEGER NOT NULL,
+                        trackId INTEGER NOT NULL,
+                        title TEXT NOT NULL,
+                        artist TEXT NOT NULL,
+                        genre TEXT NOT NULL,
+                        listenedMs INTEGER NOT NULL,
+                        PRIMARY KEY(dayEpoch, trackId)
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_listening_stats_dayEpoch ON listening_stats(dayEpoch)")
+            }
+        }
+
+        private val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
 
         @Volatile
         private var INSTANCE: MusicProDatabase? = null
