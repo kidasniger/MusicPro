@@ -90,7 +90,7 @@ class SettingsScreenRobolectricTest {
             }
         }
 
-        composeTestRule.onNodeWithTag("theme_settings_card").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("quick_appearance_card").assertIsDisplayed()\n        composeTestRule.onNodeWithTag("theme_settings_card").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_light_button").assertIsDisplayed()
         // L'entrée « Glass » se trouve entre le thème et la clé : on fait défiler jusqu'à la clé.
         composeTestRule.onNodeWithText("INTELLIGENCE ARTIFICIELLE").performScrollTo().performClick()
