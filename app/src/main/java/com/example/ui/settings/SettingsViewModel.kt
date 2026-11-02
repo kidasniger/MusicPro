@@ -20,7 +20,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -64,14 +66,41 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val glassActiveTabOpacity: StateFlow<Int> = preferencesRepository.glassActiveTabOpacity
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DefaultGlassActiveTabOpacity)
 
-    val autoPlay: StateFlow<Boolean> = preferencesRepository.autoPlay
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+    // --- Aperçu en direct du verre (mise à jour 010) ---------------------------------------------
 
-    val gaplessPlayback: StateFlow<Boolean> = preferencesRepository.gaplessPlayback
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+    private val _glassPreview = MutableStateFlow(GlassPreviewState())
 
-    val resumePlayback: StateFlow<Boolean> = preferencesRepository.resumePlayback
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+    /**
+     * État hissé de l'aperçu : les six réglages du verre réunis. Chaque setter ci-dessous le met à
+     * jour tout de suite, avant l'écriture dans le DataStore, pour que l'aperçu suive le curseur
+     * sans délai.
+     */
+    val glassPreview: StateFlow<GlassPreviewState> = _glassPreview.asStateFlow()
+
+    /** Écritures du verre en cours : tant qu'il y en a, on ignore les émissions (périmées) du DataStore. */
+    private var glassWritesInFlight = 0
+
+    private val glassSettingsFromStore = combine(
+        combine(
+            preferencesRepository.glassMaterial,
+            preferencesRepository.glassColorStrength,
+            preferencesRepository.glassFrostDp
+        ) { material, strength, frost -> Triple(material, strength, frost) },
+        combine(
+            preferencesRepository.glassTintHue,
+            preferencesRepository.glassFilmOpacity,
+            preferencesRepository.glassActiveTabOpacity
+        ) { hue, film, tab -> Triple(hue, film, tab) }
+    ) { first, second ->
+        GlassPreviewState(
+            material = first.first,
+            colorStrength = first.second,
+            frostDp = first.third,
+            tintHue = second.first,
+            filmOpacity = second.second,
+            activeTabOpacity = second.third
+        )
+    }
 
     private val _cacheSize = MutableStateFlow("Calcul...")
     val cacheSize: StateFlow<String> = _cacheSize.asStateFlow()
@@ -87,6 +116,30 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     init {
         refreshCacheSize()
+        // Synchronise l'aperçu avec le DataStore (valeurs enregistrées, changements externes).
+        viewModelScope.launch {
+            glassSettingsFromStore.collect { stored ->
+                if (glassWritesInFlight == 0) {
+                    _glassPreview.value = stored
+                }
+            }
+        }
+    }
+
+    /** Met à jour l'aperçu tout de suite, puis enregistre dans le DataStore. */
+    private fun updateGlass(
+        preview: (GlassPreviewState) -> GlassPreviewState,
+        persist: suspend () -> Unit
+    ) {
+        _glassPreview.update(preview)
+        glassWritesInFlight++
+        viewModelScope.launch {
+            try {
+                persist()
+            } finally {
+                glassWritesInFlight--
+            }
+        }
     }
 
     fun setThemeMode(mode: AppThemeMode) {
@@ -102,40 +155,46 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun setGlassMaterial(material: GlassMaterial) {
-        viewModelScope.launch {
-            preferencesRepository.setGlassMaterial(material)
-        }
+        updateGlass(
+            preview = { it.copy(material = material) },
+            persist = { preferencesRepository.setGlassMaterial(material) }
+        )
     }
 
     fun setGlassColorStrength(percent: Int) {
-        viewModelScope.launch {
-            preferencesRepository.setGlassColorStrength(percent)
-        }
+        updateGlass(
+            preview = { it.copy(colorStrength = percent) },
+            persist = { preferencesRepository.setGlassColorStrength(percent) }
+        )
     }
 
     fun setGlassFrostDp(dp: Int) {
-        viewModelScope.launch {
-            preferencesRepository.setGlassFrostDp(dp)
-        }
+        updateGlass(
+            preview = { it.copy(frostDp = dp) },
+            persist = { preferencesRepository.setGlassFrostDp(dp) }
+        )
     }
 
     /** Choisit la teinte du verre ; `null` = Aucune. */
     fun setGlassTintHue(hue: Float?) {
-        viewModelScope.launch {
-            preferencesRepository.setGlassTintHue(hue)
-        }
+        updateGlass(
+            preview = { it.copy(tintHue = hue) },
+            persist = { preferencesRepository.setGlassTintHue(hue) }
+        )
     }
 
     fun setGlassFilmOpacity(percent: Int) {
-        viewModelScope.launch {
-            preferencesRepository.setGlassFilmOpacity(percent)
-        }
+        updateGlass(
+            preview = { it.copy(filmOpacity = percent) },
+            persist = { preferencesRepository.setGlassFilmOpacity(percent) }
+        )
     }
 
     fun setGlassActiveTabOpacity(percent: Int) {
-        viewModelScope.launch {
-            preferencesRepository.setGlassActiveTabOpacity(percent)
-        }
+        updateGlass(
+            preview = { it.copy(activeTabOpacity = percent) },
+            persist = { preferencesRepository.setGlassActiveTabOpacity(percent) }
+        )
     }
 
     fun setAutoPlay(enabled: Boolean) {
