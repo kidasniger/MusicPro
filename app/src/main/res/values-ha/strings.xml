@@ -75,13 +75,13 @@
 <string translatable="false" name="album_add">Créer une playlist avec cet album</string>
 <string translatable="false" name="album_added_playlist">Playlist « %1$s » créée</string>
 <string translatable="false" name="album_search">Rechercher</string>
-<string translatable="false" name="album_menu">Plus d'options</string>
-<string translatable="false" name="album_share">Partager l'album</string>
+<string translatable="false" name="album_menu">Plus d’options</string>
+<string translatable="false" name="album_share">Partager l’album</string>
 <string translatable="false" name="album_more">PLUS</string>
 <string translatable="false" name="album_less">MOINS</string>
 <string translatable="false" name="album_minutes">%1$d min</string>
 <string translatable="false" name="album_description">%1$s · %2$s · %3$s.</string>
-<string translatable="false" name="album_description_extra">Les titres sont lus depuis votre appareil, dans l'ordre des fichiers de l'album.</string>
+<string translatable="false" name="album_description_extra">Les titres sont lus depuis votre appareil, dans l’ordre des fichiers de l’album.</string>
 <string translatable="false" name="album_explicit_badge">E</string>
 <string translatable="false" name="album_explicit_cd">Contenu explicite</string>
 <plurals translatable="false" name="album_track_count">
@@ -89,12 +89,12 @@
         <item quantity="other">%d morceaux</item>
     </plurals>
 <string translatable="false" name="artist_back">Retour</string>
-<string translatable="false" name="artist_info">Informations sur l'artiste</string>
+<string translatable="false" name="artist_info">Informations sur l’artiste</string>
 <string translatable="false" name="artist_info_body">%1$s · %2$s · %3$s</string>
 <string translatable="false" name="artist_info_close">Fermer</string>
 <string translatable="false" name="artist_play">Lecture</string>
-<string translatable="false" name="artist_favorite_add">Ajouter l'artiste aux favoris</string>
-<string translatable="false" name="artist_favorite_remove">Retirer l'artiste des favoris</string>
+<string translatable="false" name="artist_favorite_add">Ajouter l’artiste aux favoris</string>
+<string translatable="false" name="artist_favorite_remove">Retirer l’artiste des favoris</string>
 <string translatable="false" name="artist_top_tracks">Top morceaux</string>
 <string translatable="false" name="artist_show_all">Afficher tout</string>
 <string translatable="false" name="artist_show_less">Réduire</string>
@@ -104,9 +104,9 @@
 <string translatable="false" name="artist_minutes">%1$d min</string>
 <string translatable="false" name="artist_release_album">Album · %1$s</string>
 <string translatable="false" name="artist_release_single">Single · %1$s</string>
-<string translatable="false" name="artist_row_menu">Plus d'options pour %1$s</string>
+<string translatable="false" name="artist_row_menu">Plus d’options pour %1$s</string>
 <string translatable="false" name="artist_play_next">Lire ensuite</string>
-<string translatable="false" name="artist_add_queue">Ajouter à la file d'attente</string>
+<string translatable="false" name="artist_add_queue">Ajouter à la file d’attente</string>
 <plurals translatable="false" name="artist_album_count">
         <item quantity="one">%d album</item>
         <item quantity="other">%d albums</item>
@@ -168,16 +168,16 @@
 <string translatable="false" name="glass_tint_free_desc">Touchez ou faites glisser sur la barre arc-en-ciel pour choisir une teinte précise.</string>
 <string translatable="false" name="glass_tint_preview_label">Aperçu teinté</string>
 <string translatable="false" name="new_screen_title">Nouveau</string>
-<string translatable="false" name="new_screen_subtitle">Ce qui vient d'arriver dans votre bibliothèque</string>
+<string translatable="false" name="new_screen_subtitle">Ce qui vient d’arriver dans votre bibliothèque</string>
 <string translatable="false" name="new_section_recent">Ajouts récents</string>
 <string translatable="false" name="new_section_unplayed">Jamais écoutés</string>
 <string translatable="false" name="new_section_albums">Albums récemment ajoutés</string>
-<string translatable="false" name="new_empty_title">Rien de nouveau pour l'instant</string>
+<string translatable="false" name="new_empty_title">Rien de nouveau pour l’instant</string>
 <string translatable="false" name="new_empty_message">Analysez votre appareil pour retrouver vos morceaux.</string>
 <string translatable="false" name="new_empty_scan">Analyser mon appareil</string>
 <string translatable="false" name="new_scanning">Analyse en cours…</string>
 <string translatable="false" name="queue_screen_title">À suivre</string>
-<string translatable="false" name="queue_screen_close">Fermer la file d'attente</string>
+<string translatable="false" name="queue_screen_close">Fermer la file d’attente</string>
 <string translatable="false" name="queue_screen_now_playing">En cours de lecture</string>
 <string translatable="false" name="queue_screen_clear">Vider la file</string>
 <string translatable="false" name="queue_screen_autoplay_title">Lecture automatique</string>
@@ -198,7 +198,7 @@
 <string translatable="false" name="mixes_screen_subtitle">Des mixes créés sur votre appareil, à partir de votre écoute et de vos favoris.</string>
 <string translatable="false" name="mixes_empty_message">Ajoutez de la musique pour que vos mixes soient générés automatiquement.</string>
 <string translatable="false" name="mixes_discovery">Découverte</string>
-<string translatable="false" name="mixes_discovery_desc">Des morceaux que vous n'avez jamais écoutés, les plus récents d'abord.</string>
+<string translatable="false" name="mixes_discovery_desc">Des morceaux que vous n’avez jamais écoutés, les plus récents d’abord.</string>
 <string translatable="false" name="mixes_energy">Énergie</string>
 <string translatable="false" name="mixes_energy_desc">Des titres courts et nerveux, vos favoris en tête.</string>
 <string translatable="false" name="mixes_calm">Calme</string>
@@ -206,7 +206,7 @@
 <string translatable="false" name="mixes_party">Soirée</string>
 <string translatable="false" name="mixes_party_desc">Un mélange de vos favoris et de vos écoutes, dans un ordre qui change chaque jour.</string>
 <string translatable="false" name="mixes_memories">Souvenirs</string>
-<string translatable="false" name="mixes_memories_desc">Ce que vous n'avez pas écouté depuis longtemps, favoris d'abord.</string>
+<string translatable="false" name="mixes_memories_desc">Ce que vous n’avez pas écouté depuis longtemps, favoris d’abord.</string>
 <string translatable="false" name="mixes_live">En direct</string>
 <string translatable="false" name="mixes_play_cd">Lire le mix %1$s</string>
 <plurals translatable="false" name="mixes_track_count">
@@ -250,8 +250,8 @@
     <string name="settings_neon_dark">Duhu Neon</string>
     <string name="settings_recommended">An ba da shawara</string>
     <string name="settings_minimal_clean">Sauƙaƙe</string>
-    <string name="settings_system">Tsarin na'ura</string>
-    <string name="settings_dynamic_colors">Launukan da ke bin tsarin na'ura</string>
+    <string name="settings_system">Tsarin na’ura</string>
+    <string name="settings_dynamic_colors">Launukan da ke bin tsarin na’ura</string>
     <string name="settings_dynamic_colors_desc">Yana daidaita launuka da hoton bangon Android</string>
     <string name="settings_smart_transcription">Rubuta sauti ta hankali</string>
     <string name="settings_lyrics_assistance">Taimakon ƙirƙirar kalmomin waƙa</string>
@@ -270,7 +270,7 @@
     <string name="settings_refresh_size">Sabunta girma</string>
     <string name="settings_temp_cache">Cache na wucin gadi</string>
     <string name="settings_clean_deleted">Share fayilolin da aka goge</string>
-    <string name="settings_clean_deleted_desc">Yana cire waƙoƙin da ba su wanzu kuma yana 'yantar da sarari</string>
+    <string name="settings_clean_deleted_desc">Yana cire waƙoƙin da ba su wanzu kuma yana ’yantar da sarari</string>
     <string name="settings_player_behavior">Yadda mai kunna MusicPro ke aiki</string>
     <string name="settings_autoplay">Kunna ta atomatik</string>
     <string name="settings_autoplay_desc">Ci gaba da jerin waƙoƙi kai tsaye</string>
@@ -286,10 +286,10 @@
     <string name="settings_home_screen">Allon gida</string>
     <string name="settings_quick_controls">Maɓallan gaggawa</string>
     <string name="settings_library">Laburare</string>
-    <string name="settings_data_retained">Bayanan suna nan a na'ura</string>
+    <string name="settings_data_retained">Bayanan suna nan a na’ura</string>
     <string name="settings_sensitive_data_protected">An kare bayanai masu muhimmanci</string>
     <string name="settings_data_privacy">Fayilolin sautinka da bayanansu suna nan a wayarka. Ana haɗawa ne kawai idan ka nemi aiki na intanet.</string>
-    <string name="settings_system_permissions">Izinin tsarin na'ura</string>
+    <string name="settings_system_permissions">Izinin tsarin na’ura</string>
     <string name="settings_audio_notifications_access">Samun fayilolin sauti na gida da sanarwa</string>
     <string name="settings_manage">Sarrafa</string>
     <string name="settings_back">Koma baya</string>
@@ -302,7 +302,7 @@
 <string name="settings_expand">Faɗaɗa</string><string name="settings_collapse">Rage</string>
 
 <string name="onboarding_skip">Tsallake</string><string name="onboarding_playlist_preview">Jerin waƙoƙi: Daren Neon</string><string name="onboarding_track_widget">Waƙoƙi 12 • Widget na gida yana aiki</string><string name="onboarding_theme">JIGO</string><string name="onboarding_visual_style">SALON BAYYANAR</string>
-<string name="permission_tag">MAI KUNNA SAUTI BA TARE DA INTANET 100%</string><string name="permission_intro">Domin samar da sauraron kiɗa mai sauƙi da sirri ba tare da intanet ba, MusicPro na buƙatar wasu izini a wayarka.</string><string name="permission_audio_required">Ana buƙatar damar sauti</string><string name="permission_denied">Tsarin na'ura ya ƙi izinin</string><string name="permission_audio_required_body">Samun fayilolin sautinka yana da muhimmanci ga MusicPro. Ba tare da izinin ba, manhajar ba za ta iya gano waƙoƙinka ba.</string><string name="permission_open_settings">Buɗe saitunan na'ura</string><string name="permission_grant">Ba da izini</string><string name="permission_retry">Sake dubawa</string><string name="permission_privacy">Ba a aika ko raba bayanan sauti ta intanet</string><string name="permission_required">ANA BUƘATA</string>
+<string name="permission_tag">MAI KUNNA SAUTI BA TARE DA INTANET 100%</string><string name="permission_intro">Domin samar da sauraron kiɗa mai sauƙi da sirri ba tare da intanet ba, MusicPro na buƙatar wasu izini a wayarka.</string><string name="permission_audio_required">Ana buƙatar damar sauti</string><string name="permission_denied">Tsarin na’ura ya ƙi izinin</string><string name="permission_audio_required_body">Samun fayilolin sautinka yana da muhimmanci ga MusicPro. Ba tare da izinin ba, manhajar ba za ta iya gano waƙoƙinka ba.</string><string name="permission_open_settings">Buɗe saitunan na’ura</string><string name="permission_grant">Ba da izini</string><string name="permission_retry">Sake dubawa</string><string name="permission_privacy">Ba a aika ko raba bayanan sauti ta intanet</string><string name="permission_required">ANA BUƘATA</string>
 <string name="playlist_name_label">Sunan jerin waƙoƙi</string><string name="playlist_name_placeholder">Misali: Daren Neon, Motsa jiki, Waɗanda aka fi so…</string><string name="playlist_name_empty">Suna ba zai iya zama babu komai ba</string><string name="playlist_description_label">Bayani (na zaɓi)</string><string name="playlist_description_placeholder">Misali: Zaɓin waƙoƙin da na fi so</string><string name="playlist_cancel">Soke</string><string name="playlist_add_title">Ƙara zuwa jerin waƙoƙi</string><string name="playlist_new">Sabon jerin waƙoƙi</string><string name="playlist_create_add">Ƙirƙira kuma ƙara wannan waƙa</string><string name="playlist_your_playlists">JERIN WAƘOƘINKA</string><plurals name="playlist_track_count"><item quantity="one">Waƙa %d</item><item quantity="other">Waƙoƙi %d</item></plurals>
 <string name="permission_audio_title">Samun fayilolin sauti</string><string name="permission_audio_description">Ana buƙata domin lissafa da kunna waƙoƙin gida (MP3, FLAC, AAC, WAV) da nuna hotunan kundi ba tare da intanet ba.</string><string name="permission_background_title">Maɓallan aiki a bango</string><string name="permission_background_description">Yana nuna sanarwar kunnawa mai ɗorewa tare da maɓallan kiɗa da allon kulle.</string><string name="permission_attention">Gargaɗi</string><string name="permission_denied_body">Samun fayilolin sautinka yana da muhimmanci ga MusicPro. Ba tare da izinin ba, manhajar ba za ta iya gano waƙoƙinka ba.&#10;&#10;Da fatan ba da izini a saitunan manhajar.</string><string name="permission_granted">An ba da izini</string><string name="playlist_rename_title">Sake suna jerin waƙoƙi</string><string name="playlist_create">Ƙirƙira</string><string name="playlist_close">Rufe</string><string name="playlist_add">Ƙara</string>
 <string name="lyrics_search_title">Binciken kalmomin waƙa</string><string name="lyrics_search_improved_loading">Ana inganta bincike…</string><string name="lyrics_search_loading">Ana neman kalmomin waƙa…</string><string name="lyrics_duration_format">Tsawon lokaci: %1$02d:%2$02d (%3$ds)</string><string name="lyrics_target_sylt">Manufa: alamar ID3 SYLT (MP3)</string><string name="lyrics_target_lrc">Manufa: fayil ɗin .lrc na gefe</string><string name="lyrics_ai_help">Taimakon AI</string><string name="lyrics_search_improved">Ingantaccen bincike…</string><string name="lyrics_improve_search">Inganta bincike</string><string name="lyrics_suggestion_format">Shawara: %1$s — %2$s</string><string name="lyrics_search_in_progress">Ana bincike…</string><string name="lyrics_search_button">Nemo kalmomin waƙa</string><plurals name="lyrics_results_count"><item quantity="one">An sami sigar %d</item><item quantity="other">An sami sigogi %d</item></plurals><string name="lyrics_result_hint">Taɓa sakamako domin gani</string><string name="lyrics_ideal_duration">Tsawon da ya dace</string><string name="lyrics_synced">Kalmomin waƙa masu daidaito</string><string name="lyrics_plain_text">Rubutu kawai</string><string name="lyrics_instrumental">Waƙar kayan kiɗa</string><string name="lyrics_hide_preview">Ɓoye samfoti</string><string name="lyrics_preview_title">Samfotin kalmomin da aka samu</string><string name="lyrics_apply_synced">Aiwatar da kalmomin da aka daidaita</string><string name="lyrics_apply">Aiwatar da kalmomin waƙa</string><string name="lyrics_no_preview">Babu samfoti.</string><string name="lyrics_more_lines_format">… (ƙarin layuka %1$d)</string><string name="lyrics_online_title">Nemo kalmomin waƙa a intanet</string><string name="lyrics_no_results">Ba a sami sakamako ba</string><string name="lyrics_no_match_format">Babu kalmomin da suka dace da %1$s</string><string name="lyrics_search_title_only">Bincika da take kawai</string><string name="lyrics_no_internet">Babu haɗin intanet</string><string name="lyrics_timeout">Lokacin jira ya ƙare</string><string name="lyrics_search_error">Kuskuren bincike</string><string name="lyrics_retry">Sake bincike</string><string name="lyrics_online_description">Nemo kalmomin waƙa a intanet</string><string name="lyrics_search_description">Bincika da take da mawaƙi domin samun kalmomin da aka daidaita.</string><string name="lyrics_start_search">Fara bincike</string>
