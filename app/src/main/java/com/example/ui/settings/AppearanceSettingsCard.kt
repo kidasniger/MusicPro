@@ -40,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
@@ -60,6 +61,9 @@ import com.example.ui.theme.musicProBaseScheme
  * Sombre le soir), « Style » (Minimal, Néon, Verre) avec trois cartes d'aperçu de 96 × 140 dp,
  * « Accent » et couleurs dynamiques. Tout changement s'applique tout de suite : le fondu de
  * 250 ms est fait par `MusicProTheme` (instantané avec « Réduire les animations »).
+ *
+ * Repères de test conservés : `theme_settings_card`, `theme_light_button`, `theme_dark_button`,
+ * `theme_system_button` (Auto) et `theme_dark_evening_button`.
  */
 @Composable
 fun AppearanceSettingsCard(
@@ -81,7 +85,7 @@ fun AppearanceSettingsCard(
     val accentApplies = style != AppStyle.NEON && !(isDynamicColor && dynamicSupported)
     val isDark = LocalIsDarkTheme.current
 
-    MusicProCard(modifier = modifier.fillMaxWidth()) {
+    MusicProCard(modifier = modifier.fillMaxWidth().testTag("theme_settings_card")) {
         Column(
             modifier = Modifier.padding(MusicProTokens.Spacing.Lg),
             verticalArrangement = Arrangement.spacedBy(MusicProTokens.Spacing.Lg)
@@ -93,7 +97,8 @@ fun AppearanceSettingsCard(
                     OptionRow(
                         label = appearanceLabel(mode),
                         selected = appearance == mode,
-                        onClick = { onAppearanceSelected(mode) }
+                        onClick = { onAppearanceSelected(mode) },
+                        tag = appearanceTag(mode)
                     )
                 }
                 AnimatedVisibility(visible = appearance == AppearanceMode.DARK_EVENING) {
@@ -222,11 +227,12 @@ private fun SectionTitle(text: String) {
 }
 
 @Composable
-private fun OptionRow(label: String, selected: Boolean, onClick: () -> Unit) {
+private fun OptionRow(label: String, selected: Boolean, onClick: () -> Unit, tag: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = MusicProTokens.Size.Touch)
+            .testTag(tag)
             .selectable(selected = selected, onClick = onClick, role = Role.RadioButton),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -291,6 +297,7 @@ private fun StylePreviewCard(
     Column(
         modifier = Modifier
             .width(MusicProTokens.Size.StylePreviewWidth)
+            .testTag("style_${styleOption.name.lowercase()}_card")
             .selectable(selected = selected, onClick = onClick, role = Role.RadioButton),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(MusicProTokens.Spacing.Xs)
@@ -425,6 +432,13 @@ private fun MiniScreen(styleOption: AppStyle, scheme: ColorScheme) {
             )
         }
     }
+}
+
+private fun appearanceTag(mode: AppearanceMode): String = when (mode) {
+    AppearanceMode.LIGHT -> "theme_light_button"
+    AppearanceMode.DARK -> "theme_dark_button"
+    AppearanceMode.AUTO -> "theme_system_button"
+    AppearanceMode.DARK_EVENING -> "theme_dark_evening_button"
 }
 
 @Composable
