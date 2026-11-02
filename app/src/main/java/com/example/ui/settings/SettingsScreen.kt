@@ -4,7 +4,6 @@ import androidx.activity.compose.BackHandler
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -113,7 +112,8 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onNavigateToPermissions: () -> Unit,
     modifier: Modifier = Modifier,
-    settingsViewModel: SettingsViewModel = viewModel()
+    settingsViewModel: SettingsViewModel = viewModel(),
+    onOpenGlassSettings: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -127,14 +127,6 @@ fun SettingsScreen(
     val eveningStart by settingsViewModel.eveningStartMinutes.collectAsStateWithLifecycle()
     val eveningEnd by settingsViewModel.eveningEndMinutes.collectAsStateWithLifecycle()
     val isDynamicColor by settingsViewModel.isDynamicColor.collectAsStateWithLifecycle()
-    val glassMaterial by settingsViewModel.glassMaterial.collectAsStateWithLifecycle()
-    val glassColorStrength by settingsViewModel.glassColorStrength.collectAsStateWithLifecycle()
-    val glassFrostDp by settingsViewModel.glassFrostDp.collectAsStateWithLifecycle()
-    val glassTintHue by settingsViewModel.glassTintHue.collectAsStateWithLifecycle()
-    val glassFilmOpacity by settingsViewModel.glassFilmOpacity.collectAsStateWithLifecycle()
-    val glassActiveTabOpacity by settingsViewModel.glassActiveTabOpacity.collectAsStateWithLifecycle()
-    // Aperçu en direct du verre (mise à jour 010) : état hissé dans le ViewModel
-    val glassPreview by settingsViewModel.glassPreview.collectAsStateWithLifecycle()
     val autoPlay by settingsViewModel.autoPlay.collectAsStateWithLifecycle()
     val gaplessPlayback by settingsViewModel.gaplessPlayback.collectAsStateWithLifecycle()
     val resumePlayback by settingsViewModel.resumePlayback.collectAsStateWithLifecycle()
@@ -202,35 +194,8 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            GlassPreviewCard(state = glassPreview)
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            GlassQualityCard(
-                material = glassMaterial,
-                blurSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
-                onMaterialSelected = { settingsViewModel.setGlassMaterial(it) },
-                colorStrength = glassColorStrength,
-                onColorStrengthChange = { settingsViewModel.setGlassColorStrength(it) },
-                frostDp = glassFrostDp,
-                onFrostDpChange = { settingsViewModel.setGlassFrostDp(it) }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            GlassTintCard(
-                hue = glassTintHue,
-                onHueChange = { settingsViewModel.setGlassTintHue(it) }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            GlassFilmCard(
-                filmOpacity = glassFilmOpacity,
-                onFilmOpacityChange = { settingsViewModel.setGlassFilmOpacity(it) },
-                activeTabOpacity = glassActiveTabOpacity,
-                onActiveTabOpacityChange = { settingsViewModel.setGlassActiveTabOpacity(it) }
-            )
+            // Mise à jour 025 : les réglages du verre vivent sur leur propre écran (settings/glass).
+            GlassSettingsEntry(onClick = onOpenGlassSettings)
 
             Spacer(modifier = Modifier.height(16.dp))
 
