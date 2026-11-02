@@ -886,7 +886,7 @@ private fun LyricsPreviewContent(
 }
 
 @Composable
-private fun LoadingResultsView(message: String? = null) {
+private fun LoadingResultsView(message: String) {
     Column(
         modifier = Modifier
             .fillMaxSize()

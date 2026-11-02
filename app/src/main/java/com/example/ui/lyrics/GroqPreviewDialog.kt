@@ -288,7 +288,7 @@ fun GroqPreviewDialog(
                         onClick = {
                             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                             clipboard.setPrimaryClip(ClipData.newPlainText("LRC Lyrics", result.fullLrcContent))
-                            Toast.makeText(context, stringResource(R.string.groq_clipboard_copied), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, copiedMsg, Toast.LENGTH_SHORT).show()
                         },
                         modifier = Modifier
                             .height(48.dp)
