@@ -55,6 +55,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -174,7 +175,7 @@ fun PermissionScreen(
                     border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x668A2BE2))
                 ) {
                     Text(
-                        text = "LECTEUR AUDIO 100% HORS LIGNE",
+                        text = stringResource(R.string.permission_tag),
                         color = MusicProCyanNeon,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -186,7 +187,7 @@ fun PermissionScreen(
                 Spacer(modifier = Modifier.height(14.dp))
 
                 Text(
-                    text = "Pour vous offrir une expérience musicale fluide, privée et sans connexion, MusicPro a besoin de quelques autorisations sur votre appareil.",
+                    text = stringResource(R.string.permission_intro),
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -266,13 +267,13 @@ fun PermissionScreen(
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column {
                                     Text(
-                                        text = "Accès audio requis",
+                                        text = stringResource(R.string.permission_audio_required),
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 15.sp,
                                         color = MaterialTheme.colorScheme.onBackground
                                     )
                                     Text(
-                                        text = "Permission refusée par le système",
+                                        text = stringResource(R.string.permission_denied),
                                         fontSize = 12.sp,
                                         color = MusicProFavorite
                                     )
@@ -307,7 +308,7 @@ fun PermissionScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "Ouvrir les Paramètres Système",
+                                    text = stringResource(R.string.permission_open_settings),
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 13.sp
                                 )
@@ -363,7 +364,7 @@ fun PermissionScreen(
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = "Accorder les autorisations",
+                            text = stringResource(R.string.permission_grant),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -391,7 +392,7 @@ fun PermissionScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Vérifier à nouveau",
+                            text = stringResource(R.string.permission_retry),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = MusicProCyanNeon
@@ -400,7 +401,7 @@ fun PermissionScreen(
                 }
 
                 Text(
-                    text = "Aucune donnée audio n'est transférée ni partagée sur Internet",
+                    text = stringResource(R.string.permission_privacy),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
@@ -494,7 +495,7 @@ private fun PermissionDetailCard(
                             color = Color(0x268A2BE2)
                         ) {
                             Text(
-                                text = "REQUIS",
+                                text = stringResource(R.string.permission_required),
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MusicProVioletPastel,
