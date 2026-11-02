@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MusicPro</string>
+    <string translatable="false" name="app_name">MusicPro</string>
     <string name="language_title">Langue</string>
     <string name="language_auto">Auto</string>
     <string name="language_french">Français</string>
