@@ -1,6 +1,8 @@
 package com.example.ui.theme
 
 import android.os.Build
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -8,9 +10,15 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import com.example.data.preferences.AccentChoice
+import com.example.data.preferences.AppStyle
 import com.example.data.preferences.AppThemeMode
+import com.example.data.preferences.AppearanceMode
+import com.example.ui.components.glass.rememberAnimationsEnabled
 
 /**
  * Palette de couleurs sombre Material 3 calquée fidèlement sur la charte MusicPro.
@@ -103,6 +111,72 @@ fun MusicProTheme(
         typography = MusicProTypography,
         content = content
     )
+}
+
+/**
+ * Thème complet (mises à jour 013 à 018) : apparence × style, accent, plage « Sombre le soir ».
+ *
+ *  - Les changements de style, d'apparence ou d'accent se fondent en 250 ms (accent « Selon la
+ *    pochette » : 400 ms) ; avec « Réduire les animations », ils sont instantanés.
+ *  - [eveningDark] vient de `SettingsViewModel.eveningDarkActive` : le thème bascule sans
+ *    redémarrer l'activité.
+ *  - L'accent ne s'applique qu'aux styles Minimal et Verre, et pas aux couleurs dynamiques.
+ */
+@Composable
+fun MusicProTheme(
+    appearance: AppearanceMode,
+    style: AppStyle,
+    accent: AccentChoice = AccentChoice.TERRACOTTA,
+    eveningDark: Boolean = false,
+    artworkAccent: Color? = null,
+    dynamicColor: Boolean = false,
+    content: @Composable () -> Unit
+) {
+    val systemDark = isSystemInDarkTheme()
+    val isDark = resolveIsDark(appearance, eveningDark, systemDark)
+    val context = LocalContext.current
+    val animationsEnabled = rememberAnimationsEnabled()
+    val useDynamic = dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+
+    val baseScheme = if (useDynamic) {
+        runCatching {
+            if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }.getOrElse { musicProBaseScheme(style, isDark) }
+    } else {
+        musicProBaseScheme(style, isDark)
+    }
+
+    val fadeMillis = if (animationsEnabled) MusicProTokens.Duration.ThemeFade else 0
+    val accentMillis = if (animationsEnabled) MusicProTokens.Duration.AccentFade else 0
+    val animatedBase = animateColorScheme(baseScheme, fadeMillis)
+
+    val accentOverride = if (useDynamic) {
+        null
+    } else {
+        resolveAccentOverride(accent, style, isDark, artworkAccent, dynamicColor = false)
+    }
+    val animatedAccent by animateColorAsState(
+        targetValue = accentOverride ?: baseScheme.primary,
+        animationSpec = tween(durationMillis = accentMillis),
+        label = "theme_accent"
+    )
+    val colorScheme = if (accentOverride != null) {
+        animatedBase.withAccent(animatedAccent, isDark)
+    } else {
+        animatedBase
+    }
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = musicProTypography(style)
+    ) {
+        CompositionLocalProvider(
+            LocalAppStyle provides style,
+            LocalIsDarkTheme provides isDark
+        ) {
+            content()
+        }
+    }
 }
 
 @Composable

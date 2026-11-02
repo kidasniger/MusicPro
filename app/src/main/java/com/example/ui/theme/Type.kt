@@ -6,19 +6,30 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
+import com.example.data.preferences.AppStyle
 
 /**
- * Système typographique MusicPro extrait de MusicPro.html.
- * - Police d'affichage / Display : Sora / Sans-Serif Bold
- * - Police de lecture / Interface : Inter / Sans-Serif Regular & Medium
- * - Police de code / Horodatage : Monospace pour les paroles LRC synchronisées
+ * Système typographique MusicPro.
+ *
+ * Familles (mise à jour 016) : [MusicProSansFamily] pour l'interface (Inter ou Instrument Sans) et
+ * [MusicProSerifFamily] pour les grands titres du style Minimal (Source Serif 4 ou Newsreader).
+ * Tant que les fichiers de police ne sont pas ajoutés dans `res/font`, ces deux familles se
+ * rabattent sur les polices sans empattement et à empattement du système.
+ *
+ * Échelle des styles Minimal et Verre : Titre 28/34 semi-gras, Section 20/26, Corps 16/24,
+ * Légende 13/18. Le style Néon garde son échelle d'origine.
  */
 
-// Familles de polices recommandées
-val InterFontFamily = FontFamily.SansSerif
-val SoraFontFamily = FontFamily.SansSerif
+// Familles de polices : un seul endroit à modifier quand les fichiers .ttf sont embarqués.
+val MusicProSansFamily: FontFamily = FontFamily.SansSerif
+val MusicProSerifFamily: FontFamily = FontFamily.Serif
+
+// Alias conservés pour le code existant.
+val InterFontFamily = MusicProSansFamily
+val SoraFontFamily = MusicProSansFamily
 val LyricMonoFontFamily = FontFamily.Monospace
 
+/** Typographie d'origine, utilisée par le style Néon. */
 val MusicProTypography = Typography(
     // 32px • Titre Splash "MusicPro"
     displayLarge = TextStyle(
@@ -155,6 +166,54 @@ val MusicProTypography = Typography(
         color = Color.Unspecified
     )
 )
+
+private fun softStyle(
+    family: FontFamily,
+    weight: FontWeight,
+    size: Int,
+    lineHeight: Int
+) = TextStyle(
+    fontFamily = family,
+    fontWeight = weight,
+    fontSize = size.sp,
+    lineHeight = lineHeight.sp,
+    color = Color.Unspecified
+)
+
+/**
+ * Échelle douce des styles Minimal et Verre. Les couleurs ne sont pas fixées : le texte suit la
+ * couleur de contenu du thème, donc il reste lisible en clair comme en sombre.
+ */
+private fun softTypography(titleFamily: FontFamily): Typography = Typography(
+    displayLarge = softStyle(titleFamily, FontWeight.SemiBold, 28, 34),
+    displayMedium = softStyle(titleFamily, FontWeight.SemiBold, 28, 34),
+    displaySmall = softStyle(titleFamily, FontWeight.SemiBold, 28, 34),
+    headlineLarge = softStyle(titleFamily, FontWeight.SemiBold, 28, 34),
+    headlineMedium = softStyle(titleFamily, FontWeight.SemiBold, 20, 26),
+    headlineSmall = softStyle(MusicProSansFamily, FontWeight.SemiBold, 20, 26),
+    titleLarge = softStyle(MusicProSansFamily, FontWeight.SemiBold, 20, 26),
+    titleMedium = softStyle(MusicProSansFamily, FontWeight.SemiBold, 16, 24),
+    titleSmall = softStyle(MusicProSansFamily, FontWeight.SemiBold, 13, 18),
+    bodyLarge = softStyle(MusicProSansFamily, FontWeight.Normal, 16, 24),
+    bodyMedium = softStyle(MusicProSansFamily, FontWeight.Normal, 16, 24),
+    bodySmall = softStyle(MusicProSansFamily, FontWeight.Normal, 13, 18),
+    labelLarge = softStyle(MusicProSansFamily, FontWeight.Medium, 13, 18),
+    labelMedium = softStyle(MusicProSansFamily, FontWeight.Medium, 13, 18),
+    labelSmall = softStyle(MusicProSansFamily, FontWeight.Medium, 13, 18)
+)
+
+/** Minimal : grands titres en serif. */
+val MinimalTypography = softTypography(MusicProSerifFamily)
+
+/** Verre : tout en sans-serif. */
+val LiquidGlassTypography = softTypography(MusicProSansFamily)
+
+/** Typographie du style choisi. */
+fun musicProTypography(style: AppStyle): Typography = when (style) {
+    AppStyle.NEON -> MusicProTypography
+    AppStyle.MINIMAL -> MinimalTypography
+    AppStyle.GLASS -> LiquidGlassTypography
+}
 
 /**
  * Style typographique pour la prévisualisation brute des fichiers .lrc (Karaoké brut).

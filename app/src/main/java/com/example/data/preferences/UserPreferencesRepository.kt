@@ -2,6 +2,7 @@ package com.example.data.preferences
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
@@ -26,6 +27,10 @@ data class SavedPlaybackState(
 
 val Context.musicProDataStore: DataStore<Preferences> by preferencesDataStore(name = "musicpro_preferences")
 
+/**
+ * Ancien réglage de thème unique. Conservé uniquement pour migrer la clé `app_theme_mode`
+ * vers [AppearanceMode] et [AppStyle] (mise à jour 013) ; l'interface n'utilise plus que ces deux-là.
+ */
 enum class AppThemeMode(val displayName: String) {
     DARK("Sombre Néon"),
     LIGHT("Clair"),
@@ -36,7 +41,18 @@ class UserPreferencesRepository(private val context: Context) {
 
     companion object {
         val KEY_ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
+        /** Ancienne clé (Sombre Néon / Clair / Système) : lue pour la migration, plus écrite par l'interface. */
         val KEY_THEME_MODE = stringPreferencesKey("app_theme_mode")
+        /** Apparence (Clair, Sombre, Auto, Sombre le soir). Absente : déduite de [KEY_THEME_MODE]. */
+        val KEY_APPEARANCE_MODE = stringPreferencesKey("appearance_mode")
+        /** Style (Minimal, Néon, Verre). Absente : déduite de [KEY_THEME_MODE]. */
+        val KEY_APP_STYLE = stringPreferencesKey("app_style")
+        /** Accent (Terracotta, Bleu, Vert, Violet, Selon la pochette). Absente : Terracotta. */
+        val KEY_ACCENT_CHOICE = stringPreferencesKey("accent_choice")
+        /** Début de « Sombre le soir », en minutes depuis minuit. Absente : 20:00. */
+        val KEY_EVENING_START = intPreferencesKey("dark_evening_start_minutes")
+        /** Fin de « Sombre le soir », en minutes depuis minuit. Absente : 07:00. */
+        val KEY_EVENING_END = intPreferencesKey("dark_evening_end_minutes")
         val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
         val KEY_GLASS_MATERIAL = stringPreferencesKey("glass_material")
         /** Force de couleur du verre, en % (0-100). Absente : 70 %. */
@@ -153,6 +169,38 @@ class UserPreferencesRepository(private val context: Context) {
         }
         .map { preferences -> resolveGlassActiveTabOpacity(preferences[KEY_GLASS_ACTIVE_TAB_OPACITY]) }
 
+    // --- Apparence et style (mises à jour 013, 017, 018) ------------------------------------------
+
+    private val themeData: Flow<Preferences> = context.musicProDataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+
+    /** Apparence ; déduite de l'ancienne clé `app_theme_mode` tant qu'elle n'est pas écrite. */
+    val appearanceMode: Flow<AppearanceMode> = themeData.map { preferences ->
+        resolveAppearanceMode(preferences[KEY_APPEARANCE_MODE], preferences[KEY_THEME_MODE])
+    }
+
+    /** Style ; déduit de l'ancienne clé `app_theme_mode` tant qu'il n'est pas écrit. */
+    val appStyle: Flow<AppStyle> = themeData.map { preferences ->
+        resolveAppStyle(preferences[KEY_APP_STYLE], preferences[KEY_THEME_MODE])
+    }
+
+    /** Accent ; Terracotta par défaut. */
+    val accentChoice: Flow<AccentChoice> = themeData.map { preferences ->
+        resolveAccentChoice(preferences[KEY_ACCENT_CHOICE])
+    }
+
+    /** Début de « Sombre le soir » en minutes depuis minuit ; 20:00 par défaut. */
+    val eveningStartMinutes: Flow<Int> = themeData.map { preferences ->
+        resolveEveningMinutes(preferences[KEY_EVENING_START], DefaultEveningStartMinutes)
+    }
+
+    /** Fin de « Sombre le soir » en minutes depuis minuit ; 07:00 par défaut. */
+    val eveningEndMinutes: Flow<Int> = themeData.map { preferences ->
+        resolveEveningMinutes(preferences[KEY_EVENING_END], DefaultEveningEndMinutes)
+    }
+
     suspend fun setOnboardingCompleted(completed: Boolean) {
         context.musicProDataStore.edit { preferences ->
             preferences[KEY_ONBOARDING_COMPLETED] = completed
@@ -162,6 +210,52 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun setThemeMode(mode: AppThemeMode) {
         context.musicProDataStore.edit { preferences ->
             preferences[KEY_THEME_MODE] = mode.name
+        }
+    }
+
+    /**
+     * Fige la migration de `app_theme_mode` : écrit l'apparence et le style déduits s'ils sont absents,
+     * pour que les deux réglages deviennent indépendants dès la première modification de l'un d'eux.
+     */
+    private fun migrateThemeKeys(preferences: MutablePreferences) {
+        val legacy = preferences[KEY_THEME_MODE]
+        if (preferences[KEY_APPEARANCE_MODE] == null) {
+            preferences[KEY_APPEARANCE_MODE] = legacyThemeToAppearance(legacy).name
+        }
+        if (preferences[KEY_APP_STYLE] == null) {
+            preferences[KEY_APP_STYLE] = legacyThemeToStyle(legacy).name
+        }
+    }
+
+    suspend fun setAppearanceMode(mode: AppearanceMode) {
+        context.musicProDataStore.edit { preferences ->
+            migrateThemeKeys(preferences)
+            preferences[KEY_APPEARANCE_MODE] = mode.name
+        }
+    }
+
+    suspend fun setAppStyle(style: AppStyle) {
+        context.musicProDataStore.edit { preferences ->
+            migrateThemeKeys(preferences)
+            preferences[KEY_APP_STYLE] = style.name
+        }
+    }
+
+    suspend fun setAccentChoice(choice: AccentChoice) {
+        context.musicProDataStore.edit { preferences ->
+            preferences[KEY_ACCENT_CHOICE] = choice.name
+        }
+    }
+
+    suspend fun setEveningStartMinutes(minutes: Int) {
+        context.musicProDataStore.edit { preferences ->
+            preferences[KEY_EVENING_START] = clampDayMinutes(minutes)
+        }
+    }
+
+    suspend fun setEveningEndMinutes(minutes: Int) {
+        context.musicProDataStore.edit { preferences ->
+            preferences[KEY_EVENING_END] = clampDayMinutes(minutes)
         }
     }
 
