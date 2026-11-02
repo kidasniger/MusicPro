@@ -1,19 +1,19 @@
 <resources>
     <!-- Réglage : teinte du verre -->
-    <string name="glass_tint_title">Teinte du verre</string>
-    <string name="glass_tint_desc">Voile coloré posé sur le verre. Son intensité suit celle du film du verre.</string>
-    <string name="glass_tint_none">Aucune</string>
-    <string name="glass_tint_violet">Violet</string>
-    <string name="glass_tint_red">Rouge</string>
-    <string name="glass_tint_orange">Orange</string>
-    <string name="glass_tint_yellow">Jaune</string>
-    <string name="glass_tint_green">Vert</string>
-    <string name="glass_tint_cyan">Cyan</string>
-    <string name="glass_tint_blue">Bleu</string>
-    <string name="glass_tint_magenta">Magenta</string>
-    <string name="glass_tint_value_none">Aucune teinte</string>
-    <string name="glass_tint_value_free">Teinte libre : %1$d°</string>
-    <string name="glass_tint_free_title">Teinte libre</string>
-    <string name="glass_tint_free_desc">Touchez ou faites glisser sur la barre arc-en-ciel pour choisir une teinte précise.</string>
-    <string name="glass_tint_preview_label">Aperçu teinté</string>
+    <string  translatable="false" name="glass_tint_title">Teinte du verre</string>
+    <string  translatable="false" name="glass_tint_desc">Voile coloré posé sur le verre. Son intensité suit celle du film du verre.</string>
+    <string  translatable="false" name="glass_tint_none">Aucune</string>
+    <string  translatable="false" name="glass_tint_violet">Violet</string>
+    <string  translatable="false" name="glass_tint_red">Rouge</string>
+    <string  translatable="false" name="glass_tint_orange">Orange</string>
+    <string  translatable="false" name="glass_tint_yellow">Jaune</string>
+    <string  translatable="false" name="glass_tint_green">Vert</string>
+    <string  translatable="false" name="glass_tint_cyan">Cyan</string>
+    <string  translatable="false" name="glass_tint_blue">Bleu</string>
+    <string  translatable="false" name="glass_tint_magenta">Magenta</string>
+    <string  translatable="false" name="glass_tint_value_none">Aucune teinte</string>
+    <string  translatable="false" name="glass_tint_value_free">Teinte libre : %1$d°</string>
+    <string  translatable="false" name="glass_tint_free_title">Teinte libre</string>
+    <string  translatable="false" name="glass_tint_free_desc">Touchez ou faites glisser sur la barre arc-en-ciel pour choisir une teinte précise.</string>
+    <string  translatable="false" name="glass_tint_preview_label">Aperçu teinté</string>
 </resources>
