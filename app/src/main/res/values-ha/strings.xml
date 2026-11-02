@@ -242,4 +242,59 @@
     <string name="settings_group_appearance">BAYYANAR</string><string name="settings_group_appearance_desc">Jigo, launuka da salo</string><string name="settings_group_playback">KUNNAWA</string><string name="settings_group_playback_desc">Yadda mai kunna waƙa ke aiki</string><string name="settings_group_lyrics">KALMOMIN WAƘA</string><string name="settings_group_lyrics_desc">Nuni da daidaitawa</string><string name="settings_lyrics_info">Ana sarrafa saitunan kalmomin waƙa daga allon mai kunnawa.</string><string name="settings_group_ai">HANKALI NA’URAR AI</string><string name="settings_groq_configured">An saita maɓallin Groq</string><string name="settings_groq_setup">Saita Groq</string><string name="settings_group_storage">AJIYA</string><string name="settings_storage_desc">Cache da laburaren na’ura</string><string name="settings_group_notifications">SANARWA</string><string name="settings_notifications_desc">Faɗakarwar manhaja</string><string name="settings_notifications_info">Babu ƙarin zaɓuɓɓukan sanarwa a yanzu.</string><string name="settings_group_about">GAME DA</string><string name="settings_about_desc">Siga, sabuntawa da tsarin na’ura</string><string name="settings_clear_cache_title">A share cache?</string><string name="settings_clear_cache_body">Wannan zai share hotunan kundi na wucin gadi da sassan sauti da aka rubuta a cache. Waƙoƙi da jerin waƙoƙinka ba za su canza ba.</string><string name="settings_clear">Share</string><string name="settings_cancel">Soke</string><string name="settings_quick_appearance">Bayyanar</string><string name="settings_quick_light">Haske</string><string name="settings_quick_dark">Duhu</string><string name="settings_quick_auto">Atomatik</string><string name="settings_quick_minimal">Sauƙi</string><string name="settings_quick_neon">Neon</string><string name="settings_quick_glass">Gilashi</string><string name="settings_selected">An zaɓa</string>
 
 <string name="settings_groq_key_saved">An adana maɓalli.</string><string name="settings_groq_key_save_failed">An kasa adana maɓallin.</string><string name="settings_groq_key_required">Shigar da ingantaccen maɓallin shiga.</string><string name="settings_groq_key_deleted">An share maɓallin shiga.</string><string name="settings_groq_key_enter_first">Da farko shigar da maɓallin shiga.</string><string name="settings_groq_connection_success">An haɗa cikin nasara.</string><string name="settings_groq_test_failed">Gwajin ya gaza</string>
+
+    <string name="settings_section_title">Saituna</string>
+    <string name="settings_section_appearance_desc">Bayyanar da keɓancewa</string>
+    <string name="settings_section_appearance_theme">Bayyanar da jigo</string>
+    <string name="settings_section_appearance_theme_desc">Zaɓi salon bayyanar MusicPro</string>
+    <string name="settings_neon_dark">Duhu Neon</string>
+    <string name="settings_recommended">An ba da shawara</string>
+    <string name="settings_minimal_clean">Sauƙaƙe</string>
+    <string name="settings_system">Tsarin na'ura</string>
+    <string name="settings_dynamic_colors">Launukan da ke bin tsarin na'ura</string>
+    <string name="settings_dynamic_colors_desc">Yana daidaita launuka da hoton bangon Android</string>
+    <string name="settings_smart_transcription">Rubuta sauti ta hankali</string>
+    <string name="settings_lyrics_assistance">Taimakon ƙirƙirar kalmomin waƙa</string>
+    <string name="settings_configured">An saita</string>
+    <string name="settings_not_set">Ba a saita ba</string>
+    <string name="settings_key_format">Maɓalli: %1$s</string>
+    <string name="settings_access_key">Maɓallin shiga</string>
+    <string name="settings_enter_access_key">Shigar da maɓallin shiga</string>
+    <string name="settings_paste_clipboard">Manna daga allo</string>
+    <string name="settings_hide_key">Ɓoye maɓalli</string>
+    <string name="settings_show_key">Nuna maɓalli</string>
+    <string name="settings_clear_key">Share maɓalli</string>
+    <string name="settings_groq_intro">Ƙara maɓallin shiga domin kunna rubuta sauti. Ana haɗawa ne kawai idan ka nemi rubuta sauti da kanka.</string>
+    <string name="settings_storage_local">Ajiya da bayanan gida</string>
+    <string name="settings_storage_subtitle">Hotunan kundi, cache da daidaitawa</string>
+    <string name="settings_refresh_size">Sabunta girma</string>
+    <string name="settings_temp_cache">Cache na wucin gadi</string>
+    <string name="settings_clean_deleted">Share fayilolin da aka goge</string>
+    <string name="settings_clean_deleted_desc">Yana cire waƙoƙin da ba su wanzu kuma yana 'yantar da sarari</string>
+    <string name="settings_player_behavior">Yadda mai kunna MusicPro ke aiki</string>
+    <string name="settings_autoplay">Kunna ta atomatik</string>
+    <string name="settings_autoplay_desc">Ci gaba da jerin waƙoƙi kai tsaye</string>
+    <string name="settings_gapless">Kunna ba tare da tazara ba</string>
+    <string name="settings_gapless_desc">Shirya waƙa ta gaba domin sauyi mai laushi</string>
+    <string name="settings_resume">Ci gaba da kunnawa</string>
+    <string name="settings_resume_desc">Ajiye wannan zaɓi don zaman gaba</string>
+    <string name="settings_logo">Tambarin MusicPro</string>
+    <string name="settings_audio_quality_lyrics">Ingancin sauti da kalmomin waƙa</string>
+    <string name="settings_continuous_playback">Kunna a jere</string>
+    <string name="settings_smooth_navigation">Kewayawa mai laushi</string>
+    <string name="settings_assisted_transcription">Rubuta sauti da taimako</string>
+    <string name="settings_home_screen">Allon gida</string>
+    <string name="settings_quick_controls">Maɓallan gaggawa</string>
+    <string name="settings_library">Laburare</string>
+    <string name="settings_data_retained">Bayanan suna nan a na'ura</string>
+    <string name="settings_sensitive_data_protected">An kare bayanai masu muhimmanci</string>
+    <string name="settings_data_privacy">Fayilolin sautinka da bayanansu suna nan a wayarka. Ana haɗawa ne kawai idan ka nemi aiki na intanet.</string>
+    <string name="settings_system_permissions">Izinin tsarin na'ura</string>
+    <string name="settings_audio_notifications_access">Samun fayilolin sauti na gida da sanarwa</string>
+    <string name="settings_manage">Sarrafa</string>
+    <string name="settings_back">Koma baya</string>
+    <string name="settings_save">Ajiye</string>
+    <string name="settings_test">Gwada</string>
+    <string name="settings_empty">Share</string>
+    <string name="settings_purge">Tsarkake</string>
 </resources>
