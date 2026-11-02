@@ -8,10 +8,10 @@
     <string name="language_hausa">Hausa</string>
     <string name="language_zarma">Zarma</string>
     <string name="language_restart_hint">L’interface sera actualisée après le changement de langue.</string>
-    <string name="notification_channel_name">Lecture MusicPro</string>
-    <string name="notification_channel_desc">Contrôles de lecture et notification multimédia</string>
-    <string name="widget_name">MusicPro - Lecteur</string>
-    <string name="widget_description">Affiche le morceau en cours et les commandes de lecture</string>
+    <string  translatable="false" name="notification_channel_name">Lecture MusicPro</string>
+    <string  translatable="false" name="notification_channel_desc">Contrôles de lecture et notification multimédia</string>
+    <string  translatable="false" name="widget_name">MusicPro - Lecteur</string>
+    <string  translatable="false" name="widget_description">Affiche le morceau en cours et les commandes de lecture</string>
 
     <!-- Navigation principale -->
     <string name="nav_home">Accueil</string>
@@ -21,49 +21,49 @@
     <string name="nav_search">Recherche</string>
     <string name="nav_stats">Stats</string>
     <string name="nav_chat">Chat IA</string>
-    <string name="home_greeting_morning">Bonjour</string>
-    <string name="home_greeting_afternoon">Bon après-midi</string>
-    <string name="home_greeting_evening">Bonsoir</string>
-    <string name="home_greeting_night">Bonne nuit</string>
-    <string name="home_welcome_back">Heureux de vous retrouver sur MusicPro.</string>
-    <string name="home_resume_playback">Reprendre où vous en étiez</string>
-    <string name="chat_welcome_title">Que voulez-vous découvrir ?</string>
-    <string name="chat_welcome_subtitle">Votre assistant musical, propulsé par Groq.</string>
-    <string name="chat_suggestion_playlist">Une playlist calme pour travailler</string>
-    <string name="chat_suggestion_lyrics">Trouve les paroles de ce morceau</string>
-    <string name="chat_suggestion_explain">Explique-moi ce morceau</string>
-    <string name="chat_assistant_name">MusicPro IA</string>
-    <string name="chat_thinking">Réflexion en cours…</string>
-    <string name="chat_input_hint">Écrivez votre message…</string>
-    <string name="chat_send">Envoyer</string>
-    <string name="chat_stop">Arrêter la génération</string>
-    <string name="chat_privacy_hint">Les messages sont transmis à Groq pour générer les réponses.</string>
-    <string name="chat_empty_response">Je n’ai pas reçu de réponse. Réessayez.</string>
-    <string name="chat_error">Une erreur est survenue pendant la réponse.</string>
-    <string name="stats_title">Statistiques d’écoute</string>
-    <string name="stats_week">Temps d’écoute · 7 derniers jours</string>
-    <string name="stats_top_tracks">Morceaux les plus écoutés</string>
-    <string name="stats_top_artists">Artistes préférés</string>
-    <string name="stats_top_genres">Genres préférés</string>
-    <string name="stats_streak">Série d’écoute</string>
-    <string name="stats_current_streak">Série actuelle</string>
-    <string name="stats_best_streak">Meilleure série</string>
-    <string name="stats_days">%1$d jours</string>
-    <string name="stats_duration_minutes">%1$d min</string>
-    <string name="stats_duration_hours_minutes">%1$d h %2$d min</string>
-    <string name="stats_empty">Écoutez de la musique pour afficher vos statistiques.</string>
-    <string name="stats_no_genre">Genre non renseigné</string>
-    <string name="stats_privacy">Ces données restent sur cet appareil. Aucune statistique n’est envoyée.</string>
+    <string  translatable="false" name="home_greeting_morning">Bonjour</string>
+    <string  translatable="false" name="home_greeting_afternoon">Bon après-midi</string>
+    <string  translatable="false" name="home_greeting_evening">Bonsoir</string>
+    <string  translatable="false" name="home_greeting_night">Bonne nuit</string>
+    <string  translatable="false" name="home_welcome_back">Heureux de vous retrouver sur MusicPro.</string>
+    <string  translatable="false" name="home_resume_playback">Reprendre où vous en étiez</string>
+    <string  translatable="false" name="chat_welcome_title">Que voulez-vous découvrir ?</string>
+    <string  translatable="false" name="chat_welcome_subtitle">Votre assistant musical, propulsé par Groq.</string>
+    <string  translatable="false" name="chat_suggestion_playlist">Une playlist calme pour travailler</string>
+    <string  translatable="false" name="chat_suggestion_lyrics">Trouve les paroles de ce morceau</string>
+    <string  translatable="false" name="chat_suggestion_explain">Explique-moi ce morceau</string>
+    <string  translatable="false" name="chat_assistant_name">MusicPro IA</string>
+    <string  translatable="false" name="chat_thinking">Réflexion en cours…</string>
+    <string  translatable="false" name="chat_input_hint">Écrivez votre message…</string>
+    <string  translatable="false" name="chat_send">Envoyer</string>
+    <string  translatable="false" name="chat_stop">Arrêter la génération</string>
+    <string  translatable="false" name="chat_privacy_hint">Les messages sont transmis à Groq pour générer les réponses.</string>
+    <string  translatable="false" name="chat_empty_response">Je n’ai pas reçu de réponse. Réessayez.</string>
+    <string  translatable="false" name="chat_error">Une erreur est survenue pendant la réponse.</string>
+    <string  translatable="false" name="stats_title">Statistiques d’écoute</string>
+    <string  translatable="false" name="stats_week">Temps d’écoute · 7 derniers jours</string>
+    <string  translatable="false" name="stats_top_tracks">Morceaux les plus écoutés</string>
+    <string  translatable="false" name="stats_top_artists">Artistes préférés</string>
+    <string  translatable="false" name="stats_top_genres">Genres préférés</string>
+    <string  translatable="false" name="stats_streak">Série d’écoute</string>
+    <string  translatable="false" name="stats_current_streak">Série actuelle</string>
+    <string  translatable="false" name="stats_best_streak">Meilleure série</string>
+    <string  translatable="false" name="stats_days">%1$d jours</string>
+    <string  translatable="false" name="stats_duration_minutes">%1$d min</string>
+    <string  translatable="false" name="stats_duration_hours_minutes">%1$d h %2$d min</string>
+    <string  translatable="false" name="stats_empty">Écoutez de la musique pour afficher vos statistiques.</string>
+    <string  translatable="false" name="stats_no_genre">Genre non renseigné</string>
+    <string  translatable="false" name="stats_privacy">Ces données restent sur cet appareil. Aucune statistique n’est envoyée.</string>
 
     <!-- Écrans provisoires -->
-    <string name="placeholder_title">Bientôt disponible</string>
-    <string name="placeholder_new_desc">Les nouveautés musicales arriveront dans une prochaine mise à jour.</string>
-    <string name="placeholder_radio_desc">La radio arrivera dans une prochaine mise à jour.</string>
+    <string  translatable="false" name="placeholder_title">Bientôt disponible</string>
+    <string  translatable="false" name="placeholder_new_desc">Les nouveautés musicales arriveront dans une prochaine mise à jour.</string>
+    <string  translatable="false" name="placeholder_radio_desc">La radio arrivera dans une prochaine mise à jour.</string>
 
     <!-- Réglages : aperçu du verre (mise à jour 010) -->
-    <string name="glass_preview_description">Aperçu du verre liquide avec vos réglages actuels : mini-lecteur et barre de navigation sur un fond coloré</string>
-    <string name="glass_preview_track_title">Titre du morceau</string>
-    <string name="glass_preview_track_artist">Artiste</string>
+    <string  translatable="false" name="glass_preview_description">Aperçu du verre liquide avec vos réglages actuels : mini-lecteur et barre de navigation sur un fond coloré</string>
+    <string  translatable="false" name="glass_preview_track_title">Titre du morceau</string>
+    <string  translatable="false" name="glass_preview_track_artist">Artiste</string>
 
     <!-- Réglages : apparence, style et accent (mises à jour 013 à 018) -->
     <string name="appearance_title">Apparence</string>
@@ -71,32 +71,32 @@
     <string name="appearance_dark">Sombre</string>
     <string name="appearance_auto">Auto (suit le système)</string>
     <string name="appearance_dark_evening">Sombre le soir</string>
-    <string name="appearance_evening_hint">Le thème est sombre dans cette plage horaire, clair le reste du temps.</string>
-    <string name="appearance_evening_start">Début</string>
-    <string name="appearance_evening_end">Fin</string>
-    <string name="appearance_time_format">%1$02d:%2$02d</string>
+    <string  translatable="false" name="appearance_evening_hint">Le thème est sombre dans cette plage horaire, clair le reste du temps.</string>
+    <string  translatable="false" name="appearance_evening_start">Début</string>
+    <string  translatable="false" name="appearance_evening_end">Fin</string>
+    <string  translatable="false" name="appearance_time_format">%1$02d:%2$02d</string>
     <string name="style_title">Style</string>
     <string name="style_minimal">Minimal</string>
     <string name="style_neon">Néon</string>
     <string name="style_glass">Verre</string>
     <string name="accent_title">Accent</string>
-    <string name="accent_terracotta">Terracotta</string>
-    <string name="accent_blue">Bleu</string>
-    <string name="accent_green">Vert</string>
-    <string name="accent_violet">Violet</string>
-    <string name="accent_artwork">Selon la pochette</string>
-    <string name="accent_unavailable">L’accent s’applique aux styles Minimal et Verre, sans couleurs dynamiques.</string>
+    <string  translatable="false" name="accent_terracotta">Terracotta</string>
+    <string  translatable="false" name="accent_blue">Bleu</string>
+    <string  translatable="false" name="accent_green">Vert</string>
+    <string  translatable="false" name="accent_violet">Violet</string>
+    <string  translatable="false" name="accent_artwork">Selon la pochette</string>
+    <string  translatable="false" name="accent_unavailable">L’accent s’applique aux styles Minimal et Verre, sans couleurs dynamiques.</string>
     <string name="dynamic_color_title">Couleurs dynamiques</string>
     <string name="dynamic_color_subtitle">Utilise les couleurs de votre fond d’écran (Android 12 et plus)</string>
 
     <!-- Paroles : feuille d'options (mise à jour 026) -->
-    <string name="lyrics_options_cd">Options des paroles</string>
-    <string name="lyrics_options_title">Options des paroles</string>
-    <string name="lyrics_karaoke">Karaoké</string>
-    <string name="lyrics_karaoke_hint">Taille du texte, couleur de la ligne active et réinitialisation</string>
-    <string name="lyrics_offset_title">Décalage des paroles</string>
-    <string name="lyrics_offset_value">%1$+d ms</string>
-    <string name="lyrics_offset_minus_cd">Reculer de 100 millisecondes</string>
-    <string name="lyrics_offset_plus_cd">Avancer de 100 millisecondes</string>
-    <string name="lyrics_offset_reset">Remettre à zéro</string>
+    <string  translatable="false" name="lyrics_options_cd">Options des paroles</string>
+    <string  translatable="false" name="lyrics_options_title">Options des paroles</string>
+    <string  translatable="false" name="lyrics_karaoke">Karaoké</string>
+    <string  translatable="false" name="lyrics_karaoke_hint">Taille du texte, couleur de la ligne active et réinitialisation</string>
+    <string  translatable="false" name="lyrics_offset_title">Décalage des paroles</string>
+    <string  translatable="false" name="lyrics_offset_value">%1$+d ms</string>
+    <string  translatable="false" name="lyrics_offset_minus_cd">Reculer de 100 millisecondes</string>
+    <string  translatable="false" name="lyrics_offset_plus_cd">Avancer de 100 millisecondes</string>
+    <string  translatable="false" name="lyrics_offset_reset">Remettre à zéro</string>
 </resources>
