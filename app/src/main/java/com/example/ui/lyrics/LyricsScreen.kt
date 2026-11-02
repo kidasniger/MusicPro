@@ -119,7 +119,6 @@ import com.example.lyrics.LyricsSource
 import com.example.ui.audio.AudioViewModel
 import com.example.ui.components.glass.rememberAnimationsEnabled
 import com.example.ui.theme.MusicProCyanLight
-import com.example.ui.theme.MaterialTheme.colorScheme.primary
 import com.example.ui.theme.MusicProPrimaryGradient
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
