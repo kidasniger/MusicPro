@@ -89,6 +89,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import com.example.R
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -222,12 +223,12 @@ fun SettingsScreen(
                 onValueChange = { settingsSearch = it },
                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp).testTag("settings_search_field"),
                 singleLine = true,
-                placeholder = { Text("Rechercher un réglage…") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Rechercher") },
+                placeholder = { Text(stringResource(R.string.settings_search_hint)) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = stringResource(R.string.settings_search_cd)) },
                 trailingIcon = {
                     if (settingsSearch.isNotEmpty()) {
                         IconButton(onClick = { settingsSearch = "" }) {
-                            Icon(Icons.Default.Close, contentDescription = "Effacer la recherche")
+                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.settings_clear_search))
                         }
                     }
                 },
@@ -241,7 +242,7 @@ fun SettingsScreen(
             if (normalizedSearch.isNotEmpty()) {
                 if (searchResults.isEmpty()) {
                     Text(
-                        text = "Aucun réglage trouvé",
+                        text = stringResource(R.string.settings_no_results),
                         modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 13.sp
@@ -260,8 +261,8 @@ fun SettingsScreen(
                 }
             }
             if (normalizedSearch.isEmpty() || "APPARENCE" in matchingGroups) SettingsGroupCard(
-                title = "APPARENCE",
-                value = "Thème, couleurs et style",
+                title = stringResource(R.string.settings_group_appearance),
+                value = stringResource(R.string.settings_group_appearance_desc),
                 icon = Icons.Default.AutoAwesome,
                 expanded = "APPARENCE" in expandedGroups,
                 onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "APPARENCE") }
@@ -293,8 +294,8 @@ fun SettingsScreen(
             }
 
             if (normalizedSearch.isEmpty() || "LECTURE" in matchingGroups) SettingsGroupCard(
-                title = "LECTURE",
-                value = "Comportement du lecteur",
+                title = stringResource(R.string.settings_group_playback),
+                value = stringResource(R.string.settings_group_playback_desc),
                 icon = Icons.Default.MusicNote,
                 expanded = "LECTURE" in expandedGroups,
                 onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "LECTURE") }
@@ -310,18 +311,18 @@ fun SettingsScreen(
             }
 
             if (normalizedSearch.isEmpty() || "PAROLES" in matchingGroups) SettingsGroupCard(
-                title = "PAROLES",
-                value = "Affichage et synchronisation",
+                title = stringResource(R.string.settings_group_lyrics),
+                value = stringResource(R.string.settings_group_lyrics_desc),
                 icon = Icons.Default.GraphicEq,
                 expanded = "PAROLES" in expandedGroups,
                 onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "PAROLES") }
             ) {
-                SettingsInfoRow("Les réglages des paroles sont gérés depuis l’écran de lecture.")
+                SettingsInfoRow(stringResource(R.string.settings_lyrics_info))
             }
 
             if (normalizedSearch.isEmpty() || "INTELLIGENCE ARTIFICIELLE" in matchingGroups) SettingsGroupCard(
-                title = "INTELLIGENCE ARTIFICIELLE",
-                value = if (isConfigured) "Clé Groq configurée" else "Configuration de Groq",
+                title = stringResource(R.string.settings_group_ai),
+                value = stringResource(if (isConfigured) R.string.settings_groq_configured else R.string.settings_groq_setup),
                 icon = Icons.Default.AutoAwesome,
                 expanded = "INTELLIGENCE ARTIFICIELLE" in expandedGroups,
                 onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "INTELLIGENCE ARTIFICIELLE") }
@@ -352,12 +353,12 @@ fun SettingsScreen(
                             if (apiKeyStore.setApiKey(apiKeyInput)) {
                                 isConfigured = true
                                 maskedKey = apiKeyStore.getMaskedApiKey()
-                                statusFeedbackMessage = Pair(true, "Clé enregistrée.")
+                                statusFeedbackMessage = Pair(true, context.getString(R.string.settings_groq_key_saved))
                             } else {
-                                statusFeedbackMessage = Pair(false, "Impossible d'enregistrer la clé.")
+                                statusFeedbackMessage = Pair(false, context.getString(R.string.settings_groq_key_save_failed))
                             }
                         } else {
-                            statusFeedbackMessage = Pair(false, "Veuillez saisir une clé d’accès valide.")
+                            statusFeedbackMessage = Pair(false, context.getString(R.string.settings_groq_key_required))
                         }
                     },
                     onDeleteKey = {
@@ -365,19 +366,19 @@ fun SettingsScreen(
                         apiKeyInput = ""
                         isConfigured = false
                         maskedKey = ""
-                        statusFeedbackMessage = Pair(true, "Clé d’accès supprimée.")
+                        statusFeedbackMessage = Pair(true, context.getString(R.string.settings_groq_key_deleted))
                     },
                     onTestKey = {
                         keyboardController?.hide()
                         val keyToTest = apiKeyInput.ifBlank { apiKeyStore.getApiKey() }
                         if (keyToTest.isBlank()) {
-                            statusFeedbackMessage = Pair(false, "Veuillez d’abord saisir une clé d’accès.")
+                            statusFeedbackMessage = Pair(false, context.getString(R.string.settings_groq_key_enter_first))
                         } else {
                             isTestingKey = true
                             scope.launch {
                                 val result = GroqTranscriptionManager.testApiKey(keyToTest)
                                 isTestingKey = false
-                                statusFeedbackMessage = if (result.isSuccess) Pair(true, "Connexion réussie.") else Pair(false, result.exceptionOrNull()?.message ?: "Échec du test")
+                                statusFeedbackMessage = if (result.isSuccess) Pair(true, context.getString(R.string.settings_groq_connection_success)) else Pair(false, result.exceptionOrNull()?.message ?: context.getString(R.string.settings_groq_test_failed))
                             }
                         }
                     }
@@ -385,8 +386,8 @@ fun SettingsScreen(
             }
 
             if (normalizedSearch.isEmpty() || "STOCKAGE" in matchingGroups) SettingsGroupCard(
-                title = "STOCKAGE",
-                value = "Cache et bibliothèque locale",
+                title = stringResource(R.string.settings_group_storage),
+                value = stringResource(R.string.settings_storage_desc),
                 icon = Icons.Default.Storage,
                 expanded = "STOCKAGE" in expandedGroups,
                 onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "STOCKAGE") }
@@ -404,18 +405,18 @@ fun SettingsScreen(
             }
 
             if (normalizedSearch.isEmpty() || "NOTIFICATIONS" in matchingGroups) SettingsGroupCard(
-                title = "NOTIFICATIONS",
-                value = "Alertes de l’application",
+                title = stringResource(R.string.settings_group_notifications),
+                value = stringResource(R.string.settings_notifications_desc),
                 icon = Icons.Default.Warning,
                 expanded = "NOTIFICATIONS" in expandedGroups,
                 onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "NOTIFICATIONS") }
             ) {
-                SettingsInfoRow("Aucune préférence de notification supplémentaire n’est disponible actuellement.")
+                SettingsInfoRow(stringResource(R.string.settings_notifications_info))
             }
 
             if (normalizedSearch.isEmpty() || "À PROPOS" in matchingGroups) SettingsGroupCard(
-                title = "À PROPOS",
-                value = "Version, mises à jour et système",
+                title = stringResource(R.string.settings_group_about),
+                value = stringResource(R.string.settings_about_desc),
                 icon = Icons.Default.Info,
                 expanded = "À PROPOS" in expandedGroups,
                 onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "À PROPOS") }
@@ -446,14 +447,14 @@ fun SettingsScreen(
             onDismissRequest = { showClearCacheDialog = false },
             title = {
                 Text(
-                    text = "Vider le cache ?",
+                    text = stringResource(R.string.settings_clear_cache_title),
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
             },
             text = {
                 Text(
-                    text = "Cette action supprimera les pochettes d'album temporaires et les segments audio transcrits en cache. Vos morceaux et playlists ne seront pas modifiés.",
+                    text = stringResource(R.string.settings_clear_cache_body),
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 18.sp
@@ -469,12 +470,12 @@ fun SettingsScreen(
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier.testTag("confirm_clear_cache_button")
                 ) {
-                    Text("Effacer", fontWeight = FontWeight.Bold, color = Color.White)
+                    Text(stringResource(R.string.settings_clear), fontWeight = FontWeight.Bold, color = Color.White)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showClearCacheDialog = false }) {
-                    Text("Annuler", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.settings_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -503,22 +504,22 @@ private fun QuickAppearanceCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Text("Apparence", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.settings_quick_appearance), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 QuickAppearanceOption(
-                    label = "Clair", selected = appearance == AppearanceMode.LIGHT,
+                    label = stringResource(R.string.settings_quick_light), selected = appearance == AppearanceMode.LIGHT,
                     background = Color(0xFFF4F5F8), foreground = Color(0xFF252936),
                     accent = Color(0xFF6478D3), modifier = Modifier.weight(1f),
                     tag = "quick_theme_light"
                 ) { onAppearanceSelected(AppearanceMode.LIGHT) }
                 QuickAppearanceOption(
-                    label = "Sombre", selected = appearance == AppearanceMode.DARK,
+                    label = stringResource(R.string.settings_quick_dark), selected = appearance == AppearanceMode.DARK,
                     background = Color(0xFF171923), foreground = Color(0xFFF1F2F8),
                     accent = Color(0xFF9B8CFF), modifier = Modifier.weight(1f),
                     tag = "quick_theme_dark"
                 ) { onAppearanceSelected(AppearanceMode.DARK) }
                 QuickAppearanceOption(
-                    label = "Auto", selected = appearance == AppearanceMode.AUTO,
+                    label = stringResource(R.string.settings_quick_auto), selected = appearance == AppearanceMode.AUTO,
                     background = MaterialTheme.colorScheme.surfaceVariant,
                     foreground = MaterialTheme.colorScheme.onSurfaceVariant,
                     accent = MaterialTheme.colorScheme.primary,
@@ -528,19 +529,19 @@ private fun QuickAppearanceCard(
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 QuickAppearanceOption(
-                    label = "Minimal", selected = style == AppStyle.MINIMAL,
+                    label = stringResource(R.string.settings_quick_minimal), selected = style == AppStyle.MINIMAL,
                     background = Color(0xFFF0F1F4), foreground = Color(0xFF333642),
                     accent = Color(0xFF7C8498), modifier = Modifier.weight(1f),
                     tag = "quick_style_minimal"
                 ) { onStyleSelected(AppStyle.MINIMAL) }
                 QuickAppearanceOption(
-                    label = "Néon", selected = style == AppStyle.NEON,
+                    label = stringResource(R.string.settings_quick_neon), selected = style == AppStyle.NEON,
                     background = Color(0xFF171329), foreground = Color(0xFFF5F0FF),
                     accent = Color(0xFFB45CFF), modifier = Modifier.weight(1f),
                     tag = "quick_style_neon"
                 ) { onStyleSelected(AppStyle.NEON) }
                 QuickAppearanceOption(
-                    label = "Verre", selected = style == AppStyle.GLASS,
+                    label = stringResource(R.string.settings_quick_glass), selected = style == AppStyle.GLASS,
                     background = Color(0xFF24364B), foreground = Color(0xFFF3F8FF),
                     accent = Color(0xFF8BD8F5), modifier = Modifier.weight(1f),
                     tag = "quick_style_glass"
@@ -595,7 +596,7 @@ private fun QuickAppearanceOption(
                 Box(Modifier.fillMaxWidth(0.48f).height(4.dp).clip(RoundedCornerShape(4.dp)).background(accent))
             }
             if (selected) {
-                Icon(Icons.Default.Check, contentDescription = "Sélectionné",
+                Icon(Icons.Default.Check, contentDescription = stringResource(R.string.settings_selected),
                     tint = if (splitPreview) MaterialTheme.colorScheme.primary else accent,
                     modifier = Modifier.align(Alignment.TopEnd).padding(3.dp).size(13.dp))
             }
