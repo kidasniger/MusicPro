@@ -104,7 +104,7 @@ fun AddToPlaylistChooserDialog(
                         )
                         Column {
                             Text(
-                                text = "Ajouter à une playlist",
+                                text = stringResource(R.string.playlist_add_title),
                                 color = MusicProTextPrimary,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold
@@ -126,7 +126,7 @@ fun AddToPlaylistChooserDialog(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Bouton "Nouvelle playlist"
+                // Bouton stringResource(R.string.playlist_new)
                 Surface(
                     onClick = { showCreateDialog = true },
                     shape = RoundedCornerShape(12.dp),
@@ -166,7 +166,7 @@ fun AddToPlaylistChooserDialog(
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                text = "Créer et ajouter ce morceau",
+                                text = stringResource(R.string.playlist_create_add),
                                 color = MusicProCyanNeon,
                                 fontSize = 12.sp
                             )
@@ -179,7 +179,7 @@ fun AddToPlaylistChooserDialog(
                 // List of existing playlists
                 if (playlists.isNotEmpty()) {
                     Text(
-                        text = "VOS PLAYLISTS",
+                        text = stringResource(R.string.playlist_your_playlists),
                         color = MusicProTextMuted,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
@@ -229,7 +229,7 @@ fun AddToPlaylistChooserDialog(
                                             overflow = TextOverflow.Ellipsis
                                         )
                                         Text(
-                                            text = "${pl.trackCount} morceau(x)",
+                                            text = pluralStringResource(R.plurals.playlist_track_count, pl.trackCount, pl.trackCount),
                                             color = MusicProTextMuted,
                                             fontSize = 11.sp
                                         )
