@@ -65,6 +65,8 @@ class MainActivity : ComponentActivity() {
       val appearance by settingsViewModel.appearanceMode.collectAsStateWithLifecycle()
       val appStyle by settingsViewModel.appStyle.collectAsStateWithLifecycle()
       val accentChoice by settingsViewModel.accentChoice.collectAsStateWithLifecycle()
+      val textSizePreference by settingsViewModel.textSizePreference.collectAsStateWithLifecycle()
+      val listDensityPreference by settingsViewModel.listDensityPreference.collectAsStateWithLifecycle()
       val eveningDark by settingsViewModel.eveningDarkActive.collectAsStateWithLifecycle()
       val mediaUiRequest by mediaUiRequestState
       val isDynamicColor by settingsViewModel.isDynamicColor.collectAsStateWithLifecycle()
@@ -110,7 +112,9 @@ class MainActivity : ComponentActivity() {
         accent = accentChoice,
         eveningDark = eveningDark,
         artworkAccent = artworkAccent,
-        dynamicColor = isDynamicColor
+        dynamicColor = isDynamicColor,
+        fontScale = textSizePreference.multiplier,
+        listDensity = listDensityPreference
       ) {
         val context = LocalContext.current
         val lifecycleOwner = LocalLifecycleOwner.current
