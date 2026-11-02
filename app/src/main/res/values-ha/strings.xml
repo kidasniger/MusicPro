@@ -298,4 +298,5 @@
     <string name="settings_empty">Share</string>
     <string name="settings_purge">Tsarkake</string>
 <string name="settings_version_format">v%1$s</string>
+<string name="appearance_text_size">Girman rubutu</string><string name="appearance_list_density">Yawan layukan jeri</string><string name="appearance_reduce_animations">Rage motsin allo</string><string name="appearance_reduce_animations_desc">Canjin ɓacewa mai sauƙi na ms 120, ba tare da parallax, blur mai motsi ko juyawar faifan waƙa ba</string>
 </resources>
