@@ -39,6 +39,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
+import com.example.R
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.testTag
@@ -120,13 +123,13 @@ fun AddToPlaylistChooserDialog(
                     }
 
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Clear, contentDescription = "Fermer", tint = MusicProTextMuted)
+                        Icon(Icons.Default.Clear, contentDescription = stringResource(R.string.playlist_close), tint = MusicProTextMuted)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Bouton stringResource(R.string.playlist_new)
+                // Create playlist action
                 Surface(
                     onClick = { showCreateDialog = true },
                     shape = RoundedCornerShape(12.dp),
@@ -160,7 +163,7 @@ fun AddToPlaylistChooserDialog(
 
                         Column {
                             Text(
-                                text = "Nouvelle playlist",
+                                text = stringResource(R.string.playlist_new),
                                 color = MusicProTextPrimary,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.SemiBold
@@ -237,7 +240,7 @@ fun AddToPlaylistChooserDialog(
 
                                     Icon(
                                         imageVector = Icons.Default.Add,
-                                        contentDescription = "Ajouter",
+                                        contentDescription = stringResource(R.string.playlist_add),
                                         tint = MusicProCyanNeon,
                                         modifier = Modifier.size(18.dp)
                                     )
