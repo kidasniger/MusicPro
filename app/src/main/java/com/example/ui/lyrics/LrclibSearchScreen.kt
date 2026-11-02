@@ -152,7 +152,7 @@ fun LrclibSearchScreen(
         ) {
             // 1. Barre supérieure
             LrclibTopBar(
-                currentTrackTitle = track?.title ?: "Recherche de paroles",
+                currentTrackTitle = track?.title ?: stringResource(R.string.lyrics_search_title),
                 onBack = onBack
             )
 
@@ -755,7 +755,7 @@ private fun LrclibResultCard(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = if (isPreviewExpanded) "Masquer l'aperçu" else "Aperçu des paroles trouvées",
+                        text = if (isPreviewExpanded) stringResource(R.string.lyrics_hide_preview) else stringResource(R.string.lyrics_preview_title),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                         color = MusicProTextPrimary
@@ -801,9 +801,9 @@ private fun LrclibResultCard(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = if (isMp3 && result.hasSyncedLyrics) {
-                        "Appliquer les paroles synchronisées"
+                        stringResource(R.string.lyrics_apply_synced)
                     } else {
-                        "Appliquer les paroles"
+                        stringResource(R.string.lyrics_apply)
                     },
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -822,7 +822,7 @@ private fun LyricsPreviewContent(
     val displayContent = when {
         !syncedLyrics.isNullOrBlank() -> syncedLyrics
         !plainLyrics.isNullOrBlank() -> plainLyrics
-        else -> "Aucun aperçu disponible."
+        else -> stringResource(R.string.lyrics_no_preview)
     }
 
     val lines = displayContent.lines().take(20)
@@ -885,7 +885,7 @@ private fun LyricsPreviewContent(
 }
 
 @Composable
-private fun LoadingResultsView(message: String = "Recherche des paroles...") {
+private fun LoadingResultsView(message: String? = null) {
     Column(
         modifier = Modifier
             .fillMaxSize()
