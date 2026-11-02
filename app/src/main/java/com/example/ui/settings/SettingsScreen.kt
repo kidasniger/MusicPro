@@ -50,6 +50,8 @@ import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -149,6 +151,7 @@ fun SettingsScreen(
 
     // Dialog de confirmation pour effacer le cache
     var showClearCacheDialog by remember { mutableStateOf(false) }
+    var expandedGroups by remember { mutableStateOf(setOf("APPARENCE")) }
 
     // Interception du bouton retour Android pour revenir proprement à l'écran précédent
     BackHandler {
@@ -177,141 +180,174 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            AppearanceSettingsCard(
-                appearance = appearance,
-                onAppearanceSelected = { settingsViewModel.setAppearanceMode(it) },
-                style = appStyle,
-                onStyleSelected = { settingsViewModel.setAppStyle(it) },
-                accent = accentChoice,
-                onAccentSelected = { settingsViewModel.setAccentChoice(it) },
-                eveningStartMinutes = eveningStart,
-                eveningEndMinutes = eveningEnd,
-                onEveningStartChange = { settingsViewModel.setEveningStartMinutes(it) },
-                onEveningEndChange = { settingsViewModel.setEveningEndMinutes(it) },
-                isDynamicColor = isDynamicColor,
-                onDynamicColorChanged = { settingsViewModel.setDynamicColor(it) }
-            )
+            SettingsGroupCard(
+                title = "APPARENCE",
+                value = "Thème, couleurs et style",
+                icon = Icons.Default.AutoAwesome,
+                expanded = "APPARENCE" in expandedGroups,
+                onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "APPARENCE") }
+            ) {
+                AppearanceSettingsCard(
+                    appearance = appearance,
+                    onAppearanceSelected = { settingsViewModel.setAppearanceMode(it) },
+                    style = appStyle,
+                    onStyleSelected = { settingsViewModel.setAppStyle(it) },
+                    accent = accentChoice,
+                    onAccentSelected = { settingsViewModel.setAccentChoice(it) },
+                    eveningStartMinutes = eveningStart,
+                    eveningEndMinutes = eveningEnd,
+                    onEveningStartChange = { settingsViewModel.setEveningStartMinutes(it) },
+                    onEveningEndChange = { settingsViewModel.setEveningEndMinutes(it) },
+                    isDynamicColor = isDynamicColor,
+                    onDynamicColorChanged = { settingsViewModel.setDynamicColor(it) }
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                GlassSettingsEntry(onClick = onOpenGlassSettings)
+            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            SettingsGroupCard(
+                title = "LECTURE",
+                value = "Comportement du lecteur",
+                icon = Icons.Default.MusicNote,
+                expanded = "LECTURE" in expandedGroups,
+                onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "LECTURE") }
+            ) {
+                PlaybackSettingsCard(
+                    autoPlay = autoPlay,
+                    gaplessPlayback = gaplessPlayback,
+                    resumePlayback = resumePlayback,
+                    onAutoPlayChanged = { settingsViewModel.setAutoPlay(it) },
+                    onGaplessChanged = { settingsViewModel.setGaplessPlayback(it) },
+                    onResumeChanged = { settingsViewModel.setResumePlayback(it) }
+                )
+            }
 
-            // Mise à jour 025 : les réglages du verre vivent sur leur propre écran (settings/glass).
-            GlassSettingsEntry(onClick = onOpenGlassSettings)
+            SettingsGroupCard(
+                title = "PAROLES",
+                value = "Affichage et synchronisation",
+                icon = Icons.Default.GraphicEq,
+                expanded = "PAROLES" in expandedGroups,
+                onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "PAROLES") }
+            ) {
+                SettingsInfoRow("Les réglages des paroles sont gérés depuis l’écran de lecture.")
+            }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            GroqApiKeyCard(
-                apiKeyInput = apiKeyInput,
-                isConfigured = isConfigured,
-                maskedKey = maskedKey,
-                isPasswordVisible = isPasswordVisible,
-                isTestingKey = isTestingKey,
-                statusFeedback = statusFeedbackMessage,
-                onApiKeyChange = {
-                    apiKeyInput = it
-                    statusFeedbackMessage = null
-                },
-                onToggleVisibility = { isPasswordVisible = !isPasswordVisible },
-                onPasteClipboard = {
-                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    val clip = clipboard.primaryClip
-                    if (clip != null && clip.itemCount > 0) {
-                        apiKeyInput = clip.getItemAt(0).text?.toString().orEmpty().trim()
+            SettingsGroupCard(
+                title = "INTELLIGENCE ARTIFICIELLE",
+                value = if (isConfigured) "Clé Groq configurée" else "Configuration de Groq",
+                icon = Icons.Default.AutoAwesome,
+                expanded = "INTELLIGENCE ARTIFICIELLE" in expandedGroups,
+                onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "INTELLIGENCE ARTIFICIELLE") }
+            ) {
+                GroqApiKeyCard(
+                    apiKeyInput = apiKeyInput,
+                    isConfigured = isConfigured,
+                    maskedKey = maskedKey,
+                    isPasswordVisible = isPasswordVisible,
+                    isTestingKey = isTestingKey,
+                    statusFeedback = statusFeedbackMessage,
+                    onApiKeyChange = {
+                        apiKeyInput = it
                         statusFeedbackMessage = null
-                    }
-                },
-                onSaveKey = {
-                    keyboardController?.hide()
-                    if (apiKeyInput.isNotBlank()) {
-                        if (apiKeyStore.setApiKey(apiKeyInput)) {
-                            isConfigured = true
-                            maskedKey = apiKeyStore.getMaskedApiKey()
-                            statusFeedbackMessage = Pair(true, "Clé enregistrée.")
+                    },
+                    onToggleVisibility = { isPasswordVisible = !isPasswordVisible },
+                    onPasteClipboard = {
+                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clip = clipboard.primaryClip
+                        if (clip != null && clip.itemCount > 0) {
+                            apiKeyInput = clip.getItemAt(0).text?.toString().orEmpty().trim()
+                            statusFeedbackMessage = null
+                        }
+                    },
+                    onSaveKey = {
+                        keyboardController?.hide()
+                        if (apiKeyInput.isNotBlank()) {
+                            if (apiKeyStore.setApiKey(apiKeyInput)) {
+                                isConfigured = true
+                                maskedKey = apiKeyStore.getMaskedApiKey()
+                                statusFeedbackMessage = Pair(true, "Clé enregistrée.")
+                            } else {
+                                statusFeedbackMessage = Pair(false, "Impossible d'enregistrer la clé.")
+                            }
                         } else {
-                            statusFeedbackMessage = Pair(false, "Impossible d'enregistrer la clé.")
+                            statusFeedbackMessage = Pair(false, "Veuillez saisir une clé d’accès valide.")
                         }
-                    } else {
-                        statusFeedbackMessage = Pair(false, "Veuillez saisir une clé d’accès valide.")
-                    }
-                },
-                onDeleteKey = {
-                    apiKeyStore.clearApiKey()
-                    apiKeyInput = ""
-                    isConfigured = false
-                    maskedKey = ""
-                    statusFeedbackMessage = Pair(true, "Clé d’accès supprimée.")
-                },
-                onTestKey = {
-                    keyboardController?.hide()
-                    val keyToTest = apiKeyInput.ifBlank { apiKeyStore.getApiKey() }
-                    if (keyToTest.isBlank()) {
-                        statusFeedbackMessage = Pair(false, "Veuillez d’abord saisir une clé d’accès.")
-                    } else {
-                        isTestingKey = true
-                        scope.launch {
-                            val result = GroqTranscriptionManager.testApiKey(keyToTest)
-                            isTestingKey = false
-                            statusFeedbackMessage = if (result.isSuccess) Pair(true, "Connexion réussie.") else Pair(false, result.exceptionOrNull()?.message ?: "Échec du test")
+                    },
+                    onDeleteKey = {
+                        apiKeyStore.clearApiKey()
+                        apiKeyInput = ""
+                        isConfigured = false
+                        maskedKey = ""
+                        statusFeedbackMessage = Pair(true, "Clé d’accès supprimée.")
+                    },
+                    onTestKey = {
+                        keyboardController?.hide()
+                        val keyToTest = apiKeyInput.ifBlank { apiKeyStore.getApiKey() }
+                        if (keyToTest.isBlank()) {
+                            statusFeedbackMessage = Pair(false, "Veuillez d’abord saisir une clé d’accès.")
+                        } else {
+                            isTestingKey = true
+                            scope.launch {
+                                val result = GroqTranscriptionManager.testApiKey(keyToTest)
+                                isTestingKey = false
+                                statusFeedbackMessage = if (result.isSuccess) Pair(true, "Connexion réussie.") else Pair(false, result.exceptionOrNull()?.message ?: "Échec du test")
+                            }
                         }
                     }
-                }
-            )
+                )
+            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            SettingsGroupCard(
+                title = "STOCKAGE",
+                value = "Cache et bibliothèque locale",
+                icon = Icons.Default.Storage,
+                expanded = "STOCKAGE" in expandedGroups,
+                onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "STOCKAGE") }
+            ) {
+                CacheManagementCard(
+                    cacheSize = cacheSize,
+                    isClearing = isClearingCache,
+                    isCleaningLibrary = isCleaningLibrary,
+                    feedbackMessage = cacheClearMessage,
+                    onRequestClear = { showClearCacheDialog = true },
+                    onCleanLibrary = { settingsViewModel.cleanAndRescanLibrary() },
+                    onRefresh = { settingsViewModel.refreshCacheSize() },
+                    onDismissFeedback = { settingsViewModel.dismissCacheMessage() }
+                )
+            }
 
-            SettingsSectionHeader("Lecture", "Comportement du lecteur MusicPro")
+            SettingsGroupCard(
+                title = "NOTIFICATIONS",
+                value = "Alertes de l’application",
+                icon = Icons.Default.Warning,
+                expanded = "NOTIFICATIONS" in expandedGroups,
+                onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "NOTIFICATIONS") }
+            ) {
+                SettingsInfoRow("Aucune préférence de notification supplémentaire n’est disponible actuellement.")
+            }
 
-            PlaybackSettingsCard(
-                autoPlay = autoPlay,
-                gaplessPlayback = gaplessPlayback,
-                resumePlayback = resumePlayback,
-                onAutoPlayChanged = { settingsViewModel.setAutoPlay(it) },
-                onGaplessChanged = { settingsViewModel.setGaplessPlayback(it) },
-                onResumeChanged = { settingsViewModel.setResumePlayback(it) }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            SettingsSectionHeader("Bibliothèque", "Cache, scan et fichiers locaux")
-
-            CacheManagementCard(
-                cacheSize = cacheSize,
-                isClearing = isClearingCache,
-                isCleaningLibrary = isCleaningLibrary,
-                feedbackMessage = cacheClearMessage,
-                onRequestClear = { showClearCacheDialog = true },
-                onCleanLibrary = { settingsViewModel.cleanAndRescanLibrary() },
-                onRefresh = { settingsViewModel.refreshCacheSize() },
-                onDismissFeedback = { settingsViewModel.dismissCacheMessage() }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            SettingsSectionHeader("Mises à jour", "Version et installation des releases")
-
-            AppUpdateCard(
-                currentVersion = settingsViewModel.currentVersionName,
-                updateCheckState = updateCheckState,
-                downloadState = downloadState,
-                onCheckForUpdates = { settingsViewModel.checkForUpdates() },
-                onDownloadAndInstall = { downloadUrl ->
-                    settingsViewModel.downloadAndInstallUpdate(downloadUrl)
-                },
-                onInstallExisting = {
-                    settingsViewModel.installExistingApk()
-                }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            SettingsSectionHeader("À propos", "Informations techniques et confidentialité")
-
-            AboutCard(currentVersion = settingsViewModel.currentVersionName)
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            SettingsSectionHeader("Système", "Permissions Android")
-
-            PermissionsCard(onNavigateToPermissions = onNavigateToPermissions)
+            SettingsGroupCard(
+                title = "À PROPOS",
+                value = "Version, mises à jour et système",
+                icon = Icons.Default.Info,
+                expanded = "À PROPOS" in expandedGroups,
+                onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "À PROPOS") }
+            ) {
+                AppUpdateCard(
+                    currentVersion = settingsViewModel.currentVersionName,
+                    updateCheckState = updateCheckState,
+                    downloadState = downloadState,
+                    onCheckForUpdates = { settingsViewModel.checkForUpdates() },
+                    onDownloadAndInstall = { downloadUrl ->
+                        settingsViewModel.downloadAndInstallUpdate(downloadUrl)
+                    },
+                    onInstallExisting = { settingsViewModel.installExistingApk() }
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                AboutCard(currentVersion = settingsViewModel.currentVersionName)
+                Spacer(modifier = Modifier.height(10.dp))
+                PermissionsCard(onNavigateToPermissions = onNavigateToPermissions)
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
         }
@@ -358,4 +394,100 @@ fun SettingsScreen(
             shape = RoundedCornerShape(16.dp)
         )
     }
+}
+
+
+private fun toggleSettingsGroup(current: Set<String>, group: String): Set<String> =
+    if (group in current) current - group else current + group
+
+@Composable
+private fun SettingsGroupCard(
+    title: String,
+    value: String,
+    icon: ImageVector,
+    expanded: Boolean,
+    onClick: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f))
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .clickable(onClick = onClick)
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.secondaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.size(19.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = title,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.1.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = value,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = if (expanded) "Réduire" else "Développer",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .then(if (expanded) Modifier else Modifier)
+                )
+            }
+            AnimatedVisibility(visible = expanded) {
+                Column(modifier = Modifier.padding(top = 14.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    content()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingsInfoRow(message: String) {
+    Text(
+        text = message,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp, vertical = 8.dp),
+        fontSize = 13.sp,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
 }
