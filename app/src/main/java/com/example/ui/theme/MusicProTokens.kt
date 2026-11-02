@@ -80,5 +80,8 @@ object MusicProTokens {
 
         /** Icône au centre de la pastille d'illustration. */
         val IllustrationIcon = 48.dp
+
+        /** Photo plein largeur de l'écran Artiste (mise à jour 024). */
+        val HeroHeight = 384.dp
     }
 }

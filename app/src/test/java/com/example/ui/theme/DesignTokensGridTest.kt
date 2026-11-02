@@ -16,7 +16,8 @@ class DesignTokensGridTest {
     private val migratedFiles = listOf(
         "com/example/ui/components/MusicProCard.kt",
         "com/example/ui/settings/AppearanceSettingsCard.kt",
-        "com/example/ui/whatsnew/NewScreen.kt"
+        "com/example/ui/whatsnew/NewScreen.kt",
+        "com/example/ui/artist/ArtistScreen.kt"
     )
 
     private fun isOnGrid(value: Float): Boolean =
