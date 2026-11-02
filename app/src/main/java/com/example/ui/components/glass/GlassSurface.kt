@@ -38,6 +38,7 @@ import com.example.data.preferences.GlassMaterial
 import com.example.data.preferences.clampGlassFrostDp
 import com.example.data.preferences.glassBlurActive
 import com.example.data.preferences.glassSaturation
+import com.example.data.preferences.glassTintAlpha
 import kotlin.math.roundToInt
 
 /**
@@ -58,6 +59,11 @@ import kotlin.math.roundToInt
  * 0,6 à 0 % (neutre, désaturé) jusqu'à 1,4 à 100 % (couleurs de la pochette amplifiées).
  * Le film, les reflets, la bordure et le contenu ne sont pas affectés.
  *
+ * Teinte : si une teinte est choisie ([LocalGlassTintHue], `null` = Aucune), un voile de cette
+ * couleur est posé juste après le film, avec une opacité de film x 0,5 (voir [glassTintAlpha]).
+ * Il s'applique à tous les niveaux, y compris « Le plus rapide » (aplat), sans coût GPU
+ * supplémentaire : c'est un simple aplat.
+ *
  * Sans [GlassBackdropHost] parent ou avant Android 12, tous les niveaux se replient sur l'aplat.
  * En mode aplat, rien n'est enregistré ni mesuré.
  */
@@ -72,6 +78,7 @@ fun GlassSurface(
     val level = LocalGlassMaterial.current
     val colorStrength = LocalGlassColorStrength.current
     val frostDp = clampGlassFrostDp(LocalGlassFrostDp.current)
+    val tintHue = LocalGlassTintHue.current
     val blurLayer = rememberGraphicsLayer()
     var origin by remember { mutableStateOf(Offset.Zero) }
 
@@ -87,6 +94,8 @@ fun GlassSurface(
             ColorMatrix().apply { setToSaturation(glassSaturation(colorStrength)) }
         )
     }
+    // Couleur du voile teinté : recalculée seulement quand la teinte change (null = Aucune).
+    val tintColor = remember(tintHue) { tintHue?.let(::glassTintColor) }
     SideEffect {
         blurLayer.renderEffect =
             if (blurOn) BlurEffect(radiusPx, radiusPx, TileMode.Clamp) else null
@@ -162,6 +171,10 @@ fun GlassSurface(
                 }
                 // (2) film (ou aplat translucide quand il n'y a pas de flou)
                 drawRect(material.filmColor.copy(alpha = filmAlpha))
+                // (2 bis) voile teinté : alpha = film x 0,5 (rien si Aucune teinte)
+                if (tintColor != null) {
+                    drawRect(tintColor.copy(alpha = glassTintAlpha(filmAlpha)))
+                }
                 // (3) reflets et grain
                 when {
                     quality -> {

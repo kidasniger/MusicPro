@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -42,6 +43,8 @@ class UserPreferencesRepository(private val context: Context) {
         val KEY_GLASS_COLOR_STRENGTH = intPreferencesKey("glass_color_strength")
         /** Givre du verre (rayon du flou), en dp (0-24). Absente : 6 dp. */
         val KEY_GLASS_FROST_DP = intPreferencesKey("glass_frost_dp")
+        /** Teinte du verre, en degrés (0-360 exclu). Absente : aucune teinte. */
+        val KEY_GLASS_TINT_HUE = floatPreferencesKey("glass_tint_hue")
         /** Ancienne clé (mise à jour 004, valeurs BEAUTIFUL / FAST) : migrée à la lecture. */
         val KEY_GLASS_QUALITY_LEGACY = stringPreferencesKey("glass_quality")
         val KEY_FAVORITE_TRACK_IDS = stringSetPreferencesKey("favorite_track_ids")
@@ -125,6 +128,13 @@ class UserPreferencesRepository(private val context: Context) {
         }
         .map { preferences -> resolveGlassFrostDp(preferences[KEY_GLASS_FROST_DP]) }
 
+    /** Teinte du verre en degrés ; `null` = Aucune, par défaut (voir [resolveGlassTintHue]). */
+    val glassTintHue: Flow<Float?> = context.musicProDataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { preferences -> resolveGlassTintHue(preferences[KEY_GLASS_TINT_HUE]) }
+
     suspend fun setOnboardingCompleted(completed: Boolean) {
         context.musicProDataStore.edit { preferences ->
             preferences[KEY_ONBOARDING_COMPLETED] = completed
@@ -153,6 +163,18 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun setGlassFrostDp(dp: Int) {
         context.musicProDataStore.edit { preferences ->
             preferences[KEY_GLASS_FROST_DP] = clampGlassFrostDp(dp)
+        }
+    }
+
+    /** Enregistre la teinte du verre ; `null` (Aucune) supprime la clé. */
+    suspend fun setGlassTintHue(hue: Float?) {
+        context.musicProDataStore.edit { preferences ->
+            val resolved = resolveGlassTintHue(hue)
+            if (resolved == null) {
+                preferences.remove(KEY_GLASS_TINT_HUE)
+            } else {
+                preferences[KEY_GLASS_TINT_HUE] = resolved
+            }
         }
     }
 

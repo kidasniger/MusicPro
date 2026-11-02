@@ -8,6 +8,7 @@
 - Écran de démarrage raccourci pour un accès plus rapide.
 - Libellés utilisateur simplifiés, sans exposition de détails techniques.
 - Nouveau réglage « Effet verre » à trois niveaux : « Le plus rapide » (fond translucide sans flou), « Équilibré » (léger flou et un reflet, par défaut) et « Qualité » (flou réel, reflets, bordure lumineuse, grain léger et ombre douce, Android 12 et plus).
+- Nouveau réglage « Teinte du verre » : 9 pastilles (Aucune, Violet, Rouge, Orange, Jaune, Vert, Cyan, Bleu, Magenta) et une barre arc-en-ciel pour choisir une teinte libre, avec aperçu en direct.
 
 
 - Le lecteur n'utilise plus les curseurs audio standards : progression tactile avec **−10 s / +10 s** et volume avec **− / +**.

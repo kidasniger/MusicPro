@@ -2,10 +2,14 @@ package com.example.ui.components.glass
 
 import android.os.Build
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.data.preferences.DefaultGlassColorStrength
 import com.example.data.preferences.DefaultGlassFrostDp
 import com.example.data.preferences.GlassMaterial
+import com.example.data.preferences.GlassTintSaturation
+import com.example.data.preferences.GlassTintValue
+import com.example.data.preferences.clampGlassTintHue
 
 /** Vrai si l'appareil sait flouter en temps réel (RenderEffect, Android 12 / API 31 et plus). */
 val glassBlurSupported: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
@@ -24,6 +28,17 @@ val LocalGlassColorStrength = staticCompositionLocalOf { DefaultGlassColorStreng
  * BALANCED et QUALITY. Sous 2 dp, le flou est désactivé (voir `glassBlurActive`).
  */
 val LocalGlassFrostDp = staticCompositionLocalOf { DefaultGlassFrostDp }
+
+/**
+ * Teinte du verre (0 à 360°), réglée par les pastilles et la barre arc-en-ciel « Teinte du verre » ;
+ * `null` = Aucune. Le voile teinté est posé sur le film avec une opacité de film x 0,5
+ * (voir `glassTintAlpha`).
+ */
+val LocalGlassTintHue = staticCompositionLocalOf<Float?> { null }
+
+/** Couleur du voile pour une teinte donnée (saturation et luminosité fixes, voir GlassTint.kt). */
+fun glassTintColor(hue: Float): Color =
+    Color.hsv(clampGlassTintHue(hue), GlassTintSaturation, GlassTintValue)
 
 /** Opacité de l'aplat translucide de FASTEST (et du repli sans flou). */
 const val GlassFlatFallbackAlpha = 0.86f

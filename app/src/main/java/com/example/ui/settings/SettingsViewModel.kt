@@ -50,6 +50,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val glassFrostDp: StateFlow<Int> = preferencesRepository.glassFrostDp
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DefaultGlassFrostDp)
 
+    /** Teinte du verre en degrés (0-360) ; `null` = Aucune, par défaut. */
+    val glassTintHue: StateFlow<Float?> = preferencesRepository.glassTintHue
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     val autoPlay: StateFlow<Boolean> = preferencesRepository.autoPlay
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
@@ -102,6 +106,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setGlassFrostDp(dp: Int) {
         viewModelScope.launch {
             preferencesRepository.setGlassFrostDp(dp)
+        }
+    }
+
+    /** Choisit la teinte du verre ; `null` = Aucune. */
+    fun setGlassTintHue(hue: Float?) {
+        viewModelScope.launch {
+            preferencesRepository.setGlassTintHue(hue)
         }
     }
 
