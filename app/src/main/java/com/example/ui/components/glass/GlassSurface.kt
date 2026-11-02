@@ -35,8 +35,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.example.data.preferences.GlassMaterial
+import com.example.data.preferences.clampGlassFrostDp
+import com.example.data.preferences.glassBlurActive
 import com.example.data.preferences.glassSaturation
-import com.example.data.preferences.rendersBlur
 import kotlin.math.roundToInt
 
 /**
@@ -44,9 +45,13 @@ import kotlin.math.roundToInt
  * choisi dans les réglages ([LocalGlassMaterial]) :
  *
  *  - FASTEST  : aplat translucide ([GlassFlatFallbackAlpha]), fine bordure, aucun flou.
- *  - BALANCED : flou de [GlassBalancedBlurRadius], film plus dense, un seul reflet plat, fine bordure.
- *  - QUALITY  : flou réel (rayon de la recette), reflet dégradé, bordure lumineuse en dégradé,
+ *  - BALANCED : flou du rayon « Givre », film plus dense, un seul reflet plat, fine bordure.
+ *  - QUALITY  : flou du rayon « Givre », reflet dégradé, bordure lumineuse en dégradé,
  *               bruit à [GlassNoiseOpacity] et ombre portée douce.
+ *
+ * Le rayon du flou est celui du curseur « Givre » ([LocalGlassFrostDp], 0 à 24 dp, 6 dp par défaut).
+ * Sous 2 dp, le flou est désactivé : la surface se replie sur l'aplat translucide et le fond
+ * n'est pas enregistré (voir [glassBlurActive]), ce qui économise le GPU.
  *
  * Quand le flou est actif, le fond qui transparaît passe aussi par un filtre de saturation réglé
  * par le curseur « Couleur du verre » ([LocalGlassColorStrength], voir [glassSaturation]) :
@@ -66,16 +71,16 @@ fun GlassSurface(
     val backdrop = LocalGlassBackdrop.current
     val level = LocalGlassMaterial.current
     val colorStrength = LocalGlassColorStrength.current
+    val frostDp = clampGlassFrostDp(LocalGlassFrostDp.current)
     val blurLayer = rememberGraphicsLayer()
     var origin by remember { mutableStateOf(Offset.Zero) }
 
     val blurOn = backdrop != null &&
-        level.rendersBlur(glassBlurSupported) &&
+        glassBlurActive(level, glassBlurSupported, frostDp) &&
         material.blurRadius > 0.dp
     val quality = blurOn && level == GlassMaterial.QUALITY
 
-    val blurRadius = if (level == GlassMaterial.BALANCED) GlassBalancedBlurRadius else material.blurRadius
-    val radiusPx = with(LocalDensity.current) { blurRadius.toPx() }
+    val radiusPx = with(LocalDensity.current) { frostDp.dp.toPx() }
     // Saturation du fond : recalculée seulement quand le curseur bouge.
     val saturationFilter = remember(colorStrength) {
         ColorFilter.colorMatrix(

@@ -28,6 +28,7 @@ import com.example.permissions.PermissionViewModel
 import com.example.playback.MusicPlaybackService
 import com.example.ui.components.AppUpdateDialog
 import com.example.ui.components.glass.LocalGlassColorStrength
+import com.example.ui.components.glass.LocalGlassFrostDp
 import com.example.ui.components.glass.LocalGlassMaterial
 import com.example.ui.navigation.MusicProNavGraph
 import com.example.ui.onboarding.OnboardingViewModel
@@ -57,6 +58,7 @@ class MainActivity : ComponentActivity() {
       val isDynamicColor by settingsViewModel.isDynamicColor.collectAsStateWithLifecycle()
       val glassMaterial by settingsViewModel.glassMaterial.collectAsStateWithLifecycle()
       val glassColorStrength by settingsViewModel.glassColorStrength.collectAsStateWithLifecycle()
+      val glassFrostDp by settingsViewModel.glassFrostDp.collectAsStateWithLifecycle()
 
       MusicProTheme(themeMode = currentThemeMode, dynamicColor = isDynamicColor) {
         val context = LocalContext.current
@@ -89,10 +91,11 @@ class MainActivity : ComponentActivity() {
           }
         }
 
-        // Réglages « Effet verre » et « Couleur du verre » : appliqués à toute l'application.
+        // Réglages « Effet verre », « Givre » et « Couleur du verre » : appliqués à toute l'application.
         CompositionLocalProvider(
           LocalGlassMaterial provides glassMaterial,
-          LocalGlassColorStrength provides glassColorStrength
+          LocalGlassColorStrength provides glassColorStrength,
+          LocalGlassFrostDp provides glassFrostDp
         ) {
           Surface(
             modifier = Modifier.fillMaxSize(),

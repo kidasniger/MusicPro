@@ -10,9 +10,20 @@
     <string name="glass_material_quality_desc">Flou réel, reflets, bordure lumineuse, grain léger et ombre douce</string>
     <string name="glass_material_unsupported">Le flou nécessite Android 12 ou plus. Sur cet appareil, un fond translucide est utilisé et le niveau Qualité n’est pas proposé.</string>
 
+    <!-- Réglage : aperçu du verre -->
+    <string name="glass_preview_label">Aperçu du verre</string>
+
+    <!-- Réglage : givre (rayon du flou) -->
+    <string name="glass_frost_title">Givre</string>
+    <string name="glass_frost_desc">Intensité du flou derrière le verre. Sous 2 dp, le flou est désactivé pour économiser le GPU.</string>
+    <string name="glass_frost_value">%1$d dp</string>
+    <string name="glass_frost_off">Flou désactivé : le verre est un fond translucide uni.</string>
+    <string name="glass_frost_unavailable">Sans effet avec « Le plus rapide » ou avant Android 12 : le flou n’est pas dessiné.</string>
+
     <!-- Réglage : couleur du verre -->
     <string name="glass_color_strength_title">Couleur du verre</string>
     <string name="glass_color_strength_desc">Saturation de ce qui transparaît derrière le verre : neutre à 0 %, couleurs de la pochette amplifiées à 100 %.</string>
     <string name="glass_color_strength_value">%1$d %%</string>
     <string name="glass_color_strength_unavailable">Sans effet avec « Le plus rapide » ou avant Android 12 : aucun fond n’est visible à travers le verre.</string>
+    <string name="glass_color_strength_blur_off">Sans effet : le flou est désactivé sous 2 dp de givre.</string>
 </resources>

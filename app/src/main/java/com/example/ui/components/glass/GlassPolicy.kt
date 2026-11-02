@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.unit.dp
 import com.example.data.preferences.DefaultGlassColorStrength
+import com.example.data.preferences.DefaultGlassFrostDp
 import com.example.data.preferences.GlassMaterial
 
 /** Vrai si l'appareil sait flouter en temps réel (RenderEffect, Android 12 / API 31 et plus). */
@@ -18,14 +19,20 @@ val LocalGlassMaterial = staticCompositionLocalOf { GlassMaterial.BALANCED }
  */
 val LocalGlassColorStrength = staticCompositionLocalOf { DefaultGlassColorStrength }
 
+/**
+ * Givre du verre (0 à 24 dp), réglé par le curseur « Givre » : rayon du flou des niveaux
+ * BALANCED et QUALITY. Sous 2 dp, le flou est désactivé (voir `glassBlurActive`).
+ */
+val LocalGlassFrostDp = staticCompositionLocalOf { DefaultGlassFrostDp }
+
 /** Opacité de l'aplat translucide de FASTEST (et du repli sans flou). */
 const val GlassFlatFallbackAlpha = 0.86f
 
-/** Rayon du flou du niveau BALANCED. */
+/** Rayon du flou par défaut (6 dp) ; le curseur « Givre » le remplace ensuite. */
 val GlassBalancedBlurRadius = 6.dp
 
 /**
- * Opacité minimale du film en BALANCED : avec seulement 6 dp de flou, le contenu derrière reste
+ * Opacité minimale du film en BALANCED : avec un flou léger, le contenu derrière reste
  * lisible, le film doit donc être plus dense pour garder le texte contrasté.
  */
 const val GlassBalancedMinFilmAlpha = 0.72f

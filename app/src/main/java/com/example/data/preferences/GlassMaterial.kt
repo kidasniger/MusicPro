@@ -3,9 +3,12 @@ package com.example.data.preferences
 /**
  * Niveau de l'effet verre choisi par l'utilisateur.
  *  - FASTEST  : aplat translucide, aucun flou.
- *  - BALANCED : flou léger (6 dp) et un seul reflet. Niveau par défaut.
+ *  - BALANCED : flou léger et un seul reflet. Niveau par défaut.
  *  - QUALITY  : flou réel, reflet dégradé, bordure lumineuse, léger bruit (3 %) et ombre douce.
  *               Proposé uniquement à partir d'Android 12 (API 31).
+ *
+ * Le rayon du flou des niveaux BALANCED et QUALITY est réglé par le curseur « Givre »
+ * (voir [DefaultGlassFrostDp]).
  */
 enum class GlassMaterial {
     FASTEST,
@@ -51,3 +54,28 @@ fun resolveGlassColorStrength(stored: Int?): Int =
  */
 fun glassSaturation(percent: Int): Float =
     0.6f + 0.8f * (clampGlassColorStrength(percent) / 100f)
+
+/** Givre par défaut, en dp : rayon du flou du verre. */
+const val DefaultGlassFrostDp = 6
+
+/** Bornes du curseur « Givre », en dp. */
+const val MinGlassFrostDp = 0
+const val MaxGlassFrostDp = 24
+
+/** Sous ce rayon (en dp), le flou est désactivé pour économiser le GPU. */
+const val GlassFrostBlurThresholdDp = 2
+
+/** Ramène un givre dans l'intervalle 0 à 24 dp. */
+fun clampGlassFrostDp(dp: Int): Int = dp.coerceIn(MinGlassFrostDp, MaxGlassFrostDp)
+
+/** Lit le givre enregistré ; 6 dp si rien n'est enregistré, valeur bornée à 0-24 dp. */
+fun resolveGlassFrostDp(stored: Int?): Int =
+    clampGlassFrostDp(stored ?: DefaultGlassFrostDp)
+
+/**
+ * Vrai si un flou est réellement dessiné : niveau avec flou, appareil compatible (Android 12+)
+ * et givre d'au moins [GlassFrostBlurThresholdDp] dp. Sinon : aplat translucide, et le fond
+ * n'est ni enregistré ni mesuré.
+ */
+fun glassBlurActive(material: GlassMaterial, blurSupported: Boolean, frostDp: Int): Boolean =
+    material.rendersBlur(blurSupported) && clampGlassFrostDp(frostDp) >= GlassFrostBlurThresholdDp

@@ -40,6 +40,8 @@ class UserPreferencesRepository(private val context: Context) {
         val KEY_GLASS_MATERIAL = stringPreferencesKey("glass_material")
         /** Force de couleur du verre, en % (0-100). Absente : 70 %. */
         val KEY_GLASS_COLOR_STRENGTH = intPreferencesKey("glass_color_strength")
+        /** Givre du verre (rayon du flou), en dp (0-24). Absente : 6 dp. */
+        val KEY_GLASS_FROST_DP = intPreferencesKey("glass_frost_dp")
         /** Ancienne clé (mise à jour 004, valeurs BEAUTIFUL / FAST) : migrée à la lecture. */
         val KEY_GLASS_QUALITY_LEGACY = stringPreferencesKey("glass_quality")
         val KEY_FAVORITE_TRACK_IDS = stringSetPreferencesKey("favorite_track_ids")
@@ -116,6 +118,13 @@ class UserPreferencesRepository(private val context: Context) {
         }
         .map { preferences -> resolveGlassColorStrength(preferences[KEY_GLASS_COLOR_STRENGTH]) }
 
+    /** Givre du verre en dp (0-24) ; 6 dp par défaut (voir [resolveGlassFrostDp]). */
+    val glassFrostDp: Flow<Int> = context.musicProDataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { preferences -> resolveGlassFrostDp(preferences[KEY_GLASS_FROST_DP]) }
+
     suspend fun setOnboardingCompleted(completed: Boolean) {
         context.musicProDataStore.edit { preferences ->
             preferences[KEY_ONBOARDING_COMPLETED] = completed
@@ -138,6 +147,12 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun setGlassColorStrength(percent: Int) {
         context.musicProDataStore.edit { preferences ->
             preferences[KEY_GLASS_COLOR_STRENGTH] = clampGlassColorStrength(percent)
+        }
+    }
+
+    suspend fun setGlassFrostDp(dp: Int) {
+        context.musicProDataStore.edit { preferences ->
+            preferences[KEY_GLASS_FROST_DP] = clampGlassFrostDp(dp)
         }
     }
 

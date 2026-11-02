@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.preferences.AppThemeMode
 import com.example.data.preferences.DefaultGlassColorStrength
+import com.example.data.preferences.DefaultGlassFrostDp
 import com.example.data.preferences.GlassMaterial
 import com.example.data.preferences.UserPreferencesRepository
 import com.example.data.repository.AudioRepository
@@ -44,6 +45,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     /** Force de couleur du verre en % (0-100), 70 % par défaut. */
     val glassColorStrength: StateFlow<Int> = preferencesRepository.glassColorStrength
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DefaultGlassColorStrength)
+
+    /** Givre du verre (rayon du flou) en dp (0-24), 6 dp par défaut. */
+    val glassFrostDp: StateFlow<Int> = preferencesRepository.glassFrostDp
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DefaultGlassFrostDp)
 
     val autoPlay: StateFlow<Boolean> = preferencesRepository.autoPlay
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
@@ -91,6 +96,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setGlassColorStrength(percent: Int) {
         viewModelScope.launch {
             preferencesRepository.setGlassColorStrength(percent)
+        }
+    }
+
+    fun setGlassFrostDp(dp: Int) {
+        viewModelScope.launch {
+            preferencesRepository.setGlassFrostDp(dp)
         }
     }
 

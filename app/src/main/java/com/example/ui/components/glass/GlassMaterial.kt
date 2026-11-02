@@ -15,7 +15,10 @@ import androidx.compose.ui.unit.dp
  */
 @Immutable
 data class GlassSpec(
-    /** Rayon du flou en QUALITY (BALANCED utilise [GlassBalancedBlurRadius], FASTEST aucun). */
+    /**
+     * Rayon de flou de la recette. Le rayon réellement dessiné est réglé par le curseur « Givre »
+     * ([LocalGlassFrostDp]) ; cette valeur sert seulement de garde : 0 dp = jamais de flou.
+     */
     val blurRadius: Dp,
     /** Couleur du voile (film). */
     val filmColor: Color,
