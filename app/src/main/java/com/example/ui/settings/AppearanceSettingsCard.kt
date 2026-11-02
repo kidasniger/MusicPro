@@ -196,7 +196,7 @@ fun AppearanceSettingsCard(
 
             // --- Taille du texte ---------------------------------------------------------------
             Column(verticalArrangement = Arrangement.spacedBy(MusicProTokens.Spacing.Sm)) {
-                SectionTitle("Taille du texte")
+                SectionTitle(stringResource(R.string.appearance_text_size))
                 Row(
                     modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(MusicProTokens.Spacing.Xs)
@@ -214,7 +214,7 @@ fun AppearanceSettingsCard(
 
             // --- Densité des listes -------------------------------------------------------------
             Column(verticalArrangement = Arrangement.spacedBy(MusicProTokens.Spacing.Sm)) {
-                SectionTitle("Densité")
+                SectionTitle(stringResource(R.string.appearance_list_density))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(MusicProTokens.Spacing.Sm)
@@ -239,12 +239,12 @@ fun AppearanceSettingsCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Réduire les animations",
+                        text = stringResource(R.string.appearance_reduce_animations),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Fondus discrets de 120 ms, sans parallaxe, flou animé ni rotation du vinyle",
+                        text = stringResource(R.string.appearance_reduce_animations_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
