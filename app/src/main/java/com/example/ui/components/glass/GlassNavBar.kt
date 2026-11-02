@@ -44,6 +44,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.preferences.clampGlassOpacity
+import com.example.ui.components.glass.LocalReduceAnimations
 
 /** Un onglet de la barre de navigation en verre. */
 @Immutable
@@ -61,8 +62,9 @@ data class GlassNavItem(
 @Composable
 fun rememberAnimationsEnabled(): Boolean {
     val context = LocalContext.current
-    return remember(context) {
-        Settings.Global.getFloat(
+    val reduceAnimations = LocalReduceAnimations.current
+    return remember(context, reduceAnimations) {
+        !reduceAnimations && Settings.Global.getFloat(
             context.contentResolver,
             Settings.Global.ANIMATOR_DURATION_SCALE,
             1f
