@@ -299,4 +299,5 @@
     <string name="settings_test">Test</string>
     <string name="settings_empty">Clear</string>
     <string name="settings_purge">Purge</string>
+<string name="settings_version_format">v%1$s</string>
 </resources>
