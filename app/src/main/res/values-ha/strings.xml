@@ -1,3 +1,240 @@
 <resources>
 <string name="language_title">Harshe</string><string name="language_auto">Ta atomatik</string><string name="language_french">Français</string><string name="language_english">English</string><string name="language_arabic">العربية</string><string name="language_hausa">Hausa</string><string name="language_zarma">Zarma</string><string name="language_restart_hint">Za a sabunta manhajar bayan canza harshe.</string><string name="nav_home">Gida</string><string name="nav_new">Sabo</string><string name="nav_radio">Rediyo</string><string name="nav_library">Laburare</string><string name="nav_search">Bincike</string><string name="nav_stats">Kididdiga</string><string name="nav_chat">Tattaunawar AI</string><string name="appearance_title">Bayyanar</string><string name="appearance_light">Haske</string><string name="appearance_dark">Duhu</string><string name="appearance_auto">Ta atomatik</string><string name="appearance_dark_evening">Duhu da yamma</string><string name="style_title">Salo</string><string name="style_minimal">Sauƙi</string><string name="style_neon">Neon</string><string name="style_glass">Gilashi</string><string name="accent_title">Launin fifiko</string><string name="dynamic_color_title">Launuka masu canzawa</string><string name="dynamic_color_subtitle">Yana amfani da launukan hoton bangon wayarka</string>
+
+    <!-- Ressources non encore localisées : fallback français explicite, conservé pour éviter les libellés vides. -->
+<string translatable="false" name="app_name">MusicPro</string>
+<string translatable="false" name="notification_channel_name">Lecture MusicPro</string>
+<string translatable="false" name="notification_channel_desc">Contrôles de lecture et notification multimédia</string>
+<string translatable="false" name="widget_name">MusicPro - Lecteur</string>
+<string translatable="false" name="widget_description">Affiche le morceau en cours et les commandes de lecture</string>
+<string translatable="false" name="home_greeting_morning">Bonjour</string>
+<string translatable="false" name="home_greeting_afternoon">Bon après-midi</string>
+<string translatable="false" name="home_greeting_evening">Bonsoir</string>
+<string translatable="false" name="home_greeting_night">Bonne nuit</string>
+<string translatable="false" name="home_welcome_back">Heureux de vous retrouver sur MusicPro.</string>
+<string translatable="false" name="home_resume_playback">Reprendre où vous en étiez</string>
+<string translatable="false" name="chat_welcome_title">Que voulez-vous découvrir ?</string>
+<string translatable="false" name="chat_welcome_subtitle">Votre assistant musical, propulsé par Groq.</string>
+<string translatable="false" name="chat_suggestion_playlist">Une playlist calme pour travailler</string>
+<string translatable="false" name="chat_suggestion_lyrics">Trouve les paroles de ce morceau</string>
+<string translatable="false" name="chat_suggestion_explain">Explique-moi ce morceau</string>
+<string translatable="false" name="chat_assistant_name">MusicPro IA</string>
+<string translatable="false" name="chat_thinking">Réflexion en cours…</string>
+<string translatable="false" name="chat_input_hint">Écrivez votre message…</string>
+<string translatable="false" name="chat_send">Envoyer</string>
+<string translatable="false" name="chat_stop">Arrêter la génération</string>
+<string translatable="false" name="chat_privacy_hint">Les messages sont transmis à Groq pour générer les réponses.</string>
+<string translatable="false" name="chat_empty_response">Je n’ai pas reçu de réponse. Réessayez.</string>
+<string translatable="false" name="chat_error">Une erreur est survenue pendant la réponse.</string>
+<string translatable="false" name="stats_title">Statistiques d’écoute</string>
+<string translatable="false" name="stats_week">Temps d’écoute · 7 derniers jours</string>
+<string translatable="false" name="stats_top_tracks">Morceaux les plus écoutés</string>
+<string translatable="false" name="stats_top_artists">Artistes préférés</string>
+<string translatable="false" name="stats_top_genres">Genres préférés</string>
+<string translatable="false" name="stats_streak">Série d’écoute</string>
+<string translatable="false" name="stats_current_streak">Série actuelle</string>
+<string translatable="false" name="stats_best_streak">Meilleure série</string>
+<string translatable="false" name="stats_days">%1$d jours</string>
+<string translatable="false" name="stats_duration_minutes">%1$d min</string>
+<string translatable="false" name="stats_duration_hours_minutes">%1$d h %2$d min</string>
+<string translatable="false" name="stats_empty">Écoutez de la musique pour afficher vos statistiques.</string>
+<string translatable="false" name="stats_no_genre">Genre non renseigné</string>
+<string translatable="false" name="stats_privacy">Ces données restent sur cet appareil. Aucune statistique n’est envoyée.</string>
+<string translatable="false" name="placeholder_title">Bientôt disponible</string>
+<string translatable="false" name="placeholder_new_desc">Les nouveautés musicales arriveront dans une prochaine mise à jour.</string>
+<string translatable="false" name="placeholder_radio_desc">La radio arrivera dans une prochaine mise à jour.</string>
+<string translatable="false" name="glass_preview_description">Aperçu du verre liquide avec vos réglages actuels : mini-lecteur et barre de navigation sur un fond coloré</string>
+<string translatable="false" name="glass_preview_track_title">Titre du morceau</string>
+<string translatable="false" name="glass_preview_track_artist">Artiste</string>
+<string translatable="false" name="appearance_evening_hint">Le thème est sombre dans cette plage horaire, clair le reste du temps.</string>
+<string translatable="false" name="appearance_evening_start">Début</string>
+<string translatable="false" name="appearance_evening_end">Fin</string>
+<string translatable="false" name="appearance_time_format">%1$02d:%2$02d</string>
+<string translatable="false" name="accent_terracotta">Terracotta</string>
+<string translatable="false" name="accent_blue">Bleu</string>
+<string translatable="false" name="accent_green">Vert</string>
+<string translatable="false" name="accent_violet">Violet</string>
+<string translatable="false" name="accent_artwork">Selon la pochette</string>
+<string translatable="false" name="accent_unavailable">L’accent s’applique aux styles Minimal et Verre, sans couleurs dynamiques.</string>
+<string translatable="false" name="lyrics_options_cd">Options des paroles</string>
+<string translatable="false" name="lyrics_options_title">Options des paroles</string>
+<string translatable="false" name="lyrics_karaoke">Karaoké</string>
+<string translatable="false" name="lyrics_karaoke_hint">Taille du texte, couleur de la ligne active et réinitialisation</string>
+<string translatable="false" name="lyrics_offset_title">Décalage des paroles</string>
+<string translatable="false" name="lyrics_offset_value">%1$+d ms</string>
+<string translatable="false" name="lyrics_offset_minus_cd">Reculer de 100 millisecondes</string>
+<string translatable="false" name="lyrics_offset_plus_cd">Avancer de 100 millisecondes</string>
+<string translatable="false" name="lyrics_offset_reset">Remettre à zéro</string>
+<string translatable="false" name="album_various_artists">Artistes divers</string>
+<string translatable="false" name="album_type">Album</string>
+<string translatable="false" name="album_shuffle">Lecture aléatoire</string>
+<string translatable="false" name="album_play">Lecture</string>
+<string translatable="false" name="album_download">Télécharger</string>
+<string translatable="false" name="album_download_local">Cet album est déjà sur votre appareil.</string>
+<string translatable="false" name="album_back">Retour</string>
+<string translatable="false" name="album_add">Créer une playlist avec cet album</string>
+<string translatable="false" name="album_added_playlist">Playlist « %1$s » créée</string>
+<string translatable="false" name="album_search">Rechercher</string>
+<string translatable="false" name="album_menu">Plus d\'options</string>
+<string translatable="false" name="album_share">Partager l\'album</string>
+<string translatable="false" name="album_more">PLUS</string>
+<string translatable="false" name="album_less">MOINS</string>
+<string translatable="false" name="album_minutes">%1$d min</string>
+<string translatable="false" name="album_description">%1$s · %2$s · %3$s.</string>
+<string translatable="false" name="album_description_extra">Les titres sont lus depuis votre appareil, dans l\'ordre des fichiers de l\'album.</string>
+<string translatable="false" name="album_explicit_badge">E</string>
+<string translatable="false" name="album_explicit_cd">Contenu explicite</string>
+<plurals translatable="false" name="album_track_count">
+        <item quantity="one">%d morceau</item>
+        <item quantity="other">%d morceaux</item>
+    </plurals>
+<string translatable="false" name="artist_back">Retour</string>
+<string translatable="false" name="artist_info">Informations sur l\'artiste</string>
+<string translatable="false" name="artist_info_body">%1$s · %2$s · %3$s</string>
+<string translatable="false" name="artist_info_close">Fermer</string>
+<string translatable="false" name="artist_play">Lecture</string>
+<string translatable="false" name="artist_favorite_add">Ajouter l\'artiste aux favoris</string>
+<string translatable="false" name="artist_favorite_remove">Retirer l\'artiste des favoris</string>
+<string translatable="false" name="artist_top_tracks">Top morceaux</string>
+<string translatable="false" name="artist_show_all">Afficher tout</string>
+<string translatable="false" name="artist_show_less">Réduire</string>
+<string translatable="false" name="artist_discography">Discographie</string>
+<string translatable="false" name="artist_singles">Singles</string>
+<string translatable="false" name="artist_similar">Artistes similaires</string>
+<string translatable="false" name="artist_minutes">%1$d min</string>
+<string translatable="false" name="artist_release_album">Album · %1$s</string>
+<string translatable="false" name="artist_release_single">Single · %1$s</string>
+<string translatable="false" name="artist_row_menu">Plus d\'options pour %1$s</string>
+<string translatable="false" name="artist_play_next">Lire ensuite</string>
+<string translatable="false" name="artist_add_queue">Ajouter à la file d\'attente</string>
+<plurals translatable="false" name="artist_album_count">
+        <item quantity="one">%d album</item>
+        <item quantity="other">%d albums</item>
+    </plurals>
+<string translatable="false" name="glass_film_card_title">Film et onglet actif</string>
+<string translatable="false" name="glass_film_card_subtitle">Voile du verre et capsule de la barre de navigation</string>
+<string translatable="false" name="glass_film_title">Film</string>
+<string translatable="false" name="glass_film_desc" formatted="false">Opacité du voile de couleur du verre. 50 % garde le rendu d’origine, 0 % le rend transparent et 100 % l’opacifie.</string>
+<string translatable="false" name="glass_film_value">%1$d %%</string>
+<string translatable="false" name="glass_film_low_contrast">Avec un film très faible, le texte sur le verre devient difficile à lire.</string>
+<string translatable="false" name="glass_active_tab_title">Onglet actif</string>
+<string translatable="false" name="glass_active_tab_desc">Opacité de la capsule de l’onglet sélectionné dans la barre de navigation.</string>
+<string translatable="false" name="glass_active_tab_value">%1$d %%</string>
+<string translatable="false" name="glass_mini_player_open">Ouvrir le lecteur</string>
+<string translatable="false" name="glass_mini_player_next">Suivant</string>
+<string translatable="false" name="glass_mini_player_play">Lecture</string>
+<string translatable="false" name="glass_mini_player_pause">Pause</string>
+<string translatable="false" name="glass_quality_title">Effet verre</string>
+<string translatable="false" name="glass_quality_subtitle">Barre de navigation et mini-lecteur</string>
+<string translatable="false" name="glass_material_fastest">Le plus rapide</string>
+<string translatable="false" name="glass_material_fastest_desc">Fond translucide sans flou</string>
+<string translatable="false" name="glass_material_balanced">Équilibré</string>
+<string translatable="false" name="glass_material_balanced_desc">Léger flou et un reflet</string>
+<string translatable="false" name="glass_material_quality">Qualité</string>
+<string translatable="false" name="glass_material_quality_desc">Flou réel, reflets, bordure lumineuse, grain léger et ombre douce</string>
+<string translatable="false" name="glass_material_unsupported">Le flou nécessite Android 12 ou plus. Sur cet appareil, un fond translucide est utilisé et le niveau Qualité n’est pas proposé.</string>
+<string translatable="false" name="glass_preview_label">Aperçu du verre</string>
+<string translatable="false" name="glass_frost_title">Givre</string>
+<string translatable="false" name="glass_frost_desc">Intensité du flou derrière le verre. Sous 2 dp, le flou est désactivé pour économiser le GPU.</string>
+<string translatable="false" name="glass_frost_value">%1$d dp</string>
+<string translatable="false" name="glass_frost_off">Flou désactivé : le verre est un fond translucide uni.</string>
+<string translatable="false" name="glass_frost_unavailable">Sans effet avec « Le plus rapide » ou avant Android 12 : le flou n’est pas dessiné.</string>
+<string translatable="false" name="glass_color_strength_title">Couleur du verre</string>
+<string translatable="false" name="glass_color_strength_desc">Saturation de ce qui transparaît derrière le verre : neutre à 0 %, couleurs de la pochette amplifiées à 100 %.</string>
+<string translatable="false" name="glass_color_strength_value">%1$d %%</string>
+<string translatable="false" name="glass_color_strength_unavailable">Sans effet avec « Le plus rapide » ou avant Android 12 : aucun fond n’est visible à travers le verre.</string>
+<string translatable="false" name="glass_color_strength_blur_off">Sans effet : le flou est désactivé sous 2 dp de givre.</string>
+<string translatable="false" name="glass_screen_title">Glass</string>
+<string translatable="false" name="glass_screen_back">Retour</string>
+<string translatable="false" name="glass_section_material">MATÉRIAU</string>
+<string translatable="false" name="glass_section_color">COULEUR</string>
+<string translatable="false" name="glass_reset">Réinitialiser</string>
+<string translatable="false" name="glass_entry_title">Glass</string>
+<string translatable="false" name="glass_entry_subtitle">Matériau, teinte, film et onglet actif</string>
+<string translatable="false" name="glass_tint_title">Teinte du verre</string>
+<string translatable="false" name="glass_tint_desc">Voile coloré posé sur le verre. Son intensité suit celle du film du verre.</string>
+<string translatable="false" name="glass_tint_none">Aucune</string>
+<string translatable="false" name="glass_tint_violet">Violet</string>
+<string translatable="false" name="glass_tint_red">Rouge</string>
+<string translatable="false" name="glass_tint_orange">Orange</string>
+<string translatable="false" name="glass_tint_yellow">Jaune</string>
+<string translatable="false" name="glass_tint_green">Vert</string>
+<string translatable="false" name="glass_tint_cyan">Cyan</string>
+<string translatable="false" name="glass_tint_blue">Bleu</string>
+<string translatable="false" name="glass_tint_magenta">Magenta</string>
+<string translatable="false" name="glass_tint_value_none">Aucune teinte</string>
+<string translatable="false" name="glass_tint_value_free">Teinte libre : %1$d°</string>
+<string translatable="false" name="glass_tint_free_title">Teinte libre</string>
+<string translatable="false" name="glass_tint_free_desc">Touchez ou faites glisser sur la barre arc-en-ciel pour choisir une teinte précise.</string>
+<string translatable="false" name="glass_tint_preview_label">Aperçu teinté</string>
+<string translatable="false" name="new_screen_title">Nouveau</string>
+<string translatable="false" name="new_screen_subtitle">Ce qui vient d\'arriver dans votre bibliothèque</string>
+<string translatable="false" name="new_section_recent">Ajouts récents</string>
+<string translatable="false" name="new_section_unplayed">Jamais écoutés</string>
+<string translatable="false" name="new_section_albums">Albums récemment ajoutés</string>
+<string translatable="false" name="new_empty_title">Rien de nouveau pour l\'instant</string>
+<string translatable="false" name="new_empty_message">Analysez votre appareil pour retrouver vos morceaux.</string>
+<string translatable="false" name="new_empty_scan">Analyser mon appareil</string>
+<string translatable="false" name="new_scanning">Analyse en cours…</string>
+<string translatable="false" name="queue_screen_title">À suivre</string>
+<string translatable="false" name="queue_screen_close">Fermer la file d\'attente</string>
+<string translatable="false" name="queue_screen_now_playing">En cours de lecture</string>
+<string translatable="false" name="queue_screen_clear">Vider la file</string>
+<string translatable="false" name="queue_screen_autoplay_title">Lecture automatique</string>
+<string translatable="false" name="queue_screen_autoplay_subtitle">Continuer avec des morceaux proches quand la file est terminée</string>
+<string translatable="false" name="queue_screen_section_up_next">Prochains morceaux</string>
+<string translatable="false" name="queue_screen_empty_title">Rien à suivre</string>
+<string translatable="false" name="queue_screen_empty_body">Ajoutez des morceaux depuis la bibliothèque ou activez la lecture automatique.</string>
+<string translatable="false" name="queue_screen_drag_handle">Déplacer %1$s</string>
+<string translatable="false" name="queue_screen_remove">Retirer de la file</string>
+<string translatable="false" name="queue_screen_move_up">Monter</string>
+<string translatable="false" name="queue_screen_move_down">Descendre</string>
+<string translatable="false" name="queue_screen_play_now">Lire maintenant</string>
+<plurals translatable="false" name="queue_screen_track_count">
+        <item quantity="one">%d morceau</item>
+        <item quantity="other">%d morceaux</item>
+    </plurals>
+<string translatable="false" name="mixes_screen_title">Radio</string>
+<string translatable="false" name="mixes_screen_subtitle">Des mixes créés sur votre appareil, à partir de votre écoute et de vos favoris.</string>
+<string translatable="false" name="mixes_empty_message">Ajoutez de la musique pour que vos mixes soient générés automatiquement.</string>
+<string translatable="false" name="mixes_discovery">Découverte</string>
+<string translatable="false" name="mixes_discovery_desc">Des morceaux que vous n\'avez jamais écoutés, les plus récents d\'abord.</string>
+<string translatable="false" name="mixes_energy">Énergie</string>
+<string translatable="false" name="mixes_energy_desc">Des titres courts et nerveux, vos favoris en tête.</string>
+<string translatable="false" name="mixes_calm">Calme</string>
+<string translatable="false" name="mixes_calm_desc">Des titres longs et posés pour se détendre ou travailler.</string>
+<string translatable="false" name="mixes_party">Soirée</string>
+<string translatable="false" name="mixes_party_desc">Un mélange de vos favoris et de vos écoutes, dans un ordre qui change chaque jour.</string>
+<string translatable="false" name="mixes_memories">Souvenirs</string>
+<string translatable="false" name="mixes_memories_desc">Ce que vous n\'avez pas écouté depuis longtemps, favoris d\'abord.</string>
+<string translatable="false" name="mixes_live">En direct</string>
+<string translatable="false" name="mixes_play_cd">Lire le mix %1$s</string>
+<plurals translatable="false" name="mixes_track_count">
+        <item quantity="one">%d morceau</item>
+        <item quantity="other">%d morceaux</item>
+    </plurals>
+<string translatable="false" name="theme_card_title">Apparence et thème</string>
+<string translatable="false" name="theme_card_subtitle">Choisissez l’apparence et le style de MusicPro</string>
+<string translatable="false" name="theme_appearance_title">Apparence</string>
+<string translatable="false" name="theme_appearance_light">Clair</string>
+<string translatable="false" name="theme_appearance_dark">Sombre</string>
+<string translatable="false" name="theme_appearance_auto">Auto</string>
+<string translatable="false" name="theme_appearance_dark_evening">Sombre le soir</string>
+<string translatable="false" name="theme_schedule_start">Début</string>
+<string translatable="false" name="theme_schedule_end">Fin</string>
+<string translatable="false" name="theme_schedule_hint">Sombre entre ces deux heures, clair le reste du temps.</string>
+<string translatable="false" name="theme_style_title">Style</string>
+<string translatable="false" name="theme_style_minimal">Minimal</string>
+<string translatable="false" name="theme_style_neon">Néon</string>
+<string translatable="false" name="theme_style_glass">Verre</string>
+<string translatable="false" name="theme_accent_title">Accent</string>
+<string translatable="false" name="theme_accent_terracotta">Terracotta</string>
+<string translatable="false" name="theme_accent_blue">Bleu</string>
+<string translatable="false" name="theme_accent_green">Vert</string>
+<string translatable="false" name="theme_accent_violet">Violet</string>
+<string translatable="false" name="theme_accent_artwork">Selon la pochette</string>
+<string translatable="false" name="theme_accent_disabled_neon">L’accent n’est pas modifiable avec le style Néon.</string>
+<string translatable="false" name="theme_accent_disabled_dynamic">Indisponible tant que les couleurs adaptées au système sont actives.</string>
+<string translatable="false" name="theme_dynamic_title">Couleurs adaptées au système</string>
+<string translatable="false" name="theme_dynamic_subtitle">Adapte les teintes à votre fond d’écran Android</string>
 </resources>
