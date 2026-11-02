@@ -1,5 +1,6 @@
 package com.example.data.local
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -18,7 +19,8 @@ data class AudioTrackEntity(
     val size: Long = 0L,
     val hasSyncedLyrics: Boolean = false,
     val dateAdded: Long = 0L,
-    val lastPlayed: Long = 0L
+    val lastPlayed: Long = 0L,
+    @ColumnInfo(defaultValue = "''") val genre: String = ""
 ) {
     fun formatDuration(): String {
         val totalSeconds = (duration / 1000).coerceAtLeast(0)
