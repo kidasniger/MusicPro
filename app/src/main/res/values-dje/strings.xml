@@ -61,4 +61,5 @@
     <string name="settings_empty">Tuusu</string>
     <string name="settings_purge">Fatta</string>
 <string name="settings_version_format">v%1$s</string>
+<string name="appearance_text_size">Hantum beeroo</string><string name="appearance_list_density">Tuku margari</string><string name="appearance_reduce_animations">Fasali barmayyan kay</string><string name="appearance_reduce_animations_desc">120 ms fondus faala, bila parallax, blur barmay nda vinyle zuru</string>
 </resources>
