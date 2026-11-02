@@ -68,5 +68,17 @@ object MusicProTokens {
         val AccentDot = 16.dp
         val StylePreviewWidth = 96.dp
         val StylePreviewHeight = 140.dp
+
+        /** Pochette des carrousels (mise à jour 021) : 140 dp. */
+        val CoverCarousel = 140.dp
+
+        /** Icône de remplacement quand une pochette est absente. */
+        val CoverIcon = 40.dp
+
+        /** Pastille d'illustration des états vides. */
+        val Illustration = 96.dp
+
+        /** Icône au centre de la pastille d'illustration. */
+        val IllustrationIcon = 48.dp
     }
 }
