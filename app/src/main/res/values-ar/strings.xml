@@ -299,4 +299,5 @@
     <string name="settings_test">اختبار</string>
     <string name="settings_empty">إفراغ</string>
     <string name="settings_purge">تنظيف</string>
+<string name="settings_version_format">v%1$s</string>
 </resources>
