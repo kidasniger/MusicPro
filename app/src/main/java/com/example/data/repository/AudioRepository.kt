@@ -192,7 +192,8 @@ class AudioRepository(
                     scanned.copy(
                         albumArtUri = scanned.albumArtUri ?: previous.albumArtUri,
                         hasSyncedLyrics = previous.hasSyncedLyrics || scanned.hasSyncedLyrics,
-                        lastPlayed = maxOf(previous.lastPlayed, scanned.lastPlayed)
+                        lastPlayed = maxOf(previous.lastPlayed, scanned.lastPlayed),
+                        genre = scanned.genre.ifBlank { previous.genre }
                     )
                 } else {
                     scanned
