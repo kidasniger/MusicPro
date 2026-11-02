@@ -266,6 +266,8 @@ fun SettingsScreen(
                 expanded = "APPARENCE" in expandedGroups,
                 onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "APPARENCE") }
             ) {
+                LanguageSettingsCard()
+                Spacer(modifier = Modifier.height(8.dp))
                 AppearanceSettingsCard(
                     appearance = appearance,
                     onAppearanceSelected = { settingsViewModel.setAppearanceMode(it) },
@@ -615,6 +617,7 @@ private data class SettingsSearchEntry(
 )
 
 private val settingsSearchIndex = listOf(
+    SettingsSearchEntry("Langue", "APPARENCE", listOf("language", "français", "english", "العربية", "hausa", "zarma", "rtl")),
     SettingsSearchEntry("Thème clair, sombre ou automatique", "APPARENCE", listOf("theme", "thème", "clair", "sombre", "apparence", "mode")),
     SettingsSearchEntry("Style Minimal, Néon ou Verre", "APPARENCE", listOf("style", "glass", "liquid glass", "verre")),
     SettingsSearchEntry("Couleur d’accent", "APPARENCE", listOf("couleur", "color", "accent", "teinte")),
