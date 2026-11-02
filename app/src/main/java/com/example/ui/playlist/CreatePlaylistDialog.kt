@@ -100,13 +100,13 @@ fun CreatePlaylistDialog(
                         name = it
                         if (isError && it.isNotBlank()) isError = false
                     },
-                    label = { Text("Nom de la playlist") },
-                    placeholder = { Text("Ex: Synthwave Nuit, Workout, Favoris...", color = MusicProTextMuted) },
+                    label = { Text(stringResource(R.string.playlist_name_label)) },
+                    placeholder = { Text(stringResource(R.string.playlist_name_placeholder), color = MusicProTextMuted) },
                     singleLine = true,
                     isError = isError,
                     supportingText = {
                         if (isError) {
-                            Text("Le nom ne peut pas être vide", color = MusicProError, fontSize = 12.sp)
+                            Text(stringResource(R.string.playlist_name_empty), color = MusicProError, fontSize = 12.sp)
                         }
                     },
                     colors = OutlinedTextFieldDefaults.colors(
@@ -130,8 +130,8 @@ fun CreatePlaylistDialog(
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Description (optionnel)") },
-                    placeholder = { Text("Ex: Ma sélection préférée", color = MusicProTextMuted) },
+                    label = { Text(stringResource(R.string.playlist_description_label)) },
+                    placeholder = { Text(stringResource(R.string.playlist_description_placeholder), color = MusicProTextMuted) },
                     maxLines = 2,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = MusicProTextPrimary,
@@ -164,7 +164,7 @@ fun CreatePlaylistDialog(
                         ),
                         modifier = Modifier.testTag("cancel_playlist_button")
                     ) {
-                        Text("Annuler")
+                        Text(stringResource(R.string.playlist_cancel))
                     }
 
                     Spacer(modifier = Modifier.width(12.dp))
