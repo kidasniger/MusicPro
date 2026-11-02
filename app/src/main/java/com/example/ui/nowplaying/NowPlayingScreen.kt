@@ -203,17 +203,22 @@ fun NowPlayingScreen(
 
     val visiblePositionMs = if (isSeeking) seekPositionMs else displayPositionMs
 
-    // Animation infinie de rotation pour la platine vinyle lors de la lecture
-    val infiniteTransition = rememberInfiniteTransition(label = "vinyl_rotation")
-    val vinylRotation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 18000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "vinyl_angle"
-    )
+    // La rotation continue du vinyle est supprimée en mode réduction des animations.
+    val vinylRotation = if (rememberAnimationsEnabled()) {
+        val infiniteTransition = rememberInfiniteTransition(label = "vinyl_rotation")
+        val rotation by infiniteTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = 360f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 18000, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "vinyl_angle"
+        )
+        rotation
+    } else {
+        0f
+    }
 
     // Interception de la touche retour pour fermer l'écran Now Playing
     BackHandler {
