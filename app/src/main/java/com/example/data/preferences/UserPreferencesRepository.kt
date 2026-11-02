@@ -54,6 +54,8 @@ class UserPreferencesRepository(private val context: Context) {
         /** Fin de « Sombre le soir », en minutes depuis minuit. Absente : 07:00. */
         val KEY_EVENING_END = intPreferencesKey("dark_evening_end_minutes")
         val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
+        val KEY_TEXT_SIZE = stringPreferencesKey("text_size_preference")
+        val KEY_LIST_DENSITY = stringPreferencesKey("list_density_preference")
         val KEY_GLASS_MATERIAL = stringPreferencesKey("glass_material")
         /** Force de couleur du verre, en % (0-100). Absente : 70 %. */
         val KEY_GLASS_COLOR_STRENGTH = intPreferencesKey("glass_color_strength")
@@ -111,6 +113,10 @@ class UserPreferencesRepository(private val context: Context) {
                 AppThemeMode.DARK
             }
         }
+
+    val textSizePreference: Flow<TextSizePreference> = themeData.map { resolveTextSizePreference(it[KEY_TEXT_SIZE]) }
+
+    val listDensityPreference: Flow<ListDensityPreference> = themeData.map { resolveListDensityPreference(it[KEY_LIST_DENSITY]) }
 
     val isDynamicColorEnabled: Flow<Boolean> = context.musicProDataStore.data
         .catch { exception ->
@@ -368,6 +374,14 @@ class UserPreferencesRepository(private val context: Context) {
                 shuffleEnabled = preferences[KEY_SHUFFLE_ENABLED] ?: false
             )
         }
+
+    suspend fun setTextSizePreference(value: TextSizePreference) {
+        context.musicProDataStore.edit { it[KEY_TEXT_SIZE] = value.name }
+    }
+
+    suspend fun setListDensityPreference(value: ListDensityPreference) {
+        context.musicProDataStore.edit { it[KEY_LIST_DENSITY] = value.name }
+    }
 
     suspend fun setDynamicColor(enabled: Boolean) {
         context.musicProDataStore.edit { preferences ->
