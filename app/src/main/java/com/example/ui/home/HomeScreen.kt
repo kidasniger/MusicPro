@@ -46,6 +46,7 @@ import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.automirrored.outlined.QueueMusic
 import androidx.compose.material.icons.filled.Album
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.GraphicEq
@@ -63,6 +64,7 @@ import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.NewReleases
 import androidx.compose.material.icons.outlined.Radio
 import androidx.compose.material.icons.outlined.Search
@@ -139,6 +141,7 @@ import com.example.ui.lyrics.LyricsScreen
 import com.example.ui.nowplaying.NowPlayingScreen
 import com.example.ui.radio.RadioScreen
 import com.example.ui.search.SearchScreen
+import com.example.ui.stats.StatsScreen
 import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProCyanVibrant
@@ -165,7 +168,8 @@ enum class NavigationSection(
     NEW(R.string.nav_new, Icons.Outlined.NewReleases, Icons.Default.NewReleases),
     RADIO(R.string.nav_radio, Icons.Outlined.Radio, Icons.Default.Radio),
     LIBRARY(R.string.nav_library, Icons.AutoMirrored.Outlined.QueueMusic, Icons.AutoMirrored.Filled.QueueMusic),
-    SEARCH(R.string.nav_search, Icons.Outlined.Search, Icons.Default.Search)
+    SEARCH(R.string.nav_search, Icons.Outlined.Search, Icons.Default.Search),
+    STATS(R.string.nav_stats, Icons.Outlined.BarChart, Icons.Default.BarChart)
 }
 
 @Composable
@@ -482,6 +486,9 @@ fun HomeScreen(
                                     onToggleFavorite = { audioViewModel.toggleFavorite(it) },
                                     onRefreshScan = { audioViewModel.refreshScan() }
                                 )
+                            }
+                            NavigationSection.STATS -> {
+                                StatsScreen()
                             }
                             NavigationSection.SEARCH -> {
                                 SearchScreen(
