@@ -191,4 +191,5 @@
     <string name="settings_empty">Vider</string>
     <string name="settings_purge">Purger</string>
 <string name="settings_version_format">v%1$s</string>
+<string name="appearance_text_size">Taille du texte</string><string name="appearance_list_density">Densité</string><string name="appearance_reduce_animations">Réduire les animations</string><string name="appearance_reduce_animations_desc">Fondus discrets de 120 ms, sans parallaxe, flou animé ni rotation du vinyle</string>
 </resources>
