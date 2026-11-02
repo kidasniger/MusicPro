@@ -1,6 +1,9 @@
 package com.example.ui.components.glass
 
 import android.provider.Settings
+import android.database.ContentObserver
+import android.os.Handler
+import android.os.Looper
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -25,6 +28,10 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -62,13 +69,27 @@ data class GlassNavItem(
 @Composable
 fun rememberSystemAnimationsEnabled(): Boolean {
     val context = LocalContext.current
-    return remember(context) {
+    fun readScaleEnabled(): Boolean = runCatching {
         Settings.Global.getFloat(
             context.contentResolver,
             Settings.Global.ANIMATOR_DURATION_SCALE,
             1f
         ) != 0f
+    }.getOrDefault(true)
+
+    var enabled by remember(context) { mutableStateOf(readScaleEnabled()) }
+    DisposableEffect(context) {
+        val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) {
+                enabled = readScaleEnabled()
+            }
+        }
+        val uri = Settings.Global.getUriFor(Settings.Global.ANIMATOR_DURATION_SCALE)
+        context.contentResolver.registerContentObserver(uri, false, observer)
+        enabled = readScaleEnabled()
+        onDispose { context.contentResolver.unregisterContentObserver(observer) }
     }
+    return enabled
 }
 
 /** Faux si l'utilisateur ou Android a demandé de réduire/supprimer les animations. */
