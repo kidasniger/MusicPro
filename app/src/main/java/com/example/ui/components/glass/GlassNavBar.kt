@@ -58,19 +58,23 @@ data class GlassNavItem(
     val testTag: String
 )
 
-/** Faux si l'utilisateur a désactivé les animations système (« Réduire les animations »). */
+/** Respecte le réglage Android global des animations. */
 @Composable
-fun rememberAnimationsEnabled(): Boolean {
+fun rememberSystemAnimationsEnabled(): Boolean {
     val context = LocalContext.current
-    val reduceAnimations = LocalReduceAnimations.current
-    return remember(context, reduceAnimations) {
-        !reduceAnimations && Settings.Global.getFloat(
+    return remember(context) {
+        Settings.Global.getFloat(
             context.contentResolver,
             Settings.Global.ANIMATOR_DURATION_SCALE,
             1f
         ) != 0f
     }
 }
+
+/** Faux si l'utilisateur ou Android a demandé de réduire/supprimer les animations. */
+@Composable
+fun rememberAnimationsEnabled(): Boolean =
+    !LocalReduceAnimations.current && rememberSystemAnimationsEnabled()
 
 /**
  * Couleur de la capsule de l'onglet actif, réglée par le curseur « Onglet actif »
