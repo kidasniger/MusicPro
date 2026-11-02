@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Mise à jour 025 : écran Réglages › Glass -->
+    <string name="glass_screen_title">Glass</string>
+    <string name="glass_screen_back">Retour</string>
+    <string name="glass_section_material">MATÉRIAU</string>
+    <string name="glass_section_color">COULEUR</string>
+    <string name="glass_reset">Réinitialiser</string>
+
+    <!-- Entrée dans la page Paramètres -->
+    <string name="glass_entry_title">Glass</string>
+    <string name="glass_entry_subtitle">Matériau, teinte, film et onglet actif</string>
+</resources>
