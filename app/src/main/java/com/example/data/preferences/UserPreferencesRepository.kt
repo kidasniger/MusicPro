@@ -68,6 +68,8 @@ class UserPreferencesRepository(private val context: Context) {
         /** Ancienne clé (mise à jour 004, valeurs BEAUTIFUL / FAST) : migrée à la lecture. */
         val KEY_GLASS_QUALITY_LEGACY = stringPreferencesKey("glass_quality")
         val KEY_FAVORITE_TRACK_IDS = stringSetPreferencesKey("favorite_track_ids")
+        /** Artistes favoris (étoile de l'écran Artiste, mise à jour 024). Absente : aucun. */
+        val KEY_FAVORITE_ARTISTS = stringSetPreferencesKey("favorite_artists")
         val KEY_SEARCH_HISTORY = stringPreferencesKey("search_history")
         val KEY_AUTO_PLAY = booleanPreferencesKey("auto_play")
         val KEY_GAPLESS = booleanPreferencesKey("gapless_playback")
@@ -312,6 +314,12 @@ class UserPreferencesRepository(private val context: Context) {
                 .toSet()
         }
 
+    val favoriteArtists: Flow<Set<String>> = context.musicProDataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { preferences -> preferences[KEY_FAVORITE_ARTISTS].orEmpty() }
+
     val searchHistory: Flow<List<String>> = context.musicProDataStore.data
         .catch { exception ->
             if (exception is IOException) emit(emptyPreferences()) else throw exception
@@ -370,6 +378,12 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun setFavoriteTrackIds(ids: Set<Long>) {
         context.musicProDataStore.edit { preferences ->
             preferences[KEY_FAVORITE_TRACK_IDS] = ids.map(Long::toString).toSet()
+        }
+    }
+
+    suspend fun setFavoriteArtists(names: Set<String>) {
+        context.musicProDataStore.edit { preferences ->
+            preferences[KEY_FAVORITE_ARTISTS] = names
         }
     }
 
