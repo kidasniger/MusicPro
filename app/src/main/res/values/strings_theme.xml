@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Réglages : apparence, style et accent (mises à jour 013 à 018) -->
-    <string name="theme_card_title">Apparence et thème</string>
-    <string name="theme_card_subtitle">Choisissez l’apparence et le style de MusicPro</string>
+    <string  translatable="false" name="theme_card_title">Apparence et thème</string>
+    <string  translatable="false" name="theme_card_subtitle">Choisissez l’apparence et le style de MusicPro</string>
 
-    <string name="theme_appearance_title">Apparence</string>
-    <string name="theme_appearance_light">Clair</string>
-    <string name="theme_appearance_dark">Sombre</string>
-    <string name="theme_appearance_auto">Auto</string>
-    <string name="theme_appearance_dark_evening">Sombre le soir</string>
-    <string name="theme_schedule_start">Début</string>
-    <string name="theme_schedule_end">Fin</string>
-    <string name="theme_schedule_hint">Sombre entre ces deux heures, clair le reste du temps.</string>
+    <string  translatable="false" name="theme_appearance_title">Apparence</string>
+    <string  translatable="false" name="theme_appearance_light">Clair</string>
+    <string  translatable="false" name="theme_appearance_dark">Sombre</string>
+    <string  translatable="false" name="theme_appearance_auto">Auto</string>
+    <string  translatable="false" name="theme_appearance_dark_evening">Sombre le soir</string>
+    <string  translatable="false" name="theme_schedule_start">Début</string>
+    <string  translatable="false" name="theme_schedule_end">Fin</string>
+    <string  translatable="false" name="theme_schedule_hint">Sombre entre ces deux heures, clair le reste du temps.</string>
 
-    <string name="theme_style_title">Style</string>
-    <string name="theme_style_minimal">Minimal</string>
-    <string name="theme_style_neon">Néon</string>
-    <string name="theme_style_glass">Verre</string>
+    <string  translatable="false" name="theme_style_title">Style</string>
+    <string  translatable="false" name="theme_style_minimal">Minimal</string>
+    <string  translatable="false" name="theme_style_neon">Néon</string>
+    <string  translatable="false" name="theme_style_glass">Verre</string>
 
-    <string name="theme_accent_title">Accent</string>
-    <string name="theme_accent_terracotta">Terracotta</string>
-    <string name="theme_accent_blue">Bleu</string>
-    <string name="theme_accent_green">Vert</string>
-    <string name="theme_accent_violet">Violet</string>
-    <string name="theme_accent_artwork">Selon la pochette</string>
-    <string name="theme_accent_disabled_neon">L’accent n’est pas modifiable avec le style Néon.</string>
-    <string name="theme_accent_disabled_dynamic">Indisponible tant que les couleurs adaptées au système sont actives.</string>
+    <string  translatable="false" name="theme_accent_title">Accent</string>
+    <string  translatable="false" name="theme_accent_terracotta">Terracotta</string>
+    <string  translatable="false" name="theme_accent_blue">Bleu</string>
+    <string  translatable="false" name="theme_accent_green">Vert</string>
+    <string  translatable="false" name="theme_accent_violet">Violet</string>
+    <string  translatable="false" name="theme_accent_artwork">Selon la pochette</string>
+    <string  translatable="false" name="theme_accent_disabled_neon">L’accent n’est pas modifiable avec le style Néon.</string>
+    <string  translatable="false" name="theme_accent_disabled_dynamic">Indisponible tant que les couleurs adaptées au système sont actives.</string>
 
-    <string name="theme_dynamic_title">Couleurs adaptées au système</string>
-    <string name="theme_dynamic_subtitle">Adapte les teintes à votre fond d’écran Android</string>
+    <string  translatable="false" name="theme_dynamic_title">Couleurs adaptées au système</string>
+    <string  translatable="false" name="theme_dynamic_subtitle">Adapte les teintes à votre fond d’écran Android</string>
 </resources>
