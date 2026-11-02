@@ -18,8 +18,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -59,6 +59,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -137,8 +138,7 @@ fun AlbumScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .size(width = MusicProTokens.Size.Touch, height = MusicProTokens.Size.Touch * 8)
-                .fillMaxWidth()
+                .height(MusicProTokens.Size.Touch * 8)
                 .background(
                     Brush.verticalGradient(
                         listOf(coverColor.copy(alpha = 0.40f), scheme.background)
@@ -371,7 +371,7 @@ fun AlbumScreen(
 
 @Composable
 private fun RoundActionButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     description: String,
     enabled: Boolean,
     onClick: () -> Unit,
