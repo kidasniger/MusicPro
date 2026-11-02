@@ -3,10 +3,12 @@ package com.example.ui.settings
 import android.app.Application
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.core.app.ApplicationProvider
+import com.example.R
 import com.example.data.preferences.AppThemeMode
 import com.example.data.preferences.GlassMaterial
 import com.example.ui.theme.MusicProTheme
@@ -39,7 +41,11 @@ class GlassSettingsScreenRobolectricTest {
 
         composeTestRule.onNodeWithTag("glass_settings_screen").assertIsDisplayed()
         composeTestRule.onNodeWithTag("glass_back_button").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("glass_preview").assertIsDisplayed()
+        // GlassPreviewCard efface la sémantique de ses enfants (clearAndSetSemantics) : le tag
+        // « glass_preview » n'est pas exposé, on retrouve l'aperçu par sa description d'accessibilité.
+        composeTestRule
+            .onNodeWithContentDescription(app.getString(R.string.glass_preview_description))
+            .assertIsDisplayed()
         composeTestRule.onNodeWithTag("glass_quality_card").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithTag("glass_tint_card").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithTag("glass_film_card").performScrollTo().assertIsDisplayed()
