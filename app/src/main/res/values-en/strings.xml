@@ -301,4 +301,5 @@
     <string name="settings_purge">Purge</string>
 <string name="settings_version_format">v%1$s</string>
 <string name="appearance_text_size">Text size</string><string name="appearance_list_density">List density</string><string name="appearance_reduce_animations">Reduce animations</string><string name="appearance_reduce_animations_desc">Subtle 120 ms fades, with no parallax, animated blur or vinyl rotation</string>
+<string name="settings_expand">Expand</string><string name="settings_collapse">Collapse</string>
 </resources>
