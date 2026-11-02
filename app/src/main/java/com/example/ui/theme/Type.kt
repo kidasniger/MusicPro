@@ -2,27 +2,47 @@ package com.example.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
+import com.example.R
 import com.example.data.preferences.AppStyle
 
 /**
  * Système typographique MusicPro.
  *
- * Familles (mise à jour 016) : [MusicProSansFamily] pour l'interface (Inter ou Instrument Sans) et
- * [MusicProSerifFamily] pour les grands titres du style Minimal (Source Serif 4 ou Newsreader).
- * Tant que les fichiers de police ne sont pas ajoutés dans `res/font`, ces deux familles se
- * rabattent sur les polices sans empattement et à empattement du système.
+ * Familles (mise à jour 016) : [MusicProSansFamily] pour l'interface (Inter) et
+ * [MusicProSerifFamily] pour les grands titres du style Minimal (Source Serif 4). Les deux sont
+ * des polices variables embarquées dans `res/font` (`inter.ttf`, `source_serif_4.ttf`) : la graisse
+ * est réglée par l'axe `wght` (minSdk 26, donc toujours disponible).
  *
  * Échelle des styles Minimal et Verre : Titre 28/34 semi-gras, Section 20/26, Corps 16/24,
  * Légende 13/18. Le style Néon garde son échelle d'origine.
  */
 
-// Familles de polices : un seul endroit à modifier quand les fichiers .ttf sont embarqués.
-val MusicProSansFamily: FontFamily = FontFamily.SansSerif
-val MusicProSerifFamily: FontFamily = FontFamily.Serif
+/** Une entrée de famille : même fichier variable, graisse réglée par l'axe `wght`. */
+private fun variableFont(resId: Int, weight: FontWeight): Font = Font(
+    resId = resId,
+    weight = weight,
+    variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight))
+)
+
+// Familles de polices : un seul endroit à modifier si on change de police.
+val MusicProSansFamily: FontFamily = FontFamily(
+    variableFont(R.font.inter, FontWeight.Normal),
+    variableFont(R.font.inter, FontWeight.Medium),
+    variableFont(R.font.inter, FontWeight.SemiBold),
+    variableFont(R.font.inter, FontWeight.Bold)
+)
+val MusicProSerifFamily: FontFamily = FontFamily(
+    variableFont(R.font.source_serif_4, FontWeight.Normal),
+    variableFont(R.font.source_serif_4, FontWeight.Medium),
+    variableFont(R.font.source_serif_4, FontWeight.SemiBold),
+    variableFont(R.font.source_serif_4, FontWeight.Bold)
+)
 
 // Alias conservés pour le code existant.
 val InterFontFamily = MusicProSansFamily
