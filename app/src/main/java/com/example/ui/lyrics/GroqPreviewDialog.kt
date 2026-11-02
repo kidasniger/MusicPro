@@ -41,6 +41,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.example.R
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -120,13 +122,13 @@ fun GroqPreviewDialog(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = "Aperçu des paroles générées",
+                                text = stringResource(R.string.groq_preview_title),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MusicProTextPrimary
                             )
                             Text(
-                                text = "Création des paroles terminée",
+                                text = stringResource(R.string.groq_generation_done),
                                 fontSize = 11.sp,
                                 color = MusicProCyanLight
                             )
@@ -217,7 +219,7 @@ fun GroqPreviewDialog(
                                 color = MusicProSuccess.copy(alpha = 0.15f)
                             ) {
                                 Text(
-                                    text = "${result.linesCount} lignes",
+                                    text = stringResource(R.string.groq_lines_count, result.linesCount),
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = MusicProSuccess,
@@ -232,7 +234,7 @@ fun GroqPreviewDialog(
 
                 // Liste défilante des segments synchronisés
                 Text(
-                    text = "Lignes synchronisées générées :",
+                    text = stringResource(R.string.groq_generated_synced_lines),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     color = MusicProTextSecondary
@@ -254,7 +256,7 @@ fun GroqPreviewDialog(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Aucune ligne synchronisée générée.",
+                                text = stringResource(R.string.groq_no_synced_lines),
                                 color = MusicProTextMuted,
                                 fontSize = 13.sp
                             )
@@ -285,7 +287,7 @@ fun GroqPreviewDialog(
                         onClick = {
                             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                             clipboard.setPrimaryClip(ClipData.newPlainText("LRC Lyrics", result.fullLrcContent))
-                            Toast.makeText(context, "Paroles synchronisées copiées dans le presse-papiers.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, stringResource(R.string.groq_clipboard_copied), Toast.LENGTH_SHORT).show()
                         },
                         modifier = Modifier
                             .height(48.dp)
@@ -301,7 +303,7 @@ fun GroqPreviewDialog(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Copier LRC",
+                            text = stringResource(R.string.groq_copy_lrc),
                             color = MusicProVioletLight,
                             fontSize = 12.sp
                         )
@@ -327,7 +329,7 @@ fun GroqPreviewDialog(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Intégrer au morceau",
+                            text = stringResource(R.string.groq_integrate_track),
                             color = Color.Black,
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp
