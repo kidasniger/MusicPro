@@ -3,9 +3,11 @@ package com.example
 import android.os.Bundle
 import android.content.Intent
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -25,6 +27,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.data.preferences.AccentChoice
 import com.example.permissions.PermissionViewModel
 import com.example.playback.MusicPlaybackService
 import com.example.ui.components.AppUpdateDialog
@@ -38,6 +41,8 @@ import com.example.ui.navigation.MusicProNavGraph
 import com.example.ui.onboarding.OnboardingViewModel
 import com.example.ui.settings.SettingsViewModel
 import com.example.ui.theme.MusicProTheme
+import com.example.ui.theme.rememberArtworkAccent
+import com.example.ui.theme.resolveIsDark
 import com.example.updater.DownloadState
 import com.example.updater.UpdateCheckState
 import com.example.ui.theme.MyApplicationTheme
@@ -57,7 +62,10 @@ class MainActivity : ComponentActivity() {
     enableEdgeToEdge()
 
     setContent {
-      val currentThemeMode by settingsViewModel.themeMode.collectAsStateWithLifecycle()
+      val appearance by settingsViewModel.appearanceMode.collectAsStateWithLifecycle()
+      val appStyle by settingsViewModel.appStyle.collectAsStateWithLifecycle()
+      val accentChoice by settingsViewModel.accentChoice.collectAsStateWithLifecycle()
+      val eveningDark by settingsViewModel.eveningDarkActive.collectAsStateWithLifecycle()
       val mediaUiRequest by mediaUiRequestState
       val isDynamicColor by settingsViewModel.isDynamicColor.collectAsStateWithLifecycle()
       val glassMaterial by settingsViewModel.glassMaterial.collectAsStateWithLifecycle()
@@ -70,7 +78,40 @@ class MainActivity : ComponentActivity() {
         GlassStyle(filmOpacity = glassFilmOpacity, activeTabOpacity = glassActiveTabOpacity)
       }
 
-      MusicProTheme(themeMode = currentThemeMode, dynamicColor = isDynamicColor) {
+      // Apparence réellement affichée (Auto suit le système, « Sombre le soir » suit l'heure).
+      val systemDark = isSystemInDarkTheme()
+      val isDark = resolveIsDark(appearance, eveningDark, systemDark)
+
+      // Mise à jour 020 : barres d'état et de gestes transparentes, icônes claires ou sombres
+      // selon le thème réellement affiché, y compris quand il change en cours d'écran.
+      DisposableEffect(isDark) {
+        this@MainActivity.enableEdgeToEdge(
+          statusBarStyle = SystemBarStyle.auto(
+            android.graphics.Color.TRANSPARENT,
+            android.graphics.Color.TRANSPARENT
+          ) { isDark },
+          navigationBarStyle = SystemBarStyle.auto(
+            android.graphics.Color.TRANSPARENT,
+            android.graphics.Color.TRANSPARENT
+          ) { isDark }
+        )
+        onDispose { }
+      }
+
+      // Accent « Selon la pochette » : couleur dominante du morceau en cours (null sinon).
+      val artworkAccent by rememberArtworkAccent(
+        enabled = accentChoice == AccentChoice.ARTWORK,
+        isDark = isDark
+      )
+
+      MusicProTheme(
+        appearance = appearance,
+        style = appStyle,
+        accent = accentChoice,
+        eveningDark = eveningDark,
+        artworkAccent = artworkAccent,
+        dynamicColor = isDynamicColor
+      ) {
         val context = LocalContext.current
         val lifecycleOwner = LocalLifecycleOwner.current
         val uiState by permissionViewModel.uiState.collectAsStateWithLifecycle()

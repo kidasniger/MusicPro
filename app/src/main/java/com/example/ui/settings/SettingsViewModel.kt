@@ -3,28 +3,40 @@ package com.example.ui.settings
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.data.preferences.AccentChoice
+import com.example.data.preferences.AppStyle
 import com.example.data.preferences.AppThemeMode
+import com.example.data.preferences.AppearanceMode
+import com.example.data.preferences.DefaultEveningEndMinutes
+import com.example.data.preferences.DefaultEveningStartMinutes
 import com.example.data.preferences.DefaultGlassActiveTabOpacity
 import com.example.data.preferences.DefaultGlassColorStrength
 import com.example.data.preferences.DefaultGlassFilmOpacity
 import com.example.data.preferences.DefaultGlassFrostDp
 import com.example.data.preferences.GlassMaterial
 import com.example.data.preferences.UserPreferencesRepository
+import com.example.data.preferences.isInDarkWindow
 import com.example.data.repository.AudioRepository
 import com.example.updater.AppUpdateManager
 import com.example.updater.DownloadState
 import com.example.updater.UpdateCheckState
 import com.example.util.CacheManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Calendar
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -37,7 +49,64 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     val currentVersionName: String = appUpdateManager.getCurrentVersionName()
 
-    val themeMode: StateFlow<AppThemeMode> = preferencesRepository.themeMode
+    // --- Apparence et style (mises à jour 013, 017, 018) ------------------------------------------
+
+    /** Apparence (Clair, Sombre, Auto, Sombre le soir) ; déduite de l'ancienne clé tant qu'elle n'est pas écrite. */
+    val appearanceMode: StateFlow<AppearanceMode> = preferencesRepository.appearanceMode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppearanceMode.DARK)
+
+    /** Style (Minimal, Néon, Verre) ; déduit de l'ancienne clé tant qu'il n'est pas écrit. */
+    val appStyle: StateFlow<AppStyle> = preferencesRepository.appStyle
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppStyle.NEON)
+
+    /** Accent ; Terracotta par défaut. */
+    val accentChoice: StateFlow<AccentChoice> = preferencesRepository.accentChoice
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AccentChoice.TERRACOTTA)
+
+    /** Début de « Sombre le soir », en minutes depuis minuit (20:00 par défaut). */
+    val eveningStartMinutes: StateFlow<Int> = preferencesRepository.eveningStartMinutes
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DefaultEveningStartMinutes)
+
+    /** Fin de « Sombre le soir », en minutes depuis minuit (07:00 par défaut). */
+    val eveningEndMinutes: StateFlow<Int> = preferencesRepository.eveningEndMinutes
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DefaultEveningEndMinutes)
+
+    /** Minute courante de la journée, rafraîchie toutes les 30 s tant que l'écran observe le thème. */
+    private val minuteOfDayTicker: Flow<Int> = flow {
+        while (true) {
+            emit(currentMinuteOfDay())
+            delay(EveningTickMillis)
+        }
+    }
+
+    /**
+     * Vrai quand l'heure courante tombe dans la plage « Sombre le soir ». Observé par
+     * `MusicProTheme` : le thème bascule sans redémarrer l'activité.
+     */
+    val eveningDarkActive: StateFlow<Boolean> = combine(
+        eveningStartMinutes,
+        eveningEndMinutes,
+        minuteOfDayTicker
+    ) { start, end, now -> isInDarkWindow(now, start, end) }
+        .distinctUntilChanged()
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            isInDarkWindow(currentMinuteOfDay(), DefaultEveningStartMinutes, DefaultEveningEndMinutes)
+        )
+
+    /**
+     * Ancien sélecteur à trois valeurs, dérivé de l'apparence. Conservé tant que l'ancien écran de
+     * réglages l'utilise ; il pilote désormais les deux nouveaux réglages (voir [setThemeMode]).
+     */
+    val themeMode: StateFlow<AppThemeMode> = preferencesRepository.appearanceMode
+        .map { appearance ->
+            when (appearance) {
+                AppearanceMode.LIGHT -> AppThemeMode.LIGHT
+                AppearanceMode.AUTO -> AppThemeMode.SYSTEM
+                AppearanceMode.DARK, AppearanceMode.DARK_EVENING -> AppThemeMode.DARK
+            }
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppThemeMode.DARK)
 
     val isDynamicColor: StateFlow<Boolean> = preferencesRepository.isDynamicColorEnabled
@@ -151,10 +220,47 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    /**
+     * Ancien sélecteur : applique la table de migration de `app_theme_mode`
+     * (DARK → Sombre + Néon, LIGHT → Clair + Minimal, SYSTEM → Auto + Minimal).
+     */
     fun setThemeMode(mode: AppThemeMode) {
         viewModelScope.launch {
-            preferencesRepository.setThemeMode(mode)
+            when (mode) {
+                AppThemeMode.DARK -> {
+                    preferencesRepository.setAppearanceMode(AppearanceMode.DARK)
+                    preferencesRepository.setAppStyle(AppStyle.NEON)
+                }
+                AppThemeMode.LIGHT -> {
+                    preferencesRepository.setAppearanceMode(AppearanceMode.LIGHT)
+                    preferencesRepository.setAppStyle(AppStyle.MINIMAL)
+                }
+                AppThemeMode.SYSTEM -> {
+                    preferencesRepository.setAppearanceMode(AppearanceMode.AUTO)
+                    preferencesRepository.setAppStyle(AppStyle.MINIMAL)
+                }
+            }
         }
+    }
+
+    fun setAppearanceMode(mode: AppearanceMode) {
+        viewModelScope.launch { preferencesRepository.setAppearanceMode(mode) }
+    }
+
+    fun setAppStyle(style: AppStyle) {
+        viewModelScope.launch { preferencesRepository.setAppStyle(style) }
+    }
+
+    fun setAccentChoice(choice: AccentChoice) {
+        viewModelScope.launch { preferencesRepository.setAccentChoice(choice) }
+    }
+
+    fun setEveningStartMinutes(minutes: Int) {
+        viewModelScope.launch { preferencesRepository.setEveningStartMinutes(minutes) }
+    }
+
+    fun setEveningEndMinutes(minutes: Int) {
+        viewModelScope.launch { preferencesRepository.setEveningEndMinutes(minutes) }
     }
 
     fun setDynamicColor(enabled: Boolean) {
@@ -284,5 +390,15 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun resetUpdateState() {
         appUpdateManager.resetState()
+    }
+
+    private companion object {
+        /** Intervalle de rafraîchissement de l'heure pour « Sombre le soir ». */
+        const val EveningTickMillis = 30_000L
+
+        fun currentMinuteOfDay(): Int {
+            val now = Calendar.getInstance()
+            return now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
+        }
     }
 }
