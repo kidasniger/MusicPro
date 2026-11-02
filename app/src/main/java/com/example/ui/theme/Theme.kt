@@ -13,7 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.runtime.staticCompositionLocalOf
+import com.example.data.preferences.ListDensityPreference
 import com.example.data.preferences.AccentChoice
 import com.example.data.preferences.AppStyle
 import com.example.data.preferences.AppThemeMode
