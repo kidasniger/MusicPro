@@ -1,14 +1,14 @@
 <resources>
     <!-- Réglages : film du verre et onglet actif -->
-    <string name="glass_film_card_title">Film et onglet actif</string>
-    <string name="glass_film_card_subtitle">Voile du verre et capsule de la barre de navigation</string>
+    <string  translatable="false" name="glass_film_card_title">Film et onglet actif</string>
+    <string  translatable="false" name="glass_film_card_subtitle">Voile du verre et capsule de la barre de navigation</string>
 
-    <string name="glass_film_title">Film</string>
-    <string name="glass_film_desc" formatted="false">Opacité du voile de couleur du verre. 50 % garde le rendu d’origine, 0 % le rend transparent et 100 % l’opacifie.</string>
-    <string name="glass_film_value">%1$d %%</string>
-    <string name="glass_film_low_contrast">Avec un film très faible, le texte sur le verre devient difficile à lire.</string>
+    <string  translatable="false" name="glass_film_title">Film</string>
+    <string  translatable="false" name="glass_film_desc" formatted="false">Opacité du voile de couleur du verre. 50 % garde le rendu d’origine, 0 % le rend transparent et 100 % l’opacifie.</string>
+    <string  translatable="false" name="glass_film_value">%1$d %%</string>
+    <string  translatable="false" name="glass_film_low_contrast">Avec un film très faible, le texte sur le verre devient difficile à lire.</string>
 
-    <string name="glass_active_tab_title">Onglet actif</string>
-    <string name="glass_active_tab_desc">Opacité de la capsule de l’onglet sélectionné dans la barre de navigation.</string>
-    <string name="glass_active_tab_value">%1$d %%</string>
+    <string  translatable="false" name="glass_active_tab_title">Onglet actif</string>
+    <string  translatable="false" name="glass_active_tab_desc">Opacité de la capsule de l’onglet sélectionné dans la barre de navigation.</string>
+    <string  translatable="false" name="glass_active_tab_value">%1$d %%</string>
 </resources>
