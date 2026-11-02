@@ -92,7 +92,7 @@ class SettingsScreenRobolectricTest {
 
         composeTestRule.onNodeWithTag("theme_settings_card").assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_light_button").assertIsDisplayed()
-        // La carte « Effet verre » se trouve entre le thème et la clé : on fait défiler jusqu'à la clé.
+        // L'entrée « Glass » se trouve entre le thème et la clé : on fait défiler jusqu'à la clé.
         composeTestRule.onNodeWithTag("groq_settings_card").performScrollTo().assertIsDisplayed()
     }
 
@@ -160,7 +160,8 @@ class SettingsScreenRobolectricTest {
 
         // Verify key sections are present
         composeTestRule.onNodeWithTag("theme_settings_card").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("glass_quality_card").performScrollTo().assertIsDisplayed()
+        // Mise à jour 025 : les réglages du verre sont sur settings/glass ; la page garde une entrée.
+        composeTestRule.onNodeWithTag("glass_settings_entry").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithTag("groq_settings_card").performScrollTo().assertIsDisplayed()
 
         // Verify Theme buttons : on défile d'abord jusqu'au premier bouton (Clair) ; le défilement
