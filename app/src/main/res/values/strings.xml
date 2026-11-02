@@ -133,4 +133,6 @@
     <string name="settings_quick_neon">Néon</string>
     <string name="settings_quick_glass">Verre</string>
     <string name="settings_selected">Sélectionné</string>
+
+<string name="settings_groq_key_saved">Clé enregistrée.</string><string name="settings_groq_key_save_failed">Impossible d’enregistrer la clé.</string><string name="settings_groq_key_required">Veuillez saisir une clé d’accès valide.</string><string name="settings_groq_key_deleted">Clé d’accès supprimée.</string><string name="settings_groq_key_enter_first">Veuillez d’abord saisir une clé d’accès.</string><string name="settings_groq_connection_success">Connexion réussie.</string><string name="settings_groq_test_failed">Échec du test</string>
 </resources>
