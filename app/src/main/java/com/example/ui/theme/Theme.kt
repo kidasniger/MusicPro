@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.staticCompositionLocalOf
 import com.example.data.preferences.ListDensityPreference
 import com.example.data.preferences.AccentChoice
@@ -23,6 +24,8 @@ import com.example.data.preferences.AppStyle
 import com.example.data.preferences.AppThemeMode
 import com.example.data.preferences.AppearanceMode
 import com.example.ui.components.glass.rememberAnimationsEnabled
+
+val LocalMusicProListRowHeight = staticCompositionLocalOf { 64.dp }
 
 /**
  * Palette de couleurs sombre Material 3 calquée fidèlement sur la charte MusicPro.
@@ -134,6 +137,8 @@ fun MusicProTheme(
     eveningDark: Boolean = false,
     artworkAccent: Color? = null,
     dynamicColor: Boolean = false,
+    fontScale: Float = 1f,
+    listDensity: ListDensityPreference = ListDensityPreference.COMFORTABLE,
     content: @Composable () -> Unit
 ) {
     val systemDark = isSystemInDarkTheme()
@@ -170,15 +175,19 @@ fun MusicProTheme(
         animatedBase
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = musicProTypography(style)
-    ) {
-        CompositionLocalProvider(
-            LocalAppStyle provides style,
-            LocalIsDarkTheme provides isDark
+    val density = LocalDensity.current
+    CompositionLocalProvider(LocalDensity provides density.copy(fontScale = density.fontScale * fontScale)) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = musicProTypography(style)
         ) {
-            content()
+            CompositionLocalProvider(
+                LocalAppStyle provides style,
+                LocalIsDarkTheme provides isDark,
+                LocalMusicProListRowHeight provides listDensity.rowHeightDp.dp
+            ) {
+                content()
+            }
         }
     }
 }
