@@ -129,6 +129,8 @@ fun SettingsScreen(
     val glassTintHue by settingsViewModel.glassTintHue.collectAsStateWithLifecycle()
     val glassFilmOpacity by settingsViewModel.glassFilmOpacity.collectAsStateWithLifecycle()
     val glassActiveTabOpacity by settingsViewModel.glassActiveTabOpacity.collectAsStateWithLifecycle()
+    // Aperçu en direct du verre (mise à jour 010) : état hissé dans le ViewModel
+    val glassPreview by settingsViewModel.glassPreview.collectAsStateWithLifecycle()
     val autoPlay by settingsViewModel.autoPlay.collectAsStateWithLifecycle()
     val gaplessPlayback by settingsViewModel.gaplessPlayback.collectAsStateWithLifecycle()
     val resumePlayback by settingsViewModel.resumePlayback.collectAsStateWithLifecycle()
@@ -185,6 +187,10 @@ fun SettingsScreen(
                 isDynamicColor = isDynamicColor,
                 onDynamicColorChanged = { settingsViewModel.setDynamicColor(it) }
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            GlassPreviewCard(state = glassPreview)
 
             Spacer(modifier = Modifier.height(16.dp))
 
