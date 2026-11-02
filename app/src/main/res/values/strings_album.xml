@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="album_various_artists">Artistes divers</string>
     <string name="album_type">Album</string>
     <string name="album_shuffle">Lecture aléatoire</string>
     <string name="album_play">Lecture</string>
