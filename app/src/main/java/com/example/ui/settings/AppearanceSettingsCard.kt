@@ -85,6 +85,8 @@ fun AppearanceSettingsCard(
     onTextSizeSelected: (TextSizePreference) -> Unit,
     listDensity: ListDensityPreference,
     onListDensitySelected: (ListDensityPreference) -> Unit,
+    reduceAnimations: Boolean,
+    onReduceAnimationsChanged: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val dynamicSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
@@ -226,6 +228,32 @@ fun AppearanceSettingsCard(
                         )
                     }
                 }
+            }
+
+            // --- Réduction des animations -------------------------------------------------------
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = MusicProTokens.Size.Touch),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Réduire les animations",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Fondus discrets de 120 ms, sans parallaxe, flou animé ni rotation du vinyle",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Switch(
+                    checked = reduceAnimations,
+                    onCheckedChange = onReduceAnimationsChanged,
+                    modifier = Modifier.testTag("reduce_animations_switch")
+                )
             }
 
             // --- Couleurs dynamiques -----------------------------------------------------------
