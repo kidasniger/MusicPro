@@ -3,6 +3,7 @@ package com.example.ui.home
 import android.app.Activity
 import android.util.Log
 import android.widget.Toast
+import java.util.Calendar
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -430,6 +431,7 @@ fun HomeScreen(
                                     currentPlayingTrack = currentTrack,
                                     isPlaying = isPlaying,
                                     favorites = favorites,
+                                    onResumePlayback = { audioViewModel.togglePlayPause() },
                                     onOpenSettings = onOpenSettings,
                                     onOpenOnboarding = onOpenOnboarding,
                                     onNavigateToLibrary = { currentSectionName = NavigationSection.LIBRARY.name },
@@ -865,6 +867,7 @@ private fun HomeExplorerContent(
     currentPlayingTrack: AudioTrackEntity?,
     isPlaying: Boolean,
     favorites: Set<Long>,
+    onResumePlayback: () -> Unit = {},
     onOpenSettings: () -> Unit,
     onOpenOnboarding: () -> Unit,
     onNavigateToLibrary: () -> Unit,
@@ -888,6 +891,14 @@ private fun HomeExplorerContent(
         ),
         label = "spin_angle"
     )
+
+    val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    val greeting = when (hour) {
+        in 5..11 -> "Bonjour"
+        in 12..17 -> "Bon après-midi"
+        in 18..22 -> "Bonsoir"
+        else -> "Bonne nuit"
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -981,6 +992,35 @@ private fun HomeExplorerContent(
                             tint = MusicProCyanNeon,
                             modifier = Modifier.size(20.dp)
                         )
+                    }
+                }
+            }
+        }
+
+        item {
+            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
+                Text(greeting, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onBackground)
+                Text("Heureux de vous retrouver sur MusicPro.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+
+        if (currentPlayingTrack != null) {
+            item {
+                Surface(
+                    onClick = onResumePlayback,
+                    shape = RoundedCornerShape(18.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).testTag("home_resume_playback")
+                ) {
+                    Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(24.dp))
+                        Spacer(Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Reprendre où vous en étiez", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleSmall)
+                            Text(currentPlayingTrack.title, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                        Icon(Icons.Default.PlayArrow, contentDescription = "Reprendre", modifier = Modifier.size(20.dp))
                     }
                 }
             }
