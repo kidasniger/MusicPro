@@ -1,5 +1,13 @@
 <resources>
     <string name="app_name">MusicPro</string>
+    <string name="language_title">Langue</string>
+    <string name="language_auto">Auto</string>
+    <string name="language_french">Français</string>
+    <string name="language_english">English</string>
+    <string name="language_arabic">العربية</string>
+    <string name="language_hausa">Hausa</string>
+    <string name="language_zarma">Zarma</string>
+    <string name="language_restart_hint">L’interface sera actualisée après le changement de langue.</string>
     <string name="notification_channel_name">Lecture MusicPro</string>
     <string name="notification_channel_desc">Contrôles de lecture et notification multimédia</string>
     <string name="widget_name">MusicPro - Lecteur</string>
