@@ -147,6 +147,7 @@ import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPastel
 import com.example.ui.theme.MusicProVioletPrimary
 import com.example.ui.theme.MusicProVioletVibrant
+import com.example.ui.whatsnew.NewScreen
 
 /**
  * Sections de la barre de navigation flottante, dans l'ordre d'affichage.
@@ -427,10 +428,13 @@ fun HomeScreen(
                                 )
                             }
                             NavigationSection.NEW -> {
-                                PlaceholderScreen(
-                                    titleRes = R.string.placeholder_title,
-                                    messageRes = R.string.placeholder_new_desc,
-                                    icon = Icons.Default.NewReleases
+                                // Mise à jour 021 : ajouts récents, jamais écoutés, albums récents.
+                                NewScreen(
+                                    tracks = tracks,
+                                    currentPlayingTrack = currentTrack,
+                                    isScanning = isScanning,
+                                    onPlayTrack = { track, list -> audioViewModel.playTrack(track, list) },
+                                    onScan = { audioViewModel.refreshScan() }
                                 )
                             }
                             NavigationSection.RADIO -> {
