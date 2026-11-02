@@ -105,6 +105,7 @@ import androidx.media3.common.Player
 import coil.compose.AsyncImage
 import com.example.data.local.AudioTrackEntity
 import com.example.lyrics.LyricsData
+import com.example.ui.components.glass.rememberAnimationsEnabled
 import com.example.ui.components.glass.sharedCover
 import com.example.ui.theme.MusicProCyanGlow
 import com.example.ui.theme.MusicProCyanLight
