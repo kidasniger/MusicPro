@@ -142,6 +142,7 @@ class SettingsScreenRobolectricTest {
             assertFalse(plaintextFallback.contains("key_groq_whisper_api"))
         }
     }
+
     @Test
     fun testSettingsScreenComposesSuccessfully() {
         val app = ApplicationProvider.getApplicationContext<Application>()
@@ -162,9 +163,10 @@ class SettingsScreenRobolectricTest {
         composeTestRule.onNodeWithTag("glass_quality_card").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithTag("groq_settings_card").performScrollTo().assertIsDisplayed()
 
-        // Verify Theme buttons
-        composeTestRule.onNodeWithTag("theme_dark_button").performScrollTo().assertIsDisplayed()
-        composeTestRule.onNodeWithTag("theme_light_button").assertIsDisplayed()
+        // Verify Theme buttons : on défile d'abord jusqu'au premier bouton (Clair) ; le défilement
+        // l'aligne en haut, donc Sombre et Auto restent visibles juste en dessous.
+        composeTestRule.onNodeWithTag("theme_light_button").performScrollTo().assertIsDisplayed()
+        composeTestRule.onNodeWithTag("theme_dark_button").assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_system_button").assertIsDisplayed()
 
         // Click on Light Theme
