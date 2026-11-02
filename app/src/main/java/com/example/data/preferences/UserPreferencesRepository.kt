@@ -114,22 +114,6 @@ class UserPreferencesRepository(private val context: Context) {
             }
         }
 
-    val textSizePreference: Flow<TextSizePreference> = themeData.map { resolveTextSizePreference(it[KEY_TEXT_SIZE]) }
-
-    val listDensityPreference: Flow<ListDensityPreference> = themeData.map { resolveListDensityPreference(it[KEY_LIST_DENSITY]) }
-
-    val isDynamicColorEnabled: Flow<Boolean> = context.musicProDataStore.data
-        .catch { exception ->
-            if (exception is IOException) {
-                emit(emptyPreferences())
-            } else {
-                throw exception
-            }
-        }
-        .map { preferences ->
-            preferences[KEY_DYNAMIC_COLOR] ?: false
-        }
-
     private val themeData: Flow<Preferences> = context.musicProDataStore.data
         .catch { exception ->
             if (exception is IOException) emit(emptyPreferences()) else throw exception
@@ -145,6 +129,23 @@ class UserPreferencesRepository(private val context: Context) {
                 stored = preferences[KEY_GLASS_MATERIAL],
                 legacy = preferences[KEY_GLASS_QUALITY_LEGACY]
             )
+        }
+
+
+    val textSizePreference: Flow<TextSizePreference> = themeData.map { resolveTextSizePreference(it[KEY_TEXT_SIZE]) }
+
+    val listDensityPreference: Flow<ListDensityPreference> = themeData.map { resolveListDensityPreference(it[KEY_LIST_DENSITY]) }
+
+    val isDynamicColorEnabled: Flow<Boolean> = context.musicProDataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+        .map { preferences ->
+            preferences[KEY_DYNAMIC_COLOR] ?: false
         }
 
     /** Force de couleur du verre en % (0-100) ; 70 % par défaut (voir [resolveGlassColorStrength]). */
