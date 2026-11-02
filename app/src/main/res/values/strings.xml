@@ -45,4 +45,15 @@
     <string name="accent_unavailable">L’accent s’applique aux styles Minimal et Verre, sans couleurs dynamiques.</string>
     <string name="dynamic_color_title">Couleurs dynamiques</string>
     <string name="dynamic_color_subtitle">Utilise les couleurs de votre fond d’écran (Android 12 et plus)</string>
+
+    <!-- Paroles : feuille d'options (mise à jour 026) -->
+    <string name="lyrics_options_cd">Options des paroles</string>
+    <string name="lyrics_options_title">Options des paroles</string>
+    <string name="lyrics_karaoke">Karaoké</string>
+    <string name="lyrics_karaoke_hint">Taille du texte, couleur de la ligne active et réinitialisation</string>
+    <string name="lyrics_offset_title">Décalage des paroles</string>
+    <string name="lyrics_offset_value">%1$+d ms</string>
+    <string name="lyrics_offset_minus_cd">Reculer de 100 millisecondes</string>
+    <string name="lyrics_offset_plus_cd">Avancer de 100 millisecondes</string>
+    <string name="lyrics_offset_reset">Remettre à zéro</string>
 </resources>
