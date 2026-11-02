@@ -20,6 +20,7 @@ import com.example.data.repository.AudioRepository
 import androidx.core.content.ContextCompat
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -94,16 +95,29 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
 
     private var hasRetriedFallback = false
 
+    // Lecture automatique (réglage partagé avec Paramètres › Lecture et l'écran File d'attente).
+    // Vrai par défaut, comme la valeur par défaut du réglage.
+    @Volatile
+    private var autoPlayEnabled = true
+    private var isExtendingQueue = false
+
     fun clearErrorMessage() {
         _errorMessage.value = null
     }
 
     init {
         connectToService()
+        observeAutoPlayPreference()
     }
 
     companion object {
         private const val TAG = "MusicPlaybackManager"
+
+        /** Nombre de morceaux ajoutés par la lecture automatique à la fin de la file. */
+        private const val AUTOPLAY_BATCH_SIZE = 10
+
+        /** Part maximale de morceaux du même artiste dans ce lot, pour garder de la variété. */
+        private const val AUTOPLAY_SAME_ARTIST_MAX = 5
 
         @Volatile
         private var INSTANCE: MusicPlaybackManager? = null
@@ -113,6 +127,18 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
                 INSTANCE ?: MusicPlaybackManager(context.applicationContext).also {
                     INSTANCE = it
                 }
+            }
+        }
+    }
+
+    private fun observeAutoPlayPreference() {
+        scope.launch {
+            try {
+                preferencesRepository.autoPlay.collect { autoPlayEnabled = it }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.w(TAG, "Lecture du réglage de lecture automatique impossible: ${e.message}")
             }
         }
     }
@@ -187,6 +213,8 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
                     Player.STATE_ENDED -> {
                         _isPlaying.value = false
                         stopPositionTicker()
+                        // Fin de la file : la lecture automatique prend le relais si elle est activée.
+                        continueWithSimilarTracks()
                     }
                     Player.STATE_IDLE -> {
                         _isPlaying.value = false
@@ -542,6 +570,52 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
         controller.setMediaItem(current.toMediaItem(), position)
         controller.prepare()
         if (wasPlaying) controller.play()
+    }
+
+    /**
+     * Lecture automatique : quand la file est terminée (répétition désactivée), ajoute quelques
+     * morceaux proches de celui qui vient de finir (même artiste d'abord, puis au hasard dans la
+     * bibliothèque) et poursuit la lecture. Sans effet si le réglage est désactivé.
+     */
+    private fun continueWithSimilarTracks() {
+        if (!autoPlayEnabled || isExtendingQueue) return
+        if (_repeatMode.value != Player.REPEAT_MODE_OFF) return
+        val controller = mediaController ?: return
+        val current = _currentTrack.value ?: return
+        if (currentPlaylist.isEmpty()) return
+
+        isExtendingQueue = true
+        scope.launch {
+            try {
+                val queuedIds = currentPlaylist.mapTo(HashSet()) { it.id }
+                val candidates = audioRepository.getAllTracksSnapshot().filter { it.id !in queuedIds }
+                if (candidates.isEmpty()) return@launch
+
+                val (sameArtist, others) = candidates.partition {
+                    current.artist.isNotBlank() && it.artist.equals(current.artist, ignoreCase = true)
+                }
+                val picks = (sameArtist.shuffled().take(AUTOPLAY_SAME_ARTIST_MAX) + others.shuffled())
+                    .take(AUTOPLAY_BATCH_SIZE)
+                if (picks.isEmpty()) return@launch
+
+                val firstNewIndex = currentPlaylist.size
+                val updated = currentPlaylist + picks
+                currentPlaylist = updated
+                _queue.value = updated
+                controller.addMediaItems(picks.map { it.toMediaItem() })
+                controller.seekTo(firstNewIndex, 0L)
+                controller.prepare()
+                controller.play()
+                _isPlaying.value = true
+                startPositionTicker()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e(TAG, "Lecture automatique impossible: ${e.message}", e)
+            } finally {
+                isExtendingQueue = false
+            }
+        }
     }
 
     fun setEqualizerEnabled(enabled: Boolean) {
