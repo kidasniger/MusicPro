@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="glass_mini_player_open">Ouvrir le lecteur</string>
-    <string name="glass_mini_player_next">Suivant</string>
-    <string name="glass_mini_player_play">Lecture</string>
-    <string name="glass_mini_player_pause">Pause</string>
+    <string  translatable="false" name="glass_mini_player_open">Ouvrir le lecteur</string>
+    <string  translatable="false" name="glass_mini_player_next">Suivant</string>
+    <string  translatable="false" name="glass_mini_player_play">Lecture</string>
+    <string  translatable="false" name="glass_mini_player_pause">Pause</string>
 </resources>
