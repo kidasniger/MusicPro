@@ -103,7 +103,13 @@ fun SharedCoverVisibility(
     content: @Composable () -> Unit
 ) {
     val animationsEnabled = rememberAnimationsEnabled()
-    val duration = if (animationsEnabled) 250 else 0
+    val systemAnimationsEnabled = rememberSystemAnimationsEnabled()
+    val duration = when {
+        !systemAnimationsEnabled -> 0
+        LocalReduceAnimations.current -> 120
+        animationsEnabled -> 250
+        else -> 0
+    }
     AnimatedVisibility(
         visible = visible,
         modifier = modifier,
