@@ -14,6 +14,8 @@ import com.example.data.preferences.DefaultGlassColorStrength
 import com.example.data.preferences.DefaultGlassFilmOpacity
 import com.example.data.preferences.DefaultGlassFrostDp
 import com.example.data.preferences.GlassMaterial
+import com.example.data.preferences.TextSizePreference
+import com.example.data.preferences.ListDensityPreference
 import com.example.data.preferences.UserPreferencesRepository
 import com.example.data.preferences.isInDarkWindow
 import com.example.data.repository.AudioRepository
@@ -134,6 +136,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     /** Opacité de la capsule de l'onglet actif en % (0-100), 26 % par défaut. */
     val glassActiveTabOpacity: StateFlow<Int> = preferencesRepository.glassActiveTabOpacity
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DefaultGlassActiveTabOpacity)
+
+    val textSizePreference: StateFlow<TextSizePreference> = preferencesRepository.textSizePreference
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TextSizePreference.NORMAL)
+
+    val listDensityPreference: StateFlow<ListDensityPreference> = preferencesRepository.listDensityPreference
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ListDensityPreference.COMFORTABLE)
 
     val autoPlay: StateFlow<Boolean> = preferencesRepository.autoPlay
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
@@ -310,6 +318,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             preview = { it.copy(activeTabOpacity = percent) },
             persist = { preferencesRepository.setGlassActiveTabOpacity(percent) }
         )
+    }
+
+    fun setTextSizePreference(value: TextSizePreference) {
+        viewModelScope.launch { preferencesRepository.setTextSizePreference(value) }
+    }
+
+    fun setListDensityPreference(value: ListDensityPreference) {
+        viewModelScope.launch { preferencesRepository.setListDensityPreference(value) }
     }
 
     fun setAutoPlay(enabled: Boolean) {
