@@ -130,6 +130,11 @@ class UserPreferencesRepository(private val context: Context) {
             preferences[KEY_DYNAMIC_COLOR] ?: false
         }
 
+    private val themeData: Flow<Preferences> = context.musicProDataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+
     /** Niveau de l'effet verre ; BALANCED par défaut, ancienne clé migrée (voir [resolveGlassMaterial]). */
     val glassMaterial: Flow<GlassMaterial> = context.musicProDataStore.data
         .catch { exception ->
@@ -178,11 +183,6 @@ class UserPreferencesRepository(private val context: Context) {
         .map { preferences -> resolveGlassActiveTabOpacity(preferences[KEY_GLASS_ACTIVE_TAB_OPACITY]) }
 
     // --- Apparence et style (mises à jour 013, 017, 018) ------------------------------------------
-
-    private val themeData: Flow<Preferences> = context.musicProDataStore.data
-        .catch { exception ->
-            if (exception is IOException) emit(emptyPreferences()) else throw exception
-        }
 
     /** Apparence ; déduite de l'ancienne clé `app_theme_mode` tant qu'elle n'est pas écrite. */
     val appearanceMode: Flow<AppearanceMode> = themeData.map { preferences ->
