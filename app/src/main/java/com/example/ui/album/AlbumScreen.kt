@@ -118,7 +118,13 @@ fun AlbumScreen(
     val scheme = MaterialTheme.colorScheme
     val context = LocalContext.current
     val coverUri = remember(tracks) { tracks.firstNotNullOfOrNull { it.albumArtUri?.takeIf(String::isNotBlank) } }
-    val artist = remember(tracks) { tracks.firstOrNull()?.artist.orEmpty() }
+    val distinctArtists = remember(tracks) { tracks.map { it.artist }.filter { it.isNotBlank() }.distinct() }
+    val variousArtists = distinctArtists.size > 1
+    val artist = if (variousArtists) {
+        stringResource(R.string.album_various_artists)
+    } else {
+        distinctArtists.firstOrNull().orEmpty()
+    }
     val coverColor = rememberCoverColor(coverUri)
     val count = tracks.size
     val countText = context.resources.getQuantityString(R.plurals.album_track_count, count, count)
@@ -211,7 +217,7 @@ fun AlbumScreen(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             // Mise à jour 024 : le nom de l'artiste ouvre sa page.
-                            modifier = if (artist.isNotBlank()) {
+                            modifier = if (artist.isNotBlank() && !variousArtists) {
                                 Modifier
                                     .heightIn(min = MusicProTokens.Size.Touch)
                                     .clickable(role = Role.Button) { DetailRouter.openArtist(artist) }
