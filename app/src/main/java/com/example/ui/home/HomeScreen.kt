@@ -103,6 +103,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -431,7 +432,7 @@ fun HomeScreen(
                                     currentPlayingTrack = currentTrack,
                                     isPlaying = isPlaying,
                                     favorites = favorites,
-                                    onResumePlayback = { audioViewModel.togglePlayPause() },
+                                    onResumePlayback = { if (isPlaying) isNowPlayingOpen = true else audioViewModel.togglePlayPause() },
                                     onOpenSettings = onOpenSettings,
                                     onOpenOnboarding = onOpenOnboarding,
                                     onNavigateToLibrary = { currentSectionName = NavigationSection.LIBRARY.name },
@@ -894,10 +895,10 @@ private fun HomeExplorerContent(
 
     val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val greeting = when (hour) {
-        in 5..11 -> "Bonjour"
-        in 12..17 -> "Bon après-midi"
-        in 18..22 -> "Bonsoir"
-        else -> "Bonne nuit"
+        in 5..11 -> stringResource(R.string.home_greeting_morning)
+        in 12..17 -> stringResource(R.string.home_greeting_afternoon)
+        in 18..22 -> stringResource(R.string.home_greeting_evening)
+        else -> stringResource(R.string.home_greeting_night)
     }
 
     LazyColumn(
@@ -1000,7 +1001,7 @@ private fun HomeExplorerContent(
         item {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
                 Text(greeting, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onBackground)
-                Text("Heureux de vous retrouver sur MusicPro.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.home_welcome_back), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -1017,7 +1018,7 @@ private fun HomeExplorerContent(
                         Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(24.dp))
                         Spacer(Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Reprendre où vous en étiez", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleSmall)
+                            Text(stringResource(R.string.home_resume_playback), fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleSmall)
                             Text(currentPlayingTrack.title, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                         Icon(Icons.Default.PlayArrow, contentDescription = "Reprendre", modifier = Modifier.size(20.dp))
