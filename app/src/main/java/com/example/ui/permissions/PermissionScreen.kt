@@ -149,7 +149,7 @@ fun PermissionScreen(
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.musicpro_logo_cutout),
-                        contentDescription = "Logo MusicPro",
+                        contentDescription = stringResource(R.string.settings_logo),
                         modifier = Modifier
                             .size(72.dp)
                             .testTag("app_logo_image")
@@ -213,9 +213,9 @@ fun PermissionScreen(
                 PermissionDetailCard(
                     icon = Icons.Default.LibraryMusic,
                     iconColor = MusicProVioletVibrant,
-                    title = "Accès aux fichiers audio",
+                    title = stringResource(R.string.permission_audio_title),
                     permissionTag = audioPermissionName,
-                    description = "Indispensable pour indexer, lire vos morceaux de musique locaux (MP3, FLAC, AAC, WAV) et charger les pochettes d'albums sans Internet.",
+                    description = stringResource(R.string.permission_audio_description),
                     isGranted = state.isAudioGranted,
                     isRequired = true,
                     modifier = Modifier.testTag("permission_card_audio")
@@ -225,9 +225,9 @@ fun PermissionScreen(
                 PermissionDetailCard(
                     icon = Icons.Default.NotificationsActive,
                     iconColor = MusicProCyanVibrant,
-                    title = "Contrôle en arrière-plan",
+                    title = stringResource(R.string.permission_background_title),
                     permissionTag = "POST_NOTIFICATIONS (Android 13+)",
-                    description = "Affiche la notification persistante de lecture avec commandes média (Pause, Suivant, Précédent) et écran de verrouillage.",
+                    description = stringResource(R.string.permission_background_description),
                     isGranted = state.isNotificationGranted,
                     isRequired = false,
                     modifier = Modifier.testTag("permission_card_notifications")
@@ -259,7 +259,7 @@ fun PermissionScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Warning,
-                                        contentDescription = "Attention",
+                                        contentDescription = stringResource(R.string.permission_attention),
                                         tint = MusicProFavorite,
                                         modifier = Modifier.size(20.dp)
                                     )
@@ -283,7 +283,7 @@ fun PermissionScreen(
                             Spacer(modifier = Modifier.height(10.dp))
 
                             Text(
-                                text = "L'accès à votre stockage audio est indispensable pour que MusicPro fonctionne. Sans cette permission, l'application ne peut pas détecter vos musiques.\n\nVeuillez autoriser l'accès dans les Paramètres système de l'application.",
+                                text = stringResource(R.string.permission_denied_body),
                                 fontSize = 13.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 lineHeight = 18.sp
@@ -482,7 +482,7 @@ private fun PermissionDetailCard(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Check,
-                                contentDescription = "Accordée",
+                                contentDescription = stringResource(R.string.permission_granted),
                                 tint = Color(0xFF10B981),
                                 modifier = Modifier
                                     .padding(3.dp)
