@@ -16,4 +16,9 @@
     <string name="placeholder_title">Bientôt disponible</string>
     <string name="placeholder_new_desc">Les nouveautés musicales arriveront dans une prochaine mise à jour.</string>
     <string name="placeholder_radio_desc">La radio arrivera dans une prochaine mise à jour.</string>
+
+    <!-- Réglages : aperçu du verre (mise à jour 010) -->
+    <string name="glass_preview_description">Aperçu du verre liquide avec vos réglages actuels : mini-lecteur et barre de navigation sur un fond coloré</string>
+    <string name="glass_preview_track_title">Titre du morceau</string>
+    <string name="glass_preview_track_artist">Artiste</string>
 </resources>
