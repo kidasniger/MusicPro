@@ -99,4 +99,38 @@
     <string  translatable="false" name="lyrics_offset_minus_cd">Reculer de 100 millisecondes</string>
     <string  translatable="false" name="lyrics_offset_plus_cd">Avancer de 100 millisecondes</string>
     <string  translatable="false" name="lyrics_offset_reset">Remettre à zéro</string>
+
+    <string name="settings_search_hint">Rechercher un réglage…</string>
+    <string name="settings_search_cd">Rechercher</string>
+    <string name="settings_clear_search">Effacer la recherche</string>
+    <string name="settings_no_results">Aucun réglage trouvé</string>
+    <string name="settings_group_appearance">APPARENCE</string>
+    <string name="settings_group_appearance_desc">Thème, couleurs et style</string>
+    <string name="settings_group_playback">LECTURE</string>
+    <string name="settings_group_playback_desc">Comportement du lecteur</string>
+    <string name="settings_group_lyrics">PAROLES</string>
+    <string name="settings_group_lyrics_desc">Affichage et synchronisation</string>
+    <string name="settings_lyrics_info">Les réglages des paroles sont gérés depuis l’écran de lecture.</string>
+    <string name="settings_group_ai">INTELLIGENCE ARTIFICIELLE</string>
+    <string name="settings_groq_configured">Clé Groq configurée</string>
+    <string name="settings_groq_setup">Configuration de Groq</string>
+    <string name="settings_group_storage">STOCKAGE</string>
+    <string name="settings_storage_desc">Cache et bibliothèque locale</string>
+    <string name="settings_group_notifications">NOTIFICATIONS</string>
+    <string name="settings_notifications_desc">Alertes de l’application</string>
+    <string name="settings_notifications_info">Aucune préférence de notification supplémentaire n’est disponible actuellement.</string>
+    <string name="settings_group_about">À PROPOS</string>
+    <string name="settings_about_desc">Version, mises à jour et système</string>
+    <string name="settings_clear_cache_title">Vider le cache ?</string>
+    <string name="settings_clear_cache_body">Cette action supprimera les pochettes d’album temporaires et les segments audio transcrits en cache. Vos morceaux et playlists ne seront pas modifiés.</string>
+    <string name="settings_clear">Effacer</string>
+    <string name="settings_cancel">Annuler</string>
+    <string name="settings_quick_appearance">Apparence</string>
+    <string name="settings_quick_light">Clair</string>
+    <string name="settings_quick_dark">Sombre</string>
+    <string name="settings_quick_auto">Auto</string>
+    <string name="settings_quick_minimal">Minimal</string>
+    <string name="settings_quick_neon">Néon</string>
+    <string name="settings_quick_glass">Verre</string>
+    <string name="settings_selected">Sélectionné</string>
 </resources>
