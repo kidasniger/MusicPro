@@ -135,6 +135,7 @@ import com.example.ui.lyrics.GroqPreviewDialog
 import com.example.ui.lyrics.LrclibSearchScreen
 import com.example.ui.lyrics.LyricsScreen
 import com.example.ui.nowplaying.NowPlayingScreen
+import com.example.ui.radio.RadioScreen
 import com.example.ui.search.SearchScreen
 import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
@@ -438,10 +439,13 @@ fun HomeScreen(
                                 )
                             }
                             NavigationSection.RADIO -> {
-                                PlaceholderScreen(
-                                    titleRes = R.string.placeholder_title,
-                                    messageRes = R.string.placeholder_radio_desc,
-                                    icon = Icons.Default.Radio
+                                // Mise à jour 022 : mixes automatiques générés localement.
+                                RadioScreen(
+                                    tracks = tracks,
+                                    favorites = favorites,
+                                    currentPlayingTrack = currentTrack,
+                                    isPlaying = isPlaying,
+                                    onPlayMix = { mixTracks -> audioViewModel.playPlaylist(mixTracks) }
                                 )
                             }
                             NavigationSection.LIBRARY -> {
