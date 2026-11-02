@@ -50,6 +50,19 @@ class MediaStoreAudioScanner(private val context: Context) : AudioScanner {
     }
 
 
+    private fun extractGenre(path: String): String {
+        if (path.isBlank()) return ""
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(path)
+            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE)?.trim().orEmpty()
+        } catch (_: Exception) {
+            ""
+        } finally {
+            runCatching { retriever.release() }
+        }
+    }
+
     override suspend fun scanAudioFiles(): List<AudioTrackEntity> = withContext(Dispatchers.IO) {
         val tracksList = mutableListOf<AudioTrackEntity>()
 
@@ -206,7 +219,8 @@ class MediaStoreAudioScanner(private val context: Context) : AudioScanner {
                             mimeType = mimeType,
                             size = size,
                             hasSyncedLyrics = hasSyncedLyrics,
-                            dateAdded = dateAdded
+                            dateAdded = dateAdded,
+                            genre = extractGenre(path)
                         )
                     )
                 }
