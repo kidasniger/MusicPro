@@ -161,7 +161,8 @@ class SettingsScreenRobolectricTest {
         }
 
         // Verify key sections are present
-        composeTestRule.onNodeWithTag("theme_settings_card").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("quick_appearance_card").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("theme_settings_card").performScrollTo().assertIsDisplayed()
         // Mise à jour 025 : les réglages du verre sont sur settings/glass ; la page garde une entrée.
         composeTestRule.onNodeWithTag("glass_settings_entry").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithText("INTELLIGENCE ARTIFICIELLE").performScrollTo().performClick()
