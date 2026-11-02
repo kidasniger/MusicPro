@@ -56,6 +56,7 @@ class UserPreferencesRepository(private val context: Context) {
         val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
         val KEY_TEXT_SIZE = stringPreferencesKey("text_size_preference")
         val KEY_LIST_DENSITY = stringPreferencesKey("list_density_preference")
+        val KEY_REDUCE_ANIMATIONS = booleanPreferencesKey("reduce_animations")
         val KEY_GLASS_MATERIAL = stringPreferencesKey("glass_material")
         /** Force de couleur du verre, en % (0-100). Absente : 70 %. */
         val KEY_GLASS_COLOR_STRENGTH = intPreferencesKey("glass_color_strength")
@@ -135,6 +136,8 @@ class UserPreferencesRepository(private val context: Context) {
     val textSizePreference: Flow<TextSizePreference> = themeData.map { resolveTextSizePreference(it[KEY_TEXT_SIZE]) }
 
     val listDensityPreference: Flow<ListDensityPreference> = themeData.map { resolveListDensityPreference(it[KEY_LIST_DENSITY]) }
+
+    val reduceAnimations: Flow<Boolean> = themeData.map { it[KEY_REDUCE_ANIMATIONS] ?: false }
 
     val isDynamicColorEnabled: Flow<Boolean> = context.musicProDataStore.data
         .catch { exception ->
@@ -375,6 +378,10 @@ class UserPreferencesRepository(private val context: Context) {
                 shuffleEnabled = preferences[KEY_SHUFFLE_ENABLED] ?: false
             )
         }
+
+    suspend fun setReduceAnimations(enabled: Boolean) {
+        context.musicProDataStore.edit { it[KEY_REDUCE_ANIMATIONS] = enabled }
+    }
 
     suspend fun setTextSizePreference(value: TextSizePreference) {
         context.musicProDataStore.edit { it[KEY_TEXT_SIZE] = value.name }
