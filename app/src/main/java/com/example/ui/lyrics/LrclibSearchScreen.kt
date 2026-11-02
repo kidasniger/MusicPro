@@ -73,6 +73,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
@@ -276,7 +278,7 @@ private fun LrclibTopBar(
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = "Recherche de paroles",
+                text = stringResource(R.string.lyrics_search_title),
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
                 color = MusicProTextPrimary
@@ -378,7 +380,7 @@ private fun SearchFormCard(
                 OutlinedTextField(
                     value = title,
                     onValueChange = onTitleChange,
-                    label = { Text("Titre", fontSize = 11.sp) },
+                    label = { Text(stringResource(R.string.lyrics_title_label), fontSize = 11.sp) },
                     singleLine = true,
                     modifier = Modifier
                         .weight(1f)
@@ -397,7 +399,7 @@ private fun SearchFormCard(
                 OutlinedTextField(
                     value = artist,
                     onValueChange = onArtistChange,
-                    label = { Text("Artiste", fontSize = 11.sp) },
+                    label = { Text(stringResource(R.string.lyrics_artist_label), fontSize = 11.sp) },
                     singleLine = true,
                     modifier = Modifier
                         .weight(1f)
@@ -441,7 +443,7 @@ private fun SearchFormCard(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "Durée : %02d:%02d (%ds)".format(m, s, durationSec),
+                                text = stringResource(R.string.lyrics_duration_format, m, s, durationSec),
                                 fontSize = 11.sp,
                                 color = MusicProVioletPastel
                             )
@@ -501,7 +503,7 @@ private fun SearchFormCard(
 
             aiQuerySuggestion?.let { (suggestedTitle, suggestedArtist) ->
                 Text(
-                    text = "Proposition : $suggestedTitle — $suggestedArtist",
+                    text = stringResource(R.string.lyrics_suggestion_format, suggestedTitle, suggestedArtist),
                     fontSize = 11.sp,
                     color = MusicProTextSecondary,
                     maxLines = 2,
@@ -567,13 +569,13 @@ private fun SearchResultsList(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "${results.size} version(s) trouvée(s)",
+                    text = pluralStringResource(R.plurals.lyrics_results_count, results.size, results.size),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     color = MusicProCyanNeon
                 )
                 Text(
-                    text = "Appuyez sur un résultat pour l'aperçu",
+                    text = stringResource(R.string.lyrics_result_hint),
                     fontSize = 11.sp,
                     color = MusicProTextMuted
                 )
@@ -667,7 +669,7 @@ private fun LrclibResultCard(
                     }
                     if (isExactDurationMatch) {
                         Text(
-                            text = "Durée idéale",
+                            text = stringResource(R.string.lyrics_ideal_duration),
                             fontSize = 9.sp,
                             color = MusicProCyanNeon,
                             fontWeight = FontWeight.SemiBold
@@ -695,7 +697,7 @@ private fun LrclibResultCard(
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                         ) {
                             Text(
-                                text = "Paroles synchronisées",
+                                text = stringResource(R.string.lyrics_synced),
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MusicProCyanNeon
@@ -708,7 +710,7 @@ private fun LrclibResultCard(
                         color = MusicProVioletPrimary.copy(alpha = 0.2f)
                     ) {
                         Text(
-                            text = "Texte brut",
+                            text = stringResource(R.string.lyrics_plain_text),
                             fontSize = 11.sp,
                             color = MusicProVioletPastel,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
@@ -722,7 +724,7 @@ private fun LrclibResultCard(
                         color = MusicProVioletPastel.copy(alpha = 0.15f)
                     ) {
                         Text(
-                            text = "Morceau Instrumental",
+                            text = stringResource(R.string.lyrics_instrumental),
                             fontSize = 10.sp,
                             color = MusicProVioletPastel,
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -872,7 +874,7 @@ private fun LyricsPreviewContent(
             }
             if (displayContent.lines().size > 20) {
                 Text(
-                    text = "... (${displayContent.lines().size - 20} lignes supplémentaires)",
+                    text = stringResource(R.string.lyrics_more_lines_format, displayContent.lines().size - 20),
                     fontSize = 10.sp,
                     color = MusicProTextMuted,
                     modifier = Modifier.padding(top = 4.dp)
@@ -905,7 +907,7 @@ private fun LoadingResultsView(message: String = "Recherche des paroles...") {
         )
         Spacer(modifier = Modifier.height(6.dp))
         Text(
-            text = "Recherche des paroles en ligne",
+            text = stringResource(R.string.lyrics_online_title),
             fontSize = 12.sp,
             color = MusicProTextSecondary
         )
@@ -954,7 +956,7 @@ private fun EmptyResultsView(
         Spacer(modifier = Modifier.height(18.dp))
 
         Text(
-            text = "Aucun résultat trouvé",
+            text = stringResource(R.string.lyrics_no_results),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = MusicProTextPrimary,
@@ -964,7 +966,7 @@ private fun EmptyResultsView(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Aucune parole ne correspond à \"$title\" de \"$artist\".",
+            text = stringResource(R.string.lyrics_no_match_title_artist_format, title, artist),
             fontSize = 13.sp,
             color = MusicProTextSecondary,
             textAlign = TextAlign.Center,
@@ -1089,14 +1091,14 @@ private fun IdleSearchPrompt(
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "Recherchez des paroles en ligne",
+            text = stringResource(R.string.lyrics_online_description),
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             color = MusicProTextPrimary
         )
         Spacer(modifier = Modifier.height(6.dp))
         Text(
-            text = "Recherchez par titre et artiste pour trouver des paroles synchronisées.",
+            text = stringResource(R.string.lyrics_search_description),
             fontSize = 12.sp,
             color = MusicProTextSecondary,
             textAlign = TextAlign.Center
