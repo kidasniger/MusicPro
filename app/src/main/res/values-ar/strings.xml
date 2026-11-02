@@ -244,4 +244,59 @@
     <string name="settings_group_appearance">المظهر</string><string name="settings_group_appearance_desc">السمة والألوان والنمط</string><string name="settings_group_playback">التشغيل</string><string name="settings_group_playback_desc">سلوك المشغل</string><string name="settings_group_lyrics">كلمات الأغاني</string><string name="settings_group_lyrics_desc">العرض والمزامنة</string><string name="settings_lyrics_info">تتم إدارة إعدادات كلمات الأغاني من شاشة التشغيل.</string><string name="settings_group_ai">الذكاء الاصطناعي</string><string name="settings_groq_configured">تم إعداد مفتاح Groq</string><string name="settings_groq_setup">إعداد Groq</string><string name="settings_group_storage">التخزين</string><string name="settings_storage_desc">الذاكرة المؤقتة والمكتبة المحلية</string><string name="settings_group_notifications">الإشعارات</string><string name="settings_notifications_desc">تنبيهات التطبيق</string><string name="settings_notifications_info">لا تتوفر حالياً إعدادات إضافية للإشعارات.</string><string name="settings_group_about">حول التطبيق</string><string name="settings_about_desc">الإصدار والتحديثات والنظام</string><string name="settings_clear_cache_title">مسح الذاكرة المؤقتة؟</string><string name="settings_clear_cache_body">سيؤدي ذلك إلى حذف صور الألبومات المؤقتة ومقاطع الصوت المفرغة المحفوظة مؤقتاً. لن تتغير المقاطع وقوائم التشغيل.</string><string name="settings_clear">مسح</string><string name="settings_cancel">إلغاء</string><string name="settings_quick_appearance">المظهر</string><string name="settings_quick_light">فاتح</string><string name="settings_quick_dark">داكن</string><string name="settings_quick_auto">تلقائي</string><string name="settings_quick_minimal">بسيط</string><string name="settings_quick_neon">نيون</string><string name="settings_quick_glass">زجاج</string><string name="settings_selected">محدد</string>
 
 <string name="settings_groq_key_saved">تم حفظ المفتاح.</string><string name="settings_groq_key_save_failed">تعذر حفظ المفتاح.</string><string name="settings_groq_key_required">أدخل مفتاح وصول صالحاً.</string><string name="settings_groq_key_deleted">تم حذف مفتاح الوصول.</string><string name="settings_groq_key_enter_first">أدخل مفتاح الوصول أولاً.</string><string name="settings_groq_connection_success">تم الاتصال بنجاح.</string><string name="settings_groq_test_failed">فشل الاختبار</string>
+
+    <string name="settings_section_title">الإعدادات</string>
+    <string name="settings_section_appearance_desc">المظهر والتخصيص</string>
+    <string name="settings_section_appearance_theme">المظهر والسمة</string>
+    <string name="settings_section_appearance_theme_desc">اختر المظهر المرئي لتطبيق MusicPro</string>
+    <string name="settings_neon_dark">داكن نيون</string>
+    <string name="settings_recommended">موصى به</string>
+    <string name="settings_minimal_clean">بسيط</string>
+    <string name="settings_system">النظام</string>
+    <string name="settings_dynamic_colors">ألوان متوافقة مع النظام</string>
+    <string name="settings_dynamic_colors_desc">تتكيف الألوان مع خلفية Android</string>
+    <string name="settings_smart_transcription">تفريغ ذكي</string>
+    <string name="settings_lyrics_assistance">المساعدة في إنشاء كلمات الأغاني</string>
+    <string name="settings_configured">تم الإعداد</string>
+    <string name="settings_not_set">غير محدد</string>
+    <string name="settings_key_format">المفتاح: %1$s</string>
+    <string name="settings_access_key">مفتاح الوصول</string>
+    <string name="settings_enter_access_key">أدخل مفتاح الوصول</string>
+    <string name="settings_paste_clipboard">لصق من الحافظة</string>
+    <string name="settings_hide_key">إخفاء المفتاح</string>
+    <string name="settings_show_key">إظهار المفتاح</string>
+    <string name="settings_clear_key">مسح المفتاح</string>
+    <string name="settings_groq_intro">أضف مفتاح الوصول لتفعيل التفريغ. لا يتم الاتصال إلا عند طلب تفريغ صوتي صراحةً.</string>
+    <string name="settings_storage_local">التخزين وقاعدة البيانات المحلية</string>
+    <string name="settings_storage_subtitle">الأغلفة والذاكرة المؤقتة والمزامنة</string>
+    <string name="settings_refresh_size">تحديث الحجم</string>
+    <string name="settings_temp_cache">الذاكرة المؤقتة</string>
+    <string name="settings_clean_deleted">تنظيف الملفات المحذوفة</string>
+    <string name="settings_clean_deleted_desc">يزيل المقاطع غير الموجودة ويوفر مساحة</string>
+    <string name="settings_player_behavior">سلوك مشغل MusicPro</string>
+    <string name="settings_autoplay">التشغيل التلقائي</string>
+    <string name="settings_autoplay_desc">متابعة قائمة التشغيل تلقائياً</string>
+    <string name="settings_gapless">تشغيل بلا فواصل</string>
+    <string name="settings_gapless_desc">تجهيز المقطع التالي لانتقال سلس</string>
+    <string name="settings_resume">استئناف التشغيل</string>
+    <string name="settings_resume_desc">حفظ هذا الخيار للجلسات القادمة</string>
+    <string name="settings_logo">شعار MusicPro</string>
+    <string name="settings_audio_quality_lyrics">جودة الصوت وكلمات الأغاني</string>
+    <string name="settings_continuous_playback">تشغيل متواصل</string>
+    <string name="settings_smooth_navigation">تنقل سلس</string>
+    <string name="settings_assisted_transcription">تفريغ بمساعدة ذكية</string>
+    <string name="settings_home_screen">الشاشة الرئيسية</string>
+    <string name="settings_quick_controls">عناصر تحكم سريعة</string>
+    <string name="settings_library">المكتبة</string>
+    <string name="settings_data_retained">البيانات محفوظة على الجهاز</string>
+    <string name="settings_sensitive_data_protected">البيانات الحساسة محمية</string>
+    <string name="settings_data_privacy">تبقى ملفات الصوت والبيانات الوصفية على جهازك. لا يتم الاتصال إلا عند طلب ميزة عبر الإنترنت صراحةً.</string>
+    <string name="settings_system_permissions">أذونات النظام</string>
+    <string name="settings_audio_notifications_access">الوصول إلى ملفات الصوت المحلية والإشعارات</string>
+    <string name="settings_manage">إدارة</string>
+    <string name="settings_back">رجوع</string>
+    <string name="settings_save">حفظ</string>
+    <string name="settings_test">اختبار</string>
+    <string name="settings_empty">إفراغ</string>
+    <string name="settings_purge">تنظيف</string>
 </resources>
