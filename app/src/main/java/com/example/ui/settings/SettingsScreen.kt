@@ -169,7 +169,7 @@ fun SettingsScreen(
     val searchResults = remember(normalizedSearch) {
         settingsSearchIndex.filter { entry ->
             normalizedSearch.isNotEmpty() &&
-                (entry.label.lowercase().contains(normalizedSearch) ||
+                (context.getString(entry.labelRes).lowercase().contains(normalizedSearch) ||
                  entry.keywords.any { it.lowercase().contains(normalizedSearch) })
         }
     }
@@ -251,7 +251,7 @@ fun SettingsScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(bottom = 12.dp)) {
                         searchResults.forEach { result ->
                             SettingsSearchResultRow(
-                                label = result.label,
+                                label = context.getString(result.labelRes),
                                 group = result.group,
                                 query = normalizedSearch,
                                 onClick = { expandedGroups = expandedGroups + result.group }
@@ -612,31 +612,31 @@ private fun QuickAppearanceOption(
 }
 
 private data class SettingsSearchEntry(
-    val label: String,
+    val labelRes: Int,
     val group: String,
     val keywords: List<String>
 )
 
 private val settingsSearchIndex = listOf(
-    SettingsSearchEntry("Langue", "APPARENCE", listOf("language", "français", "english", "العربية", "hausa", "zarma", "rtl")),
-    SettingsSearchEntry("Thème clair, sombre ou automatique", "APPARENCE", listOf("theme", "thème", "clair", "sombre", "apparence", "mode")),
-    SettingsSearchEntry("Style Minimal, Néon ou Verre", "APPARENCE", listOf("style", "glass", "liquid glass", "verre")),
-    SettingsSearchEntry("Couleur d’accent", "APPARENCE", listOf("couleur", "color", "accent", "teinte")),
-    SettingsSearchEntry("Couleurs dynamiques", "APPARENCE", listOf("couleur", "color", "dynamique", "palette")),
-    SettingsSearchEntry("Taille du texte", "APPARENCE", listOf("texte", "taille", "police", "font", "petit", "grand")),
-    SettingsSearchEntry("Densité des listes", "APPARENCE", listOf("densité", "density", "compact", "compacte", "confortable", "hauteur", "ligne")),
-    SettingsSearchEntry("Réduire les animations", "APPARENCE", listOf("animations", "animation", "mouvement", "motion", "parallaxe", "vinyle", "flou")),
-    SettingsSearchEntry("Flou et transparence du verre", "APPARENCE", listOf("flou", "blur", "frost", "transparence", "verre", "glass")),
-    SettingsSearchEntry("Lecture automatique", "LECTURE", listOf("lecture", "lecteur", "auto play", "autoplay")),
-    SettingsSearchEntry("Lecture sans interruption", "LECTURE", listOf("gapless", "enchaînement", "transition")),
-    SettingsSearchEntry("Reprendre la lecture", "LECTURE", listOf("reprise", "continuer", "resume")),
-    SettingsSearchEntry("Affichage et synchronisation des paroles", "PAROLES", listOf("lyrics", "synchronisation", "texte")),
-    SettingsSearchEntry("Clé API Groq", "INTELLIGENCE ARTIFICIELLE", listOf("ia", "intelligence artificielle", "api", "groq", "clé")),
-    SettingsSearchEntry("Cache audio et pochettes", "STOCKAGE", listOf("cache", "stockage", "mémoire", "temporaire")),
-    SettingsSearchEntry("Nettoyage de la bibliothèque", "STOCKAGE", listOf("bibliothèque", "nettoyer", "analyse", "rescan")),
-    SettingsSearchEntry("Notifications", "NOTIFICATIONS", listOf("alertes", "notifications")),
-    SettingsSearchEntry("Version et mises à jour", "À PROPOS", listOf("version", "update", "mise à jour", "apk")),
-    SettingsSearchEntry("Permissions", "À PROPOS", listOf("autorisation", "accès", "permission", "système"))
+    SettingsSearchEntry(R.string.language_title, "APPARENCE", listOf("language", "français", "english", "العربية", "hausa", "zarma", "rtl")),
+    SettingsSearchEntry(R.string.appearance_title, "APPARENCE", listOf("theme", "thème", "clair", "sombre", "apparence", "mode")),
+    SettingsSearchEntry(R.string.style_title, "APPARENCE", listOf("style", "glass", "liquid glass", "verre")),
+    SettingsSearchEntry(R.string.accent_title, "APPARENCE", listOf("couleur", "color", "accent", "teinte")),
+    SettingsSearchEntry(R.string.dynamic_color_title, "APPARENCE", listOf("couleur", "color", "dynamique", "palette")),
+    SettingsSearchEntry(R.string.appearance_text_size, "APPARENCE", listOf("texte", "taille", "police", "font", "petit", "grand")),
+    SettingsSearchEntry(R.string.appearance_list_density, "APPARENCE", listOf("densité", "density", "compact", "compacte", "confortable", "hauteur", "ligne")),
+    SettingsSearchEntry(R.string.appearance_reduce_animations, "APPARENCE", listOf("animations", "animation", "mouvement", "motion", "parallaxe", "vinyle", "flou")),
+    SettingsSearchEntry(R.string.glass_quality_title, "APPARENCE", listOf("flou", "blur", "frost", "transparence", "verre", "glass")),
+    SettingsSearchEntry(R.string.settings_autoplay, "LECTURE", listOf("lecture", "lecteur", "auto play", "autoplay")),
+    SettingsSearchEntry(R.string.settings_gapless, "LECTURE", listOf("gapless", "enchaînement", "transition")),
+    SettingsSearchEntry(R.string.settings_resume, "LECTURE", listOf("reprise", "continuer", "resume")),
+    SettingsSearchEntry(R.string.settings_lyrics_assistance, "PAROLES", listOf("lyrics", "synchronisation", "texte")),
+    SettingsSearchEntry(R.string.settings_groq_setup, "INTELLIGENCE ARTIFICIELLE", listOf("ia", "intelligence artificielle", "api", "groq", "clé")),
+    SettingsSearchEntry(R.string.settings_storage_local, "STOCKAGE", listOf("cache", "stockage", "mémoire", "temporaire")),
+    SettingsSearchEntry(R.string.settings_clean_deleted, "STOCKAGE", listOf("bibliothèque", "nettoyer", "analyse", "rescan")),
+    SettingsSearchEntry(R.string.settings_group_notifications, "NOTIFICATIONS", listOf("alertes", "notifications")),
+    SettingsSearchEntry(R.string.settings_group_about, "À PROPOS", listOf("version", "update", "mise à jour", "apk")),
+    SettingsSearchEntry(R.string.settings_system_permissions, "À PROPOS", listOf("autorisation", "accès", "permission", "système"))
 )
 
 @Composable
@@ -670,7 +670,8 @@ private fun SettingsSearchResultRow(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(annotated, modifier = Modifier.weight(1f), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
-            Text(group.lowercase().replaceFirstChar { it.uppercase() }, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            val groupLabelRes = when (group) { "APPARENCE" -> R.string.settings_group_appearance; "LECTURE" -> R.string.settings_group_playback; "PAROLES" -> R.string.settings_group_lyrics; "INTELLIGENCE ARTIFICIELLE" -> R.string.settings_group_ai; "STOCKAGE" -> R.string.settings_group_storage; "NOTIFICATIONS" -> R.string.settings_group_notifications; else -> R.string.settings_group_about }
+            Text(stringResource(groupLabelRes), fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Icon(Icons.Default.ChevronRight, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
