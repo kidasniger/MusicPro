@@ -49,6 +49,8 @@ import com.example.R
 import com.example.data.preferences.AccentChoice
 import com.example.data.preferences.AppStyle
 import com.example.data.preferences.AppearanceMode
+import com.example.data.preferences.TextSizePreference
+import com.example.data.preferences.ListDensityPreference
 import com.example.ui.components.MusicProCard
 import com.example.ui.components.glass.rememberAnimationsEnabled
 import com.example.ui.theme.LocalIsDarkTheme
@@ -79,6 +81,10 @@ fun AppearanceSettingsCard(
     onEveningEndChange: (Int) -> Unit,
     isDynamicColor: Boolean,
     onDynamicColorChanged: (Boolean) -> Unit,
+    textSize: TextSizePreference,
+    onTextSizeSelected: (TextSizePreference) -> Unit,
+    listDensity: ListDensityPreference,
+    onListDensitySelected: (ListDensityPreference) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val dynamicSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
@@ -183,6 +189,42 @@ fun AppearanceSettingsCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+            }
+
+            // --- Taille du texte ---------------------------------------------------------------
+            Column(verticalArrangement = Arrangement.spacedBy(MusicProTokens.Spacing.Sm)) {
+                SectionTitle("Taille du texte")
+                Row(
+                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(MusicProTokens.Spacing.Xs)
+                ) {
+                    TextSizePreference.entries.forEach { option ->
+                        FilterChip(
+                            selected = textSize == option,
+                            onClick = { onTextSizeSelected(option) },
+                            label = { Text(option.label) },
+                            modifier = Modifier.testTag("text_size_${option.name.lowercase()}")
+                        )
+                    }
+                }
+            }
+
+            // --- Densité des listes -------------------------------------------------------------
+            Column(verticalArrangement = Arrangement.spacedBy(MusicProTokens.Spacing.Sm)) {
+                SectionTitle("Densité")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(MusicProTokens.Spacing.Sm)
+                ) {
+                    ListDensityPreference.entries.forEach { option ->
+                        FilterChip(
+                            selected = listDensity == option,
+                            onClick = { onListDensitySelected(option) },
+                            label = { Text(option.label + " · " + option.rowHeightDp + " dp") },
+                            modifier = Modifier.testTag("list_density_${option.name.lowercase()}")
+                        )
+                    }
                 }
             }
 
