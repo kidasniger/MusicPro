@@ -52,7 +52,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -525,6 +524,43 @@ private fun OnboardingPageView(
                             tint = MusicProVioletPastel,
                             modifier = Modifier.size(20.dp)
                         )
+                    }
+                }
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text("THÈME", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf(
+                            AppearanceMode.LIGHT to "Clair",
+                            AppearanceMode.DARK to "Sombre",
+                            AppearanceMode.AUTO to "Auto"
+                        ).forEach { (mode, label) ->
+                            Surface(
+                                onClick = { onAppearanceSelected(mode) },
+                                shape = RoundedCornerShape(14.dp),
+                                color = if (appearanceMode == mode) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                                border = BorderStroke(1.dp, if (appearanceMode == mode) MaterialTheme.colorScheme.primary else Color.Transparent),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(label, modifier = Modifier.padding(vertical = 9.dp), textAlign = TextAlign.Center, fontSize = 12.sp, color = if (appearanceMode == mode) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                    Text("STYLE VISUEL", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf(AppStyle.GLASS to "Glass", AppStyle.NEON to "Néon", AppStyle.MINIMAL to "Minimal").forEach { (style, label) ->
+                            Surface(
+                                onClick = { onStyleSelected(style) },
+                                shape = RoundedCornerShape(14.dp),
+                                color = if (appStyle == style) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                                border = BorderStroke(1.dp, if (appStyle == style) MaterialTheme.colorScheme.primary else Color.Transparent),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(label, modifier = Modifier.padding(vertical = 9.dp), textAlign = TextAlign.Center, fontSize = 12.sp, color = if (appStyle == style) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
                     }
                 }
             }
