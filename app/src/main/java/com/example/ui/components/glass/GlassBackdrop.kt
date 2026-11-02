@@ -77,7 +77,7 @@ fun GlassBackdropHost(
     background: @Composable BoxScope.() -> Unit,
     foreground: @Composable BoxScope.() -> Unit
 ) {
-    val recordBackdrop = glassBlurActive(
+    val recordBackdrop = !LocalReduceAnimations.current && glassBlurActive(
         material = LocalGlassMaterial.current,
         blurSupported = glassBlurSupported,
         frostDp = LocalGlassFrostDp.current
