@@ -17,7 +17,8 @@ class DesignTokensGridTest {
         "com/example/ui/components/MusicProCard.kt",
         "com/example/ui/settings/AppearanceSettingsCard.kt",
         "com/example/ui/whatsnew/NewScreen.kt",
-        "com/example/ui/artist/ArtistScreen.kt"
+        "com/example/ui/artist/ArtistScreen.kt",
+        "com/example/ui/settings/GlassSettingsScreen.kt"
     )
 
     private fun isOnGrid(value: Float): Boolean =

@@ -18,6 +18,7 @@ import com.example.permissions.PermissionUiState
 import com.example.ui.home.HomeScreen
 import com.example.ui.onboarding.OnboardingScreen
 import com.example.ui.permissions.PermissionScreen
+import com.example.ui.settings.GlassSettingsScreen
 import com.example.ui.settings.SettingsScreen
 import com.example.ui.settings.SettingsViewModel
 import com.example.ui.splash.SplashScreen
@@ -28,6 +29,7 @@ object Destinations {
     const val PERMISSIONS = "permissions"
     const val HOME = "home"
     const val SETTINGS = "settings"
+    const val SETTINGS_GLASS = "settings/glass"
 }
 
 @Composable
@@ -170,6 +172,19 @@ fun MusicProNavGraph(
                 },
                 onNavigateToPermissions = {
                     navController.navigate(Destinations.PERMISSIONS)
+                },
+                onOpenGlassSettings = {
+                    navController.navigate(Destinations.SETTINGS_GLASS)
+                }
+            )
+        }
+
+        // Écran 6 (mise à jour 025) : Réglages › Glass
+        composable(Destinations.SETTINGS_GLASS) {
+            GlassSettingsScreen(
+                settingsViewModel = settingsViewModel,
+                onBack = {
+                    navController.popBackStack()
                 }
             )
         }
