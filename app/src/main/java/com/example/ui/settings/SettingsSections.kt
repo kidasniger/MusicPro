@@ -87,6 +87,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import com.example.R
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -129,7 +130,7 @@ fun SettingsTopBar(onBack: () -> Unit) {
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Retour",
+                contentDescription = stringResource(R.string.settings_back),
                 tint = MaterialTheme.colorScheme.onBackground
             )
         }
@@ -138,7 +139,7 @@ fun SettingsTopBar(onBack: () -> Unit) {
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = "Paramètres",
+                text = stringResource(R.string.settings_section_title),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -146,7 +147,7 @@ fun SettingsTopBar(onBack: () -> Unit) {
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = "Apparence et personnalisation",
+                text = stringResource(R.string.settings_section_appearance_desc),
                 fontSize = 12.sp,
                 color = MusicProCyanNeon,
                 maxLines = 1,
@@ -195,13 +196,13 @@ fun ThemeSelectionCard(
                 Spacer(modifier = Modifier.width(10.dp))
                 Column {
                     Text(
-                        text = "Apparence & Thème",
+                        text = stringResource(R.string.settings_section_appearance_theme),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
-                        text = "Sélectionnez l'ambiance visuelle de MusicPro",
+                        text = stringResource(R.string.settings_section_appearance_theme_desc),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -216,8 +217,8 @@ fun ThemeSelectionCard(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 ThemeOptionItem(
-                    title = "Sombre Néon",
-                    subtitle = "Recommandé",
+                    title = stringResource(R.string.settings_neon_dark),
+                    subtitle = stringResource(R.string.settings_recommended),
                     isSelected = currentTheme == AppThemeMode.DARK,
                     accentColor = MusicProCyanNeon,
                     containerColor = Color(0xFF130924),
@@ -229,7 +230,7 @@ fun ThemeSelectionCard(
 
                 ThemeOptionItem(
                     title = "Clair",
-                    subtitle = "Épuré",
+                    subtitle = stringResource(R.string.settings_minimal_clean),
                     isSelected = currentTheme == AppThemeMode.LIGHT,
                     accentColor = MusicProVioletPrimary,
                     containerColor = Color(0xFFF3F4F8),
@@ -240,7 +241,7 @@ fun ThemeSelectionCard(
                 )
 
                 ThemeOptionItem(
-                    title = "Système",
+                    title = stringResource(R.string.settings_system),
                     subtitle = "Auto",
                     isSelected = currentTheme == AppThemeMode.SYSTEM,
                     accentColor = MusicProVioletLight,
@@ -269,13 +270,13 @@ fun ThemeSelectionCard(
                     ) {
                         Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                             Text(
-                                text = "Couleurs adaptées au système",
+                                text = stringResource(R.string.dynamic_color_title),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onBackground
                             )
                             Text(
-                                text = "Adapte les teintes à votre fond d'écran Android",
+                                text = stringResource(R.string.dynamic_color_subtitle),
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -427,7 +428,7 @@ fun GroqApiKeyCard(
                     Spacer(modifier = Modifier.width(10.dp))
                     Column {
                         Text(
-                            text = "Transcription intelligente",
+                            text = stringResource(R.string.settings_smart_transcription),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground,
@@ -435,7 +436,7 @@ fun GroqApiKeyCard(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = "Aide à la création des paroles",
+                            text = stringResource(R.string.settings_lyrics_assistance),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
@@ -497,7 +498,7 @@ fun GroqApiKeyCard(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Clé : $maskedKey",
+                            text = stringResource(R.string.settings_key_format, maskedKey),
                             fontFamily = FontFamily.Monospace,
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -517,8 +518,8 @@ fun GroqApiKeyCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("groq_api_key_input"),
-                label = { Text("Clé d’accès") },
-                placeholder = { Text("Entrez votre clé d’accès") },
+                label = { Text(stringResource(R.string.settings_access_key)) },
+                placeholder = { Text(stringResource(R.string.settings_enter_access_key)) },
                 singleLine = true,
                 visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -528,7 +529,7 @@ fun GroqApiKeyCard(
                         IconButton(onClick = onPasteClipboard) {
                             Icon(
                                 imageVector = Icons.Default.ContentPaste,
-                                contentDescription = "Coller depuis le presse-papiers",
+                                contentDescription = stringResource(R.string.settings_paste_clipboard),
                                 tint = MusicProCyanLight,
                                 modifier = Modifier.size(18.dp)
                             )
@@ -536,7 +537,7 @@ fun GroqApiKeyCard(
                         IconButton(onClick = onToggleVisibility) {
                             Icon(
                                 imageVector = if (isPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = if (isPasswordVisible) "Masquer la clé" else "Afficher la clé",
+                                contentDescription = if (isPasswordVisible) stringResource(R.string.settings_hide_key) else stringResource(R.string.settings_show_key),
                                 tint = MusicProVioletLight,
                                 modifier = Modifier.size(18.dp)
                             )
@@ -668,7 +669,7 @@ fun GroqApiKeyCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.DeleteOutline,
-                            contentDescription = "Effacer la clé",
+                            contentDescription = stringResource(R.string.settings_clear_key),
                             tint = MusicProError,
                             modifier = Modifier.size(20.dp)
                         )
@@ -698,7 +699,7 @@ fun GroqApiKeyCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Ajoutez votre clé d’accès pour activer les fonctions de transcription. Une connexion est utilisée uniquement lorsque vous demandez explicitement une transcription.",
+                        text = "%1$s",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 15.sp
@@ -757,13 +758,13 @@ fun CacheManagementCard(
                     Spacer(modifier = Modifier.width(10.dp))
                     Column {
                         Text(
-                            text = "Stockage & Base locale",
+                            text = stringResource(R.string.settings_storage_local),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
-                            text = "Vignettes, cache et synchronisation",
+                            text = stringResource(R.string.settings_storage_subtitle),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -776,7 +777,7 @@ fun CacheManagementCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Refresh,
-                        contentDescription = "Actualiser la taille",
+                        contentDescription = stringResource(R.string.settings_refresh_size),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(18.dp)
                     )
@@ -801,7 +802,7 @@ fun CacheManagementCard(
                 ) {
                     Column {
                         Text(
-                            text = "Cache temporaire",
+                            text = stringResource(R.string.settings_temp_cache),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -862,13 +863,13 @@ fun CacheManagementCard(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Nettoyer les fichiers supprimés",
+                            text = stringResource(R.string.settings_clean_deleted),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
-                            text = "Retire les morceaux fantômes et libère la mémoire",
+                            text = stringResource(R.string.settings_clean_deleted_desc),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -978,13 +979,13 @@ fun PlaybackSettingsCard(
                 }
                 Spacer(Modifier.width(10.dp))
                 Column {
-                    Text("Lecture", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                    Text("Comportement du lecteur MusicPro", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.settings_player_behavior), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                    Text(stringResource(R.string.settings_player_behavior), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            SettingToggleRow("Lecture automatique", "Enchaîner la file sans intervention", autoPlay, onAutoPlayChanged)
-            SettingToggleRow("Lecture sans blanc", "Préparer la piste suivante pour une transition fluide", gaplessPlayback, onGaplessChanged)
-            SettingToggleRow("Reprendre la lecture", "Conserver cette préférence pour les prochaines sessions", resumePlayback, onResumeChanged)
+            SettingToggleRow(stringResource(R.string.settings_autoplay), stringResource(R.string.settings_autoplay_desc), autoPlay, onAutoPlayChanged)
+            SettingToggleRow(stringResource(R.string.settings_gapless), stringResource(R.string.settings_gapless_desc), gaplessPlayback, onGaplessChanged)
+            SettingToggleRow(stringResource(R.string.settings_resume), stringResource(R.string.settings_resume_desc), resumePlayback, onResumeChanged)
         }
     }
 }
@@ -1061,7 +1062,7 @@ fun AboutCard(currentVersion: String = "1.0") {
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.musicpro_logo_cutout),
-                        contentDescription = "Logo MusicPro",
+                        contentDescription = stringResource(R.string.settings_logo),
                         modifier = Modifier.size(32.dp)
                     )
                 }
@@ -1083,7 +1084,7 @@ fun AboutCard(currentVersion: String = "1.0") {
                             border = BorderStroke(1.dp, MusicProCyanNeon.copy(alpha = 0.5f))
                         ) {
                             Text(
-                                text = "v$currentVersion",
+                                text = stringResource(R.string.settings_version_format, currentVersion),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MusicProCyanNeon,
@@ -1092,7 +1093,7 @@ fun AboutCard(currentVersion: String = "1.0") {
                         }
                     }
                     Text(
-                        text = "Qualité audio et paroles",
+                        text = stringResource(R.string.settings_audio_quality_lyrics),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1102,12 +1103,12 @@ fun AboutCard(currentVersion: String = "1.0") {
             Spacer(modifier = Modifier.height(14.dp))
 
             // Liste des technologies intégrées
-            TechBadgeRow(title = "Lecture", value = "Lecture en continu")
-            TechBadgeRow(title = "Interface", value = "Navigation fluide")
-            TechBadgeRow(title = "Paroles", value = "Transcription assistée")
-            TechBadgeRow(title = "Écran d’accueil", value = "Commandes rapides")
-            TechBadgeRow(title = "Bibliothèque", value = "Données conservées")
-            TechBadgeRow(title = "Protection", value = "Données sensibles protégées")
+            TechBadgeRow(title = stringResource(R.string.settings_player_behavior), value = stringResource(R.string.settings_continuous_playback))
+            TechBadgeRow(title = stringResource(R.string.settings_section_appearance_desc), value = stringResource(R.string.settings_smooth_navigation))
+            TechBadgeRow(title = stringResource(R.string.settings_lyrics_assistance), value = stringResource(R.string.settings_assisted_transcription))
+            TechBadgeRow(title = stringResource(R.string.settings_home_screen), value = stringResource(R.string.settings_quick_controls))
+            TechBadgeRow(title = stringResource(R.string.settings_library), value = stringResource(R.string.settings_data_retained))
+            TechBadgeRow(title = stringResource(R.string.settings_system_permissions), value = stringResource(R.string.settings_sensitive_data_protected))
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -1129,7 +1130,7 @@ fun AboutCard(currentVersion: String = "1.0") {
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Vos fichiers audio et métadonnées restent sur votre appareil. Une connexion n’est utilisée que lorsque vous demandez explicitement une fonction en ligne.",
+                        text = "%1$s",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 15.sp
@@ -1189,13 +1190,13 @@ fun PermissionsCard(onNavigateToPermissions: () -> Unit) {
         ) {
             Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                 Text(
-                    text = "Permissions du système",
+                    text = stringResource(R.string.settings_system_permissions),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
-                    text = "Accès aux fichiers audio locaux et notifications",
+                    text = stringResource(R.string.settings_audio_notifications_access),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
