@@ -30,6 +30,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.example.R
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -85,7 +87,7 @@ fun CreatePlaylistDialog(
                         modifier = Modifier.size(28.dp)
                     )
                     Text(
-                        text = if (isEditing) "Renommer la playlist" else "Nouvelle playlist",
+                        text = stringResource(if (isEditing) R.string.playlist_rename_title else R.string.playlist_new),
                         color = MusicProTextPrimary,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
@@ -183,7 +185,7 @@ fun CreatePlaylistDialog(
                         ),
                         modifier = Modifier.testTag("confirm_playlist_button")
                     ) {
-                        Text(if (isEditing) "Enregistrer" else "Créer")
+                        Text(stringResource(if (isEditing) R.string.settings_save else R.string.playlist_create))
                     }
                 }
             }
