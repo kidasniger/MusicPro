@@ -1,15 +1,10 @@
 package com.example.ui.lyrics
 
+import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -19,11 +14,14 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -46,9 +44,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ContentPaste
-import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Save
@@ -57,17 +54,20 @@ import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.SubtitlesOff
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -76,28 +76,30 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
@@ -106,19 +108,30 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.R
 import com.example.data.local.AudioTrackEntity
 import com.example.lyrics.LyricLine
 import com.example.lyrics.LyricsData
 import com.example.lyrics.LyricsSource
+import com.example.ui.components.glass.rememberAnimationsEnabled
 import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProPrimaryGradient
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
-import com.example.ui.theme.MusicProVioletPastel
 import com.example.ui.theme.MusicProVioletPrimary
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+
+/** Palette sombre propre à la vue immersive : le texte blanc reste lisible (WCAG AA) en thème clair comme sombre. */
+@Composable
+private fun immersiveColorScheme(): ColorScheme = MaterialTheme.colorScheme.copy(
+    background = Color(0xFF0B0B12),
+    onBackground = Color(0xFFF2F2F7),
+    surface = Color(0xFF16161F),
+    onSurface = Color(0xFFF2F2F7),
+    surfaceVariant = Color(0xFF22222E),
+    onSurfaceVariant = Color(0xFFC9C9D6)
+)
 
 @Composable
 fun LyricsScreen(
@@ -146,13 +159,14 @@ fun LyricsScreen(
     karaokeActiveColor: String = "cyan",
     karaokeOffsetMs: Long = 0L,
     onOpenKaraokeSettings: () -> Unit = {},
+    onKaraokeOffsetChange: (Long) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
+    val animationsEnabled = rememberAnimationsEnabled()
 
-    var isUserScrollingManually by remember { mutableStateOf(false) }
     var showImportDialog by remember { mutableStateOf(false) }
+    var showOptionsSheet by remember { mutableStateOf(false) }
     var manualLrcInput by remember { mutableStateOf("") }
 
     // Mode plein écran immersif : masquage automatique des contrôles après 4s d'inactivité
@@ -166,18 +180,22 @@ fun LyricsScreen(
         }
     }
 
+    // Défilement automatique : mis en pause 3 s après un geste de l'utilisateur sur la liste.
+    var lastTouchMs by remember { mutableLongStateOf(0L) }
+    var isFollowing by remember { mutableStateOf(true) }
+    LaunchedEffect(lastTouchMs) {
+        if (lastTouchMs != 0L) {
+            isFollowing = false
+            delay(3000)
+            isFollowing = true
+        }
+    }
+
     // Masquage automatique après 4 secondes d'inactivité pendant la lecture
     LaunchedEffect(lastInteractionTime, isPlaying, areControlsVisible, lyricsData.lines.size) {
         if (isPlaying && areControlsVisible && lyricsData.lines.isNotEmpty()) {
             delay(4000)
             areControlsVisible = false
-        }
-    }
-
-    // Détection de défilement manuel pour réveiller les contrôles
-    LaunchedEffect(listState.isScrollInProgress) {
-        if (listState.isScrollInProgress) {
-            registerInteraction()
         }
     }
 
@@ -194,7 +212,7 @@ fun LyricsScreen(
     // Les anciennes paroles peuvent rester brièvement en mémoire pendant leur chargement :
     // le reset par identifiant évite de conserver la position visuelle du morceau précédent.
     LaunchedEffect(track?.id) {
-        isUserScrollingManually = false
+        isFollowing = true
         if (lyricsData.lines.isNotEmpty()) {
             listState.scrollToItem(0)
         }
@@ -205,465 +223,657 @@ fun LyricsScreen(
     val effectiveKaraokePosition = (currentPositionMs - karaokeOffsetMs).coerceAtLeast(0L)
     val activeLineIndex = lyricsData.findActiveLineIndex(effectiveKaraokePosition)
 
-    // Défilement immédiat : une animation précédente ne doit pas retarder la ligne active.
-    LaunchedEffect(activeLineIndex) {
-        if (activeLineIndex in lyricsData.lines.indices && !listState.isScrollInProgress) {
-            listState.scrollToItem(
-                index = activeLineIndex.coerceAtLeast(0),
-                scrollOffset = -220
-            )
+    // Défilement fluide : la ligne active est ramenée au centre de l'écran.
+    // L'index de liste est décalé de 1 à cause de l'espaceur de tête.
+    LaunchedEffect(activeLineIndex, isFollowing, lyricsData.lines.size) {
+        if (!isFollowing || activeLineIndex !in lyricsData.lines.indices) return@LaunchedEffect
+        val lazyIndex = activeLineIndex + 1
+        // Laisser la mise en page se terminer (changement de taille des lignes) avant de mesurer.
+        withFrameNanos { }
+        var item = listState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == lazyIndex }
+        if (item == null) {
+            listState.scrollToItem(lazyIndex)
+            withFrameNanos { }
+            item = listState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == lazyIndex }
+        }
+        if (item != null) {
+            val info = listState.layoutInfo
+            val viewportCenter = (info.viewportStartOffset + info.viewportEndOffset) / 2f
+            val delta = item.offset + item.size / 2f - viewportCenter
+            if (animationsEnabled) {
+                listState.animateScrollBy(delta, tween(durationMillis = 450, easing = FastOutSlowInEasing))
+            } else {
+                listState.scrollBy(delta)
+            }
         }
     }
 
-    Surface(
-        modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = {
-                        areControlsVisible = !areControlsVisible
-                        lastInteractionTime = System.currentTimeMillis()
-                    }
-                )
+    MaterialTheme(colorScheme = immersiveColorScheme()) {
+        Surface(
+            modifier = modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
         ) {
-            // 1. Fond immersif avec pochette floutée et dégradé sombre
-            if (!track?.albumArtUri.isNullOrBlank()) {
-                AsyncImage(
-                    model = track.albumArtUri,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blur(60.dp)
-                        .alpha(0.20f)
-                )
-            }
-
-            // Dégradé sombre pour préserver la lisibilité néon et l'immersion
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(
-                                MaterialTheme.colorScheme.background.copy(alpha = 0.82f),
-                                MaterialTheme.colorScheme.background.copy(alpha = 0.94f),
-                                MaterialTheme.colorScheme.background
-                            )
-                        )
-                    )
-            )
-
-            // 2. Contenu principal
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
-            ) {
-                // Top Bar animée (masquable en mode immersif)
-                AnimatedVisibility(
-                    visible = areControlsVisible,
-                    enter = fadeIn(tween(260)) + expandVertically(tween(260)),
-                    exit = fadeOut(tween(260)) + shrinkVertically(tween(260))
-                ) {
-                    LyricsTopBar(
-                        track = track,
-                        lyricsSource = lyricsData.source,
-                        hasLyrics = lyricsData.lines.isNotEmpty(),
-                        onBack = onBack,
-                        onOpenLrclibSearch = {
-                            registerInteraction()
-                            onOpenLrclibSearch()
-                        },
-                        onStartGroqTranscription = {
-                            registerInteraction()
-                            onStartGroqTranscription()
-                        },
-                        onOpenImportDialog = {
-                            registerInteraction()
-                            showImportDialog = true
-                        },
-                        onEmbedInAudioFile = {
-                            registerInteraction()
-                            onEmbedLyricsInAudioFile()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = {
+                            areControlsVisible = !areControlsVisible
+                            lastInteractionTime = System.currentTimeMillis()
                         }
+                    )
+            ) {
+                // 1. Fond immersif : pochette floutée (API 31+), sinon simple halo coloré
+                val canBlur = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                if (canBlur && !track?.albumArtUri.isNullOrBlank()) {
+                    AsyncImage(
+                        model = track?.albumArtUri,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .blur(60.dp)
+                            .alpha(0.55f)
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(
+                                        MusicProVioletPrimary.copy(alpha = 0.28f),
+                                        Color.Transparent
+                                    )
+                                )
+                            )
                     )
                 }
 
-                // Zone centrale : Liste des paroles ou état vide
+                // Voile sombre : garantit le contraste du texte blanc sur n'importe quelle pochette
                 Box(
                     modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                ) {
-                    if (isLoading) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            CircularProgressIndicator(
-                                color = MusicProCyanNeon,
-                                modifier = Modifier.size(36.dp)
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(
+                                    MaterialTheme.colorScheme.background.copy(alpha = 0.40f),
+                                    MaterialTheme.colorScheme.background.copy(alpha = 0.62f),
+                                    MaterialTheme.colorScheme.background.copy(alpha = 0.88f)
+                                )
                             )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "Recherche de paroles intégrées…",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 13.sp
-                            )
-                        }
-                    } else if (lyricsData.lines.isEmpty()) {
-                        EmptyLyricsView(
-                            track = track,
-                            onOpenLrclibSearch = onOpenLrclibSearch,
-                            onStartGroqTranscription = onStartGroqTranscription,
-                            onOpenImportDialog = { showImportDialog = true }
                         )
-                    } else {
-                        // Liste défilante des paroles synchronisées
-                        LazyColumn(
-                            state = listState,
-                            contentPadding = PaddingValues(
-                                top = if (areControlsVisible) 80.dp else 120.dp,
-                                bottom = if (areControlsVisible) 140.dp else 100.dp,
-                                start = 24.dp,
-                                end = 24.dp
-                            ),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .testTag("lyrics_lazy_column")
-                        ) {
-                            itemsIndexed(lyricsData.lines) { index, line ->
-                                val isActive = index == activeLineIndex
-                                val isPast = index < activeLineIndex
+                )
 
-                                LyricLineItem(
-                                    line = line,
-                                    isActive = isActive,
-                                    isPast = isPast,
-                                    baseFontSize = karaokeFontSize,
-                                    activeColorName = karaokeActiveColor,
-                                    onClick = {
-                                        registerInteraction()
-                                        onSeekTo((line.timeMs + karaokeOffsetMs).coerceAtLeast(0L))
-                                    }
+                // 2. Contenu principal
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .statusBarsPadding()
+                        .navigationBarsPadding()
+                ) {
+                    // Top Bar animée (masquable en mode immersif)
+                    AnimatedVisibility(
+                        visible = areControlsVisible,
+                        enter = fadeIn(tween(260)) + expandVertically(tween(260)),
+                        exit = fadeOut(tween(260)) + shrinkVertically(tween(260))
+                    ) {
+                        LyricsTopBar(
+                            track = track,
+                            lyricsSource = lyricsData.source,
+                            hasLyrics = lyricsData.lines.isNotEmpty(),
+                            onBack = onBack,
+                            onOpenLrclibSearch = {
+                                registerInteraction()
+                                onOpenLrclibSearch()
+                            },
+                            onStartGroqTranscription = {
+                                registerInteraction()
+                                onStartGroqTranscription()
+                            },
+                            onOpenImportDialog = {
+                                registerInteraction()
+                                showImportDialog = true
+                            },
+                            onEmbedInAudioFile = {
+                                registerInteraction()
+                                onEmbedLyricsInAudioFile()
+                            }
+                        )
+                    }
+
+                    // Zone centrale : Liste des paroles ou état vide
+                    BoxWithConstraints(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                    ) {
+                        val halfHeight = maxHeight / 2
+
+                        if (isLoading) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                CircularProgressIndicator(
+                                    color = MusicProCyanNeon,
+                                    modifier = Modifier.size(36.dp)
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = "Recherche de paroles intégrées…",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 13.sp
                                 )
                             }
-                        }
+                        } else if (lyricsData.lines.isEmpty()) {
+                            EmptyLyricsView(
+                                track = track,
+                                onOpenLrclibSearch = onOpenLrclibSearch,
+                                onStartGroqTranscription = onStartGroqTranscription,
+                                onOpenImportDialog = { showImportDialog = true }
+                            )
+                        } else {
+                            // Liste défilante des paroles synchronisées.
+                            // Deux espaceurs d'une demi-hauteur permettent de centrer même la première et la dernière ligne.
+                            LazyColumn(
+                                state = listState,
+                                contentPadding = PaddingValues(horizontal = 24.dp),
+                                verticalArrangement = Arrangement.spacedBy(14.dp),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .testTag("lyrics_lazy_column")
+                                    .pointerInput(Unit) {
+                                        awaitPointerEventScope {
+                                            while (true) {
+                                                awaitPointerEvent(PointerEventPass.Initial)
+                                                val now = System.currentTimeMillis()
+                                                if (now - lastTouchMs > 500L) {
+                                                    lastTouchMs = now
+                                                    registerInteraction()
+                                                }
+                                            }
+                                        }
+                                    }
+                            ) {
+                                item(key = "lyrics_top_spacer") {
+                                    Spacer(modifier = Modifier.height(halfHeight))
+                                }
+                                itemsIndexed(lyricsData.lines) { index, line ->
+                                    LyricLineItem(
+                                        line = line,
+                                        isActive = index == activeLineIndex,
+                                        baseFontSize = karaokeFontSize,
+                                        activeColorName = karaokeActiveColor,
+                                        animationsEnabled = animationsEnabled,
+                                        onClick = {
+                                            registerInteraction()
+                                            isFollowing = true
+                                            onSeekTo((line.timeMs + karaokeOffsetMs).coerceAtLeast(0L))
+                                        }
+                                    )
+                                }
+                                item(key = "lyrics_bottom_spacer") {
+                                    Spacer(modifier = Modifier.height(halfHeight))
+                                }
+                            }
 
-                        // Gradient fading doux en haut et en bas pour un défilement infini et naturel
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(90.dp)
-                                .align(Alignment.TopCenter)
-                                .background(
-                                    Brush.verticalGradient(
-                                        listOf(
-                                            MaterialTheme.colorScheme.background,
-                                            MaterialTheme.colorScheme.background.copy(alpha = 0.75f),
-                                            Color.Transparent
+                            // Dégradés de fondu en haut et en bas pour un défilement naturel
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(90.dp)
+                                    .align(Alignment.TopCenter)
+                                    .background(
+                                        Brush.verticalGradient(
+                                            listOf(
+                                                MaterialTheme.colorScheme.background.copy(alpha = 0.85f),
+                                                Color.Transparent
+                                            )
                                         )
                                     )
-                                )
-                        )
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(110.dp)
-                                .align(Alignment.BottomCenter)
-                                .background(
-                                    Brush.verticalGradient(
-                                        listOf(
-                                            Color.Transparent,
-                                            MaterialTheme.colorScheme.background.copy(alpha = 0.75f),
-                                            MaterialTheme.colorScheme.background
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(110.dp)
+                                    .align(Alignment.BottomCenter)
+                                    .background(
+                                        Brush.verticalGradient(
+                                            listOf(
+                                                Color.Transparent,
+                                                MaterialTheme.colorScheme.background.copy(alpha = 0.85f)
+                                            )
                                         )
                                     )
-                                )
+                            )
+                        }
+                    }
+
+                    // Mini barre de contrôle en bas (masquable en mode immersif)
+                    AnimatedVisibility(
+                        visible = areControlsVisible,
+                        enter = fadeIn(tween(260)) + expandVertically(tween(260)),
+                        exit = fadeOut(tween(260)) + shrinkVertically(tween(260))
+                    ) {
+                        LyricsBottomControlBar(
+                            track = track,
+                            currentPositionMs = currentPositionMs,
+                            durationMs = if (durationMs > 0) durationMs else (track?.duration ?: 0L),
+                            isPlaying = isPlaying,
+                            onPlayPause = {
+                                registerInteraction()
+                                onPlayPause()
+                            },
+                            onNext = {
+                                registerInteraction()
+                                onNext()
+                            },
+                            onPrevious = {
+                                registerInteraction()
+                                onPrevious()
+                            },
+                            onSeekTo = {
+                                registerInteraction()
+                                onSeekTo(it)
+                            },
+                            onOpenOptions = {
+                                registerInteraction()
+                                showOptionsSheet = true
+                            }
                         )
                     }
                 }
 
-                // Mini barre de contrôle en bas (masquable en mode immersif)
+                // Indicateur flottant discret lorsque les contrôles sont masqués
                 AnimatedVisibility(
-                    visible = areControlsVisible,
-                    enter = fadeIn(tween(260)) + expandVertically(tween(260)),
-                    exit = fadeOut(tween(260)) + shrinkVertically(tween(260))
+                    visible = !areControlsVisible,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 20.dp)
                 ) {
-                    LyricsBottomControlBar(
-                        track = track,
-                        currentPositionMs = currentPositionMs,
-                        durationMs = if (durationMs > 0) durationMs else (track?.duration ?: 0L),
-                        isPlaying = isPlaying,
-                        onPlayPause = {
-                            registerInteraction()
-                            onPlayPause()
-                        },
-                        onNext = {
-                            registerInteraction()
-                            onNext()
-                        },
-                        onPrevious = {
-                            registerInteraction()
-                            onPrevious()
-                        },
-                        onSeekTo = {
-                            registerInteraction()
-                            onSeekTo(it)
-                        }
-                    )
-                }
-            }
-
-            // Indicateur flottant discret lorsque les contrôles sont masqués
-            AnimatedVisibility(
-                visible = !areControlsVisible,
-                enter = fadeIn(),
-                exit = fadeOut(),
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 20.dp)
-            ) {
-                Surface(
-                    onClick = { registerInteraction() },
-                    shape = RoundedCornerShape(20.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f),
-                    border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.4f)),
-                    modifier = Modifier.shadow(8.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    Surface(
+                        onClick = { registerInteraction() },
+                        shape = RoundedCornerShape(20.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f),
+                        border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.4f)),
+                        modifier = Modifier.shadow(8.dp)
                     ) {
-                        Icon(
-                            imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = null,
-                            tint = MusicProCyanNeon,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "Afficher les contrôles",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 12.sp
-                        )
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                contentDescription = null,
+                                tint = MusicProCyanNeon,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Afficher les contrôles",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 12.sp
+                            )
+                        }
                     }
                 }
             }
         }
-    }
 
-    // Dialogue d'importation / collage de paroles LRC
-    if (showImportDialog) {
-        AlertDialog(
-            onDismissRequest = { showImportDialog = false },
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            title = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Subtitles,
-                        contentDescription = null,
-                        tint = MusicProCyanNeon
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Importer des paroles",
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            },
-            text = {
-                Column {
-                    Text(
-                        text = "Collez votre texte de paroles synchronisées :",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 13.sp
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    OutlinedTextField(
-                        value = manualLrcInput,
-                        onValueChange = { manualLrcInput = it },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(180.dp)
-                            .testTag("lrc_input_field"),
-                        placeholder = {
-                            Text(
-                                "[00:12.50]Première ligne des paroles\n[00:24.00]Deuxième ligne synchronisée",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 12.sp
-                            )
-                        },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MusicProCyanNeon,
-                            unfocusedBorderColor = MusicProVioletPrimary.copy(alpha = 0.5f),
-                            focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                            unfocusedTextColor = MaterialTheme.colorScheme.onBackground
-                        ),
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        if (manualLrcInput.isNotBlank()) {
-                            onImportLrcText(manualLrcInput)
-                            showImportDialog = false
-                            manualLrcInput = ""
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon),
-                    modifier = Modifier.testTag("confirm_import_lrc_button")
-                ) {
-                    Text("Appliquer", color = Color.Black, fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showImportDialog = false }) {
-                    Text("Annuler", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        )
-    }
+        // Feuille du bas : bouton Karaoké + décalage (−/+ 100 ms)
+        if (showOptionsSheet) {
+            LyricsOptionsSheet(
+                offsetMs = karaokeOffsetMs,
+                onOffsetChange = onKaraokeOffsetChange,
+                onOpenKaraoke = onOpenKaraokeSettings,
+                onDismiss = { showOptionsSheet = false }
+            )
+        }
 
-    // Dialogue d'attente pendant la transcription IA Groq Whisper
-    if (isGroqTranscribing) {
-        AlertDialog(
-            onDismissRequest = { /* Empêcher la fermeture accidentelle pendant la transcription */ },
-            containerColor = MaterialTheme.colorScheme.background,
-            title = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(CircleShape)
-                            .background(MusicProVioletPrimary.copy(alpha = 0.25f)),
-                        contentAlignment = Alignment.Center
-                    ) {
+        // Dialogue d'importation / collage de paroles LRC
+        if (showImportDialog) {
+            AlertDialog(
+                onDismissRequest = { showImportDialog = false },
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = Icons.Default.AutoAwesome,
+                            imageVector = Icons.Default.Subtitles,
                             contentDescription = null,
-                            tint = MusicProCyanNeon,
-                            modifier = Modifier.size(20.dp)
+                            tint = MusicProCyanNeon
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Importer des paroles",
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        text = "Génération assistée",
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                }
-            },
-            text = {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    CircularProgressIndicator(
-                        color = MusicProCyanNeon,
-                        strokeWidth = 3.dp,
-                        modifier = Modifier.size(46.dp)
-                    )
-                    Spacer(modifier = Modifier.height(18.dp))
-                    Text(
-                        text = cleanLyricsUserMessage(groqProgressMessage.ifBlank { "Création des paroles en cours..." }),
-                        fontSize = 13.sp,
-                        color = MusicProCyanLight,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = "Découpage automatique si fichier > 25 Mo",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            },
-            confirmButton = {}
-        )
-    }
-
-    // Dialogue d'erreur Groq Whisper
-    if (groqErrorMessage != null) {
-        val isApiKeyIssue = groqErrorMessage.contains("clé", ignoreCase = true) ||
-                groqErrorMessage.contains("api", ignoreCase = true) ||
-                groqErrorMessage.contains("paramètres", ignoreCase = true)
-
-        AlertDialog(
-            onDismissRequest = onClearGroqError,
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            title = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.SubtitlesOff,
-                        contentDescription = null,
-                        tint = MusicProVioletLight,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Transcription assistée",
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                }
-            },
-            text = {
-                Text(
-                    text = cleanLyricsUserMessage(groqErrorMessage),
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 18.sp
-                )
-            },
-            confirmButton = {
-                if (isApiKeyIssue) {
+                },
+                text = {
+                    Column {
+                        Text(
+                            text = "Collez votre texte de paroles synchronisées :",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 13.sp
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        OutlinedTextField(
+                            value = manualLrcInput,
+                            onValueChange = { manualLrcInput = it },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(180.dp)
+                                .testTag("lrc_input_field"),
+                            placeholder = {
+                                Text(
+                                    "[00:12.50]Première ligne des paroles\n[00:24.00]Deuxième ligne synchronisée",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 12.sp
+                                )
+                            },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MusicProCyanNeon,
+                                unfocusedBorderColor = MusicProVioletPrimary.copy(alpha = 0.5f),
+                                focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onBackground
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                    }
+                },
+                confirmButton = {
                     Button(
                         onClick = {
-                            onClearGroqError()
-                            onOpenSettings()
+                            if (manualLrcInput.isNotBlank()) {
+                                onImportLrcText(manualLrcInput)
+                                showImportDialog = false
+                                manualLrcInput = ""
+                            }
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon),
-                        shape = RoundedCornerShape(10.dp)
+                        modifier = Modifier.testTag("confirm_import_lrc_button")
                     ) {
-                        Text("Ouvrir Paramètres", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        Text("Appliquer", color = Color.Black, fontWeight = FontWeight.Bold)
                     }
-                } else {
-                    Button(
-                        onClick = onClearGroqError,
-                        colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon),
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-                        Text("D'accord", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                },
+                dismissButton = {
+                    TextButton(onClick = { showImportDialog = false }) {
+                        Text("Annuler", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-            },
-            dismissButton = {
-                if (isApiKeyIssue) {
-                    TextButton(onClick = onClearGroqError) {
-                        Text("Fermer", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            )
+        }
+
+        // Dialogue d'attente pendant la transcription IA Groq Whisper
+        if (isGroqTranscribing) {
+            AlertDialog(
+                onDismissRequest = { /* Empêcher la fermeture accidentelle pendant la transcription */ },
+                containerColor = MaterialTheme.colorScheme.background,
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(MusicProVioletPrimary.copy(alpha = 0.25f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AutoAwesome,
+                                contentDescription = null,
+                                tint = MusicProCyanNeon,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = "Génération assistée",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
                     }
+                },
+                text = {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator(
+                            color = MusicProCyanNeon,
+                            strokeWidth = 3.dp,
+                            modifier = Modifier.size(46.dp)
+                        )
+                        Spacer(modifier = Modifier.height(18.dp))
+                        Text(
+                            text = cleanLyricsUserMessage(groqProgressMessage.ifBlank { "Création des paroles en cours..." }),
+                            fontSize = 13.sp,
+                            color = MusicProCyanLight,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Découpage automatique si fichier > 25 Mo",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                },
+                confirmButton = {}
+            )
+        }
+
+        // Dialogue d'erreur Groq Whisper
+        if (groqErrorMessage != null) {
+            val isApiKeyIssue = groqErrorMessage.contains("clé", ignoreCase = true) ||
+                    groqErrorMessage.contains("api", ignoreCase = true) ||
+                    groqErrorMessage.contains("paramètres", ignoreCase = true)
+
+            AlertDialog(
+                onDismissRequest = onClearGroqError,
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.SubtitlesOff,
+                            contentDescription = null,
+                            tint = MusicProVioletLight,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Transcription assistée",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                },
+                text = {
+                    Text(
+                        text = cleanLyricsUserMessage(groqErrorMessage),
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = 18.sp
+                    )
+                },
+                confirmButton = {
+                    if (isApiKeyIssue) {
+                        Button(
+                            onClick = {
+                                onClearGroqError()
+                                onOpenSettings()
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Text("Ouvrir Paramètres", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        }
+                    } else {
+                        Button(
+                            onClick = onClearGroqError,
+                            colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Text("D'accord", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        }
+                    }
+                },
+                dismissButton = {
+                    if (isApiKeyIssue) {
+                        TextButton(onClick = onClearGroqError) {
+                            Text("Fermer", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            )
+        }
+    }
+}
+
+/** Feuille du bas : accès au mode karaoké et réglage fin du décalage (pas de 100 ms). */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LyricsOptionsSheet(
+    offsetMs: Long,
+    onOffsetChange: (Long) -> Unit,
+    onOpenKaraoke: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val minusDescription = stringResource(R.string.lyrics_offset_minus_cd)
+    val plusDescription = stringResource(R.string.lyrics_offset_plus_cd)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 8.dp)
+                .testTag("lyrics_options_sheet")
+        ) {
+            Text(
+                text = stringResource(R.string.lyrics_options_title),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    onDismiss()
+                    onOpenKaraoke()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+                    .testTag("lyrics_karaoke_button"),
+                colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon),
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Mic,
+                    contentDescription = null,
+                    tint = Color.Black,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.lyrics_karaoke),
+                    color = Color.Black,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(
+                text = stringResource(R.string.lyrics_karaoke_hint),
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = stringResource(R.string.lyrics_offset_title),
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                OutlinedButton(
+                    onClick = { onOffsetChange((offsetMs - 100L).coerceIn(-5000L, 5000L)) },
+                    enabled = offsetMs > -5000L,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .semantics { contentDescription = minusDescription }
+                        .testTag("lyrics_offset_minus"),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Text("−", fontSize = 22.sp)
+                }
+                Text(
+                    text = stringResource(R.string.lyrics_offset_value, offsetMs.toInt()),
+                    color = MusicProCyanNeon,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
+                )
+                OutlinedButton(
+                    onClick = { onOffsetChange((offsetMs + 100L).coerceIn(-5000L, 5000L)) },
+                    enabled = offsetMs < 5000L,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .semantics { contentDescription = plusDescription }
+                        .testTag("lyrics_offset_plus"),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Text("+", fontSize = 20.sp)
                 }
             }
-        )
+
+            TextButton(
+                onClick = { onOffsetChange(0L) },
+                enabled = offsetMs != 0L,
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .heightIn(min = 48.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.lyrics_offset_reset),
+                    color = if (offsetMs != 0L) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
     }
 }
 
@@ -869,54 +1079,48 @@ private fun LyricsTopBar(
     }
 }
 
+/**
+ * Ligne de paroles. La ligne active est centrée, en gras et plus grande (28 sp par défaut) ;
+ * toutes les autres sont à 50 % d'opacité. Les tailles ne sont pas animées afin que le
+ * centrage automatique reste stable ; seule la couleur est fondue.
+ */
 @Composable
 private fun LyricLineItem(
     line: LyricLine,
     isActive: Boolean,
-    isPast: Boolean,
     baseFontSize: Float = 18f,
     activeColorName: String = "cyan",
+    animationsEnabled: Boolean = true,
     onClick: () -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
 
-    // Transitions fluides de typographie et couleur (Style moderne & épuré)
+    val targetColor = if (isActive) {
+        when (activeColorName) {
+            "violet" -> MusicProVioletLight
+            "white" -> Color.White
+            else -> MusicProCyanNeon
+        }
+    } else {
+        Color.White.copy(alpha = 0.5f)
+    }
     val textColor by animateColorAsState(
-        targetValue = when {
-            isActive -> when (activeColorName) {
-                "violet" -> MusicProVioletLight
-                "white" -> Color.White
-                else -> MusicProCyanNeon
-            }
-            isPast -> Color.White.copy(alpha = 0.72f)
-            else -> Color.White.copy(alpha = 0.52f)
-        },
-        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
+        targetValue = targetColor,
+        animationSpec = tween(
+            durationMillis = if (animationsEnabled) 280 else 0,
+            easing = FastOutSlowInEasing
+        ),
         label = "lyric_color"
     )
 
-    val fontSize by animateFloatAsState(
-        targetValue = if (isActive) baseFontSize + 5f else baseFontSize - 1f,
-        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
-        label = "lyric_size"
-    )
-
-    val scale by animateFloatAsState(
-        targetValue = if (isActive) 1.02f else 1.0f,
-        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
-        label = "lyric_scale"
-    )
-
-    val verticalPadding by animateFloatAsState(
-        targetValue = if (isActive) 10f else 6f,
-        animationSpec = tween(durationMillis = 250),
-        label = "lyric_padding"
-    )
+    val fontSize = if (isActive) maxOf(28f, baseFontSize + 10f) else baseFontSize
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
+            .heightIn(min = 48.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .semantics { selected = isActive }
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
@@ -925,16 +1129,17 @@ private fun LyricLineItem(
                     onClick()
                 }
             )
-            .padding(horizontal = 8.dp, vertical = verticalPadding.dp)
-            .scale(scale),
-        contentAlignment = Alignment.CenterStart
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text = line.text.ifBlank { "…" },
             fontSize = fontSize.sp,
-            fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.SemiBold,
+            fontWeight = if (isActive) FontWeight.Bold else FontWeight.SemiBold,
             color = textColor,
-            lineHeight = (fontSize * 1.38f).sp
+            textAlign = TextAlign.Center,
+            lineHeight = (fontSize * 1.3f).sp,
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }
@@ -1085,7 +1290,8 @@ private fun LyricsBottomControlBar(
     onPlayPause: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
-    onSeekTo: (Long) -> Unit
+    onSeekTo: (Long) -> Unit,
+    onOpenOptions: () -> Unit
 ) {
     val effectivePos = currentPositionMs.coerceAtLeast(0L)
     val safeDuration = durationMs.coerceAtLeast(1L)
@@ -1188,6 +1394,7 @@ private fun LyricsBottomControlBar(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 TextButton(
@@ -1196,6 +1403,19 @@ private fun LyricsBottomControlBar(
                     contentPadding = PaddingValues(horizontal = 8.dp)
                 ) {
                     Text("−10 s", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+                }
+                IconButton(
+                    onClick = onOpenOptions,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .testTag("lyrics_options_button")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Tune,
+                        contentDescription = stringResource(R.string.lyrics_options_cd),
+                        tint = MusicProCyanNeon,
+                        modifier = Modifier.size(22.dp)
+                    )
                 }
                 TextButton(
                     onClick = { onSeekTo((visiblePositionMs + 10_000L).coerceAtMost(safeDuration)) },
