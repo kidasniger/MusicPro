@@ -2,7 +2,7 @@ package com.example
 
 import android.os.Bundle
 import android.content.Intent
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -48,7 +48,7 @@ import com.example.updater.UpdateCheckState
 import com.example.ui.theme.MyApplicationTheme
 import androidx.compose.material3.MaterialTheme
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
   private val mediaUiRequestState = mutableStateOf<Pair<String, Long>?>(null)
 
