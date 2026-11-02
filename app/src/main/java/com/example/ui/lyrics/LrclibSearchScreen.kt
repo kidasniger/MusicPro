@@ -206,9 +206,9 @@ fun LrclibSearchScreen(
                     is LrclibSearchUiState.AiLoading -> {
                         LoadingResultsView(
                             message = if (searchState is LrclibSearchUiState.AiLoading) {
-                                "Recherche améliorée en cours..."
+                                stringResource(R.string.lyrics_search_improved_loading)
                             } else {
-                                "Recherche des paroles..."
+                                stringResource(R.string.lyrics_search_loading)
                             }
                         )
                     }
@@ -458,7 +458,7 @@ private fun SearchFormCard(
                     color = (if (isMp3) MusicProCyanNeon else MusicProVioletPrimary).copy(alpha = 0.15f)
                 ) {
                     Text(
-                        text = if (isMp3) "Cible : Tag ID3 SYLT (MP3)" else "Cible : Fichier .lrc compagnon",
+                        text = if (isMp3) stringResource(R.string.lyrics_target_sylt) else stringResource(R.string.lyrics_target_lrc),
                         fontSize = 11.sp,
                         color = if (isMp3) MusicProCyanNeon else MusicProVioletLight,
                         fontWeight = FontWeight.Medium,
@@ -487,14 +487,14 @@ private fun SearchFormCard(
                 } else {
                     Icon(
                         imageVector = Icons.Default.AutoAwesome,
-                        contentDescription = "Aide IA",
+                        contentDescription = stringResource(R.string.lyrics_ai_help),
                         tint = MusicProCyanNeon,
                         modifier = Modifier.size(18.dp)
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = if (isAiLoading) "Recherche améliorée..." else "Améliorer la recherche",
+                    text = if (isAiLoading) stringResource(R.string.lyrics_search_improved) else stringResource(R.string.lyrics_improve_search),
                     color = MusicProCyanNeon,
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp
@@ -530,7 +530,7 @@ private fun SearchFormCard(
                         strokeWidth = 2.dp
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Recherche en cours...", color = Color.Black, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.lyrics_search_in_progress), color = Color.Black, fontWeight = FontWeight.Bold)
                 } else {
                     Icon(
                         imageVector = Icons.Default.Search,
@@ -539,7 +539,7 @@ private fun SearchFormCard(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Rechercher les paroles", color = Color.Black, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.lyrics_search_button), color = Color.Black, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -987,7 +987,7 @@ private fun EmptyResultsView(
                 modifier = Modifier.size(16.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Rechercher uniquement par titre", fontSize = 12.sp, color = Color.White)
+            Text(stringResource(R.string.lyrics_search_title_only), fontSize = 12.sp, color = Color.White)
         }
     }
 }
@@ -1033,9 +1033,9 @@ private fun ErrorResultsView(
 
         Text(
             text = when {
-                isNetworkOff -> "Pas de connexion Internet"
-                isTimeout -> "Délai d'attente dépassé"
-                else -> "Erreur de recherche"
+                isNetworkOff -> stringResource(R.string.lyrics_no_internet)
+                isTimeout -> stringResource(R.string.lyrics_timeout)
+                else -> stringResource(R.string.lyrics_search_error)
             },
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
@@ -1067,7 +1067,7 @@ private fun ErrorResultsView(
                 modifier = Modifier.size(16.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Réessayer la recherche", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            Text(stringResource(R.string.lyrics_retry), color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 12.sp)
         }
     }
 }
@@ -1109,7 +1109,7 @@ private fun IdleSearchPrompt(
             colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon),
             shape = RoundedCornerShape(10.dp)
         ) {
-            Text("Lancer la recherche", color = Color.Black, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.lyrics_start_search), color = Color.Black, fontWeight = FontWeight.Bold)
         }
     }
 }
