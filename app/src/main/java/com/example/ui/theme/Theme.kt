@@ -24,6 +24,7 @@ import com.example.data.preferences.AppStyle
 import com.example.data.preferences.AppThemeMode
 import com.example.data.preferences.AppearanceMode
 import com.example.ui.components.glass.rememberAnimationsEnabled
+import com.example.ui.components.glass.LocalReduceAnimations
 
 val LocalMusicProListRowHeight = staticCompositionLocalOf { 64.dp }
 
@@ -139,6 +140,7 @@ fun MusicProTheme(
     dynamicColor: Boolean = false,
     fontScale: Float = 1f,
     listDensity: ListDensityPreference = ListDensityPreference.COMFORTABLE,
+    reduceAnimations: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val systemDark = isSystemInDarkTheme()
@@ -184,7 +186,8 @@ fun MusicProTheme(
             CompositionLocalProvider(
                 LocalAppStyle provides style,
                 LocalIsDarkTheme provides isDark,
-                LocalMusicProListRowHeight provides listDensity.rowHeightDp.dp
+                LocalMusicProListRowHeight provides listDensity.rowHeightDp.dp,
+                LocalReduceAnimations provides reduceAnimations
             ) {
                 content()
             }
