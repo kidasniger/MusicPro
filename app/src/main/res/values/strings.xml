@@ -190,4 +190,5 @@
     <string name="settings_test">Tester</string>
     <string name="settings_empty">Vider</string>
     <string name="settings_purge">Purger</string>
+<string name="settings_version_format">v%1$s</string>
 </resources>
