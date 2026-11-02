@@ -23,7 +23,6 @@ import com.example.data.preferences.AccentChoice
 import com.example.data.preferences.AppStyle
 import com.example.data.preferences.AppThemeMode
 import com.example.data.preferences.AppearanceMode
-import com.example.ui.components.glass.rememberAnimationsEnabled
 import com.example.ui.components.glass.LocalReduceAnimations
 import com.example.ui.components.glass.rememberSystemAnimationsEnabled
 
