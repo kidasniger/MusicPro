@@ -699,7 +699,7 @@ fun GroqApiKeyCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "%1$s",
+                        text = stringResource(R.string.settings_groq_intro),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 15.sp
@@ -979,7 +979,7 @@ fun PlaybackSettingsCard(
                 }
                 Spacer(Modifier.width(10.dp))
                 Column {
-                    Text(stringResource(R.string.settings_player_behavior), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                    Text(stringResource(R.string.settings_group_playback), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                     Text(stringResource(R.string.settings_player_behavior), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
@@ -1130,7 +1130,7 @@ fun AboutCard(currentVersion: String = "1.0") {
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "%1$s",
+                        text = stringResource(R.string.settings_data_privacy),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 15.sp
