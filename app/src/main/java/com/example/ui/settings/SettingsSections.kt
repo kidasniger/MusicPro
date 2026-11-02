@@ -468,7 +468,7 @@ fun GroqApiKeyCard(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = if (isConfigured) "Configurée" else "Non définie",
+                            text = stringResource(if (isConfigured) R.string.settings_configured else R.string.settings_not_set),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (isConfigured) MusicProSuccess else MusicProWarning
@@ -1209,7 +1209,7 @@ fun PermissionsCard(onNavigateToPermissions: () -> Unit) {
                 modifier = Modifier.testTag("manage_permissions_button")
             ) {
                 Text(
-                    text = "Gérer",
+                    text = stringResource(R.string.settings_manage),
                     color = MusicProVioletLight,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold
