@@ -32,6 +32,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.File
+import java.time.LocalDate
+import com.example.data.local.MusicProDatabase
 
 /**
  * Gestionnaire de lecture audio Media3 connectant l'interface Compose au MusicPlaybackService
@@ -53,6 +55,9 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
     private val _queueIndex = MutableStateFlow(0)
     val queueIndex: StateFlow<Int> = _queueIndex.asStateFlow()
     private var positionTickerJob: Job? = null
+    private var statsTrack: AudioTrackEntity? = null
+    private var statsLastPositionMs: Long? = null
+    private var pendingStatsMs: Long = 0L
     private var pendingTrackToPlay: AudioTrackEntity? = null
     private var pendingPlaylistToPlay: List<AudioTrackEntity> = emptyList()
 
@@ -705,21 +710,54 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
             while (isActive) {
                 mediaController?.let { controller ->
                     if (controller.isPlaying) {
-                        _currentPositionMs.value = controller.currentPosition.coerceAtLeast(0L)
+                        val position = controller.currentPosition.coerceAtLeast(0L)
+                        _currentPositionMs.value = position
                         val dur = controller.duration
-                        if (dur > 0) {
-                            _durationMs.value = dur
-                        }
+                        if (dur > 0) _durationMs.value = dur
+                        recordListeningProgress(_currentTrack.value, position)
                     }
                 }
-                delay(80)
+                delay(250)
             }
+        }
+    }
+
+    private fun recordListeningProgress(track: AudioTrackEntity?, positionMs: Long) {
+        if (track == null) return
+        if (statsTrack?.id != track.id) {
+            flushListeningStats()
+            statsTrack = track
+            statsLastPositionMs = positionMs
+            return
+        }
+        val previous = statsLastPositionMs
+        statsLastPositionMs = positionMs
+        if (previous != null) {
+            val delta = positionMs - previous
+            if (delta in 1L..1_000L) pendingStatsMs += delta
+        }
+        if (pendingStatsMs >= 1_000L) flushListeningStats()
+    }
+
+    private fun flushListeningStats() {
+        val track = statsTrack
+        val listened = pendingStatsMs
+        pendingStatsMs = 0L
+        if (track == null || listened <= 0L) return
+        val dayEpoch = LocalDate.now().toEpochDay()
+        scope.launch(Dispatchers.IO) {
+            runCatching {
+                MusicProDatabase.getInstance(appContext).listeningStatsDao()
+                    .addListeningTime(dayEpoch, track.id, track.title, track.artist, track.genre, listened)
+            }.onFailure { Log.w(TAG, "Enregistrement des statistiques impossible", it) }
         }
     }
 
     private fun stopPositionTicker() {
         positionTickerJob?.cancel()
         positionTickerJob = null
+        flushListeningStats()
+        statsLastPositionMs = null
     }
 
     private fun AudioTrackEntity.toMediaItem(preferDirectFile: Boolean = false): MediaItem {
