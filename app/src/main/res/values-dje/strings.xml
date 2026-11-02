@@ -60,4 +60,5 @@
     <string name="settings_test">Šiiyan</string>
     <string name="settings_empty">Tuusu</string>
     <string name="settings_purge">Fatta</string>
+<string name="settings_version_format">v%1$s</string>
 </resources>
