@@ -13,8 +13,14 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.data.backup.BACKUP_SCHEMA_VERSION
+import com.example.data.backup.FavoritesBackup
+import com.example.data.backup.GlassBackup
+import com.example.data.backup.KaraokeBackup
+import com.example.data.backup.SettingsBackup
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 
@@ -465,6 +471,116 @@ class UserPreferencesRepository(
     suspend fun setShuffleEnabled(enabled: Boolean) {
         dataStore.edit { preferences ->
             preferences[KEY_SHUFFLE_ENABLED] = enabled
+        }
+    }
+
+    // --- Mise à jour 038 — Sauvegarde et export des réglages -------------------------------------
+
+    /** Instantané complet des réglages sauvegardables, prêt à être sérialisé en JSON. */
+    suspend fun backupSnapshot(): SettingsBackup {
+        val preferences = dataStore.data.first()
+        return SettingsBackup(
+            schemaVersion = BACKUP_SCHEMA_VERSION,
+            appearance = resolveAppearanceMode(preferences[KEY_APPEARANCE_MODE], preferences[KEY_THEME_MODE]),
+            appStyle = resolveAppStyle(preferences[KEY_APP_STYLE], preferences[KEY_THEME_MODE]),
+            accentChoice = resolveAccentChoice(preferences[KEY_ACCENT_CHOICE]),
+            eveningStartMinutes = resolveEveningMinutes(preferences[KEY_EVENING_START], DefaultEveningStartMinutes),
+            eveningEndMinutes = resolveEveningMinutes(preferences[KEY_EVENING_END], DefaultEveningEndMinutes),
+            dynamicColor = preferences[KEY_DYNAMIC_COLOR] ?: false,
+            textSize = resolveTextSizePreference(preferences[KEY_TEXT_SIZE]),
+            listDensity = resolveListDensityPreference(preferences[KEY_LIST_DENSITY]),
+            reduceAnimations = preferences[KEY_REDUCE_ANIMATIONS] ?: false,
+            glass = GlassBackup(
+                material = resolveGlassMaterial(
+                    stored = preferences[KEY_GLASS_MATERIAL],
+                    legacy = preferences[KEY_GLASS_QUALITY_LEGACY]
+                ),
+                colorStrength = resolveGlassColorStrength(preferences[KEY_GLASS_COLOR_STRENGTH]),
+                frostDp = resolveGlassFrostDp(preferences[KEY_GLASS_FROST_DP]),
+                tintHue = resolveGlassTintHue(preferences[KEY_GLASS_TINT_HUE]),
+                filmOpacity = resolveGlassFilmOpacity(preferences[KEY_GLASS_FILM_OPACITY]),
+                activeTabOpacity = resolveGlassActiveTabOpacity(preferences[KEY_GLASS_ACTIVE_TAB_OPACITY])
+            ),
+            karaoke = KaraokeBackup(
+                fontSize = preferences[KEY_KARAOKE_FONT_SIZE]?.toFloatOrNull() ?: 18f,
+                activeColor = preferences[KEY_KARAOKE_ACTIVE_COLOR] ?: "cyan",
+                offsetMs = preferences[KEY_KARAOKE_OFFSET]?.toLongOrNull() ?: 0L
+            ),
+            favorites = FavoritesBackup(
+                trackIds = preferences[KEY_FAVORITE_TRACK_IDS].orEmpty().mapNotNull(String::toLongOrNull),
+                artists = preferences[KEY_FAVORITE_ARTISTS].orEmpty().toList()
+            )
+        )
+    }
+
+    /** Applique une sauvegarde validée ([SettingsBackupManager.fromJson]) aux réglages. */
+    suspend fun applyBackup(backup: SettingsBackup) {
+        dataStore.edit { preferences ->
+            migrateThemeKeys(preferences)
+            preferences[KEY_APPEARANCE_MODE] = backup.appearance.name
+            preferences[KEY_APP_STYLE] = backup.appStyle.name
+            preferences[KEY_ACCENT_CHOICE] = backup.accentChoice.name
+            preferences[KEY_EVENING_START] = clampDayMinutes(backup.eveningStartMinutes)
+            preferences[KEY_EVENING_END] = clampDayMinutes(backup.eveningEndMinutes)
+            preferences[KEY_DYNAMIC_COLOR] = backup.dynamicColor
+            preferences[KEY_TEXT_SIZE] = backup.textSize.name
+            preferences[KEY_LIST_DENSITY] = backup.listDensity.name
+            preferences[KEY_REDUCE_ANIMATIONS] = backup.reduceAnimations
+            preferences[KEY_GLASS_MATERIAL] = backup.glass.material.name
+            preferences.remove(KEY_GLASS_QUALITY_LEGACY)
+            preferences[KEY_GLASS_COLOR_STRENGTH] = clampGlassColorStrength(backup.glass.colorStrength)
+            preferences[KEY_GLASS_FROST_DP] = clampGlassFrostDp(backup.glass.frostDp)
+            val tint = resolveGlassTintHue(backup.glass.tintHue)
+            if (tint == null) preferences.remove(KEY_GLASS_TINT_HUE) else preferences[KEY_GLASS_TINT_HUE] = tint
+            preferences[KEY_GLASS_FILM_OPACITY] = clampGlassOpacity(backup.glass.filmOpacity)
+            preferences[KEY_GLASS_ACTIVE_TAB_OPACITY] = clampGlassOpacity(backup.glass.activeTabOpacity)
+            preferences[KEY_KARAOKE_FONT_SIZE] = backup.karaoke.fontSize.toString()
+            preferences[KEY_KARAOKE_ACTIVE_COLOR] = backup.karaoke.activeColor
+            preferences[KEY_KARAOKE_OFFSET] = backup.karaoke.offsetMs.toString()
+            preferences[KEY_FAVORITE_TRACK_IDS] = backup.favorites.trackIds.map(Long::toString).toSet()
+            preferences[KEY_FAVORITE_ARTISTS] = backup.favorites.artists.toSet()
+        }
+    }
+
+    // --- Mise à jour 040 — Réinitialisation par section -------------------------------------------
+
+    /** Remet la section Apparence (thème, style, accent, verre, taille, densité, animations) par défaut. */
+    suspend fun resetAppearanceSection() {
+        dataStore.edit { preferences ->
+            preferences[KEY_APPEARANCE_MODE] = AppearanceMode.DARK.name
+            preferences[KEY_APP_STYLE] = AppStyle.NEON.name
+            preferences[KEY_ACCENT_CHOICE] = AccentChoice.TERRACOTTA.name
+            preferences[KEY_EVENING_START] = DefaultEveningStartMinutes
+            preferences[KEY_EVENING_END] = DefaultEveningEndMinutes
+            preferences[KEY_DYNAMIC_COLOR] = false
+            preferences[KEY_TEXT_SIZE] = TextSizePreference.NORMAL.name
+            preferences[KEY_LIST_DENSITY] = ListDensityPreference.COMFORTABLE.name
+            preferences[KEY_REDUCE_ANIMATIONS] = false
+            preferences[KEY_GLASS_MATERIAL] = GlassMaterial.BALANCED.name
+            preferences[KEY_GLASS_COLOR_STRENGTH] = DefaultGlassColorStrength
+            preferences[KEY_GLASS_FROST_DP] = DefaultGlassFrostDp
+            preferences.remove(KEY_GLASS_TINT_HUE)
+            preferences[KEY_GLASS_FILM_OPACITY] = DefaultGlassFilmOpacity
+            preferences[KEY_GLASS_ACTIVE_TAB_OPACITY] = DefaultGlassActiveTabOpacity
+            preferences.remove(KEY_GLASS_QUALITY_LEGACY)
+        }
+    }
+
+    /** Remet la section Lecture (lecture auto, enchaînement, reprise) par défaut. */
+    suspend fun resetPlaybackSection() {
+        dataStore.edit { preferences ->
+            preferences[KEY_AUTO_PLAY] = true
+            preferences[KEY_GAPLESS] = true
+            preferences[KEY_RESUME_PLAYBACK] = true
+        }
+    }
+
+    /** Remet la section Paroles (karaoké : taille, couleur, décalage) par défaut. */
+    suspend fun resetKaraokeSection() {
+        dataStore.edit { preferences ->
+            preferences[KEY_KARAOKE_FONT_SIZE] = 18f.toString()
+            preferences[KEY_KARAOKE_ACTIVE_COLOR] = "cyan"
+            preferences[KEY_KARAOKE_OFFSET] = 0L.toString()
         }
     }
 }

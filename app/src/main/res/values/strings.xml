@@ -201,4 +201,51 @@
 <string name="lyrics_search_title">Recherche de paroles</string><string name="lyrics_search_improved_loading">Recherche améliorée en cours…</string><string name="lyrics_search_loading">Recherche des paroles…</string><string name="lyrics_duration_format">Durée : %1$02d:%2$02d (%3$ds)</string><string name="lyrics_target_sylt">Cible : tag ID3 SYLT (MP3)</string><string name="lyrics_target_lrc">Cible : fichier .lrc compagnon</string><string name="lyrics_ai_help">Aide IA</string><string name="lyrics_search_improved">Recherche améliorée…</string><string name="lyrics_improve_search">Améliorer la recherche</string><string name="lyrics_suggestion_format">Proposition : %1$s — %2$s</string><string name="lyrics_search_in_progress">Recherche en cours…</string><string name="lyrics_search_button">Rechercher les paroles</string><plurals translatable="false" name="lyrics_results_count"><item quantity="one">%d version trouvée</item><item quantity="other">%d versions trouvées</item></plurals><string name="lyrics_result_hint">Appuyez sur un résultat pour l’aperçu</string><string name="lyrics_ideal_duration">Durée idéale</string><string name="lyrics_synced">Paroles synchronisées</string><string name="lyrics_plain_text">Texte brut</string><string name="lyrics_instrumental">Morceau instrumental</string><string name="lyrics_hide_preview">Masquer l’aperçu</string><string name="lyrics_preview_title">Aperçu des paroles trouvées</string><string name="lyrics_apply_synced">Appliquer les paroles synchronisées</string><string name="lyrics_apply">Appliquer les paroles</string><string name="lyrics_no_preview">Aucun aperçu disponible.</string><string name="lyrics_more_lines_format">… (%1$d lignes supplémentaires)</string><string name="lyrics_online_title">Recherche des paroles en ligne</string><string name="lyrics_no_results">Aucun résultat trouvé</string><string name="lyrics_no_match_format">Aucune parole ne correspond à %1$s</string><string name="lyrics_search_title_only">Rechercher uniquement par titre</string><string name="lyrics_no_internet">Pas de connexion Internet</string><string name="lyrics_timeout">Délai d’attente dépassé</string><string name="lyrics_search_error">Erreur de recherche</string><string name="lyrics_retry">Réessayer la recherche</string><string name="lyrics_online_description">Recherchez des paroles en ligne</string><string name="lyrics_search_description">Recherchez par titre et artiste pour trouver des paroles synchronisées.</string><string name="lyrics_start_search">Lancer la recherche</string>
 <string name="groq_preview_title">Aperçu des paroles générées</string><string name="groq_generation_done">Création des paroles terminée</string><string name="groq_lines_count">%1$d lignes</string><string name="groq_generated_synced_lines">Lignes synchronisées générées :</string><string name="groq_no_synced_lines">Aucune ligne synchronisée générée.</string><string name="groq_clipboard_copied">Paroles synchronisées copiées dans le presse-papiers.</string><string name="groq_copy_lrc">Copier LRC</string><string name="groq_integrate_track">Intégrer au morceau</string>
 <string name="lyrics_title_label">Titre</string><string name="lyrics_artist_label">Artiste</string><string name="lyrics_no_match_title_artist_format">Aucune parole ne correspond à « %1$s » de « %2$s ».</string>
+<!-- Mise à jour 037 — Son et égaliseur -->
+<string translatable="false" name="settings_sound_title">Son</string>
+<string translatable="false" name="settings_sound_desc">Égaliseur, préréglages et effet</string>
+<string translatable="false" name="eq_title">Égaliseur</string>
+<string translatable="false" name="eq_effect_on">Effet activé</string>
+<string translatable="false" name="eq_effect_off">Effet désactivé</string>
+<string translatable="false" name="eq_activate">Activer</string>
+<string translatable="false" name="eq_deactivate">Désactiver</string>
+<string translatable="false" name="eq_reset_all">Tout rétablir</string>
+<string translatable="false" name="eq_compare">Comparer</string>
+<string translatable="false" name="eq_comparing">Comparaison…</string>
+<string translatable="false" name="eq_preset_normal">Normal</string>
+<string translatable="false" name="eq_preset_bass">Basses</string>
+<string translatable="false" name="eq_preset_vocal">Voix</string>
+<string translatable="false" name="eq_preset_classical">Classique</string>
+<string translatable="false" name="eq_preset_pop">Pop</string>
+<string translatable="false" name="eq_preset_rock">Rock</string>
+<!-- Mise à jour 038 — Sauvegarde et export des réglages -->
+<string translatable="false" name="settings_export_title">Exporter mes réglages</string>
+<string translatable="false" name="settings_export_desc">Thème, style, verre, karaoké, favoris (JSON)</string>
+<string translatable="false" name="settings_import_title">Importer des réglages</string>
+<string translatable="false" name="settings_import_desc">Choisir un fichier de sauvegarde MusicPro</string>
+<string translatable="false" name="settings_backup_exported">Réglages exportés.</string>
+<string translatable="false" name="settings_backup_export_failed">Export impossible.</string>
+<string translatable="false" name="settings_backup_imported">Réglages importés.</string>
+<string translatable="false" name="settings_backup_import_failed">Import impossible.</string>
+<string translatable="false" name="settings_backup_invalid">Fichier invalide : %1$s</string>
+<string translatable="false" name="settings_import_summary_title">Importer ces réglages ?</string>
+<string translatable="false" name="settings_import_apply">Importer</string>
+<string translatable="false" name="settings_import_favorites">Favoris (morceaux · artistes)</string>
+<string translatable="false" name="settings_import_artists">artiste(s)</string>
+<!-- Mise à jour 040 — Réinitialisation par section -->
+<string translatable="false" name="settings_reset_section">Réinitialiser cette section</string>
+<string translatable="false" name="settings_reset_sheet_title">Réinitialiser cette section</string>
+<string translatable="false" name="settings_reset_intro">Cela remettra aux valeurs par défaut :</string>
+<string translatable="false" name="settings_reset">Réinitialiser</string>
+<string translatable="false" name="reset_item_theme">Apparence (Clair, Sombre, Auto, Sombre le soir)</string>
+<string translatable="false" name="reset_item_style">Style (Minimal, Néon, Verre) et accent</string>
+<string translatable="false" name="reset_item_evening">Heures « Sombre le soir »</string>
+<string translatable="false" name="reset_item_dyn">Couleurs dynamiques</string>
+<string translatable="false" name="reset_item_textsize">Taille du texte</string>
+<string translatable="false" name="reset_item_density">Densité des listes</string>
+<string translatable="false" name="reset_item_anim">Animations réduites</string>
+<string translatable="false" name="reset_item_glass">Effet verre (niveau, teinte, film, onglet)</string>
+<string translatable="false" name="reset_item_playback">Lecture auto, enchaînement et reprise</string>
+<string translatable="false" name="reset_item_karaoke">Karaoké (taille, couleur, décalage)</string>
+<string translatable="false" name="reset_item_groq">Clé API Groq enregistrée</string>
 </resources>

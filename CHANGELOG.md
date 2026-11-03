@@ -2,6 +2,17 @@
 
 ## Prochaine mise à jour
 
+- Réglages réorganisés en groupes à fond arrondi (24 dp) avec en-têtes en majuscules : Apparence, Lecture, Paroles, Intelligence artificielle, Stockage, Notifications, À propos ; chaque ligne affiche une icône en pastille 36 dp, la valeur choisie et un chevron.
+- Champ de recherche dans les réglages : filtre en direct par libellé et synonymes (« couleur », « flou », « cache », « thème »), met en évidence le terme trouvé et ouvre le groupe concerné.
+- Carte « Apparence » en tête de page : trois miniatures (Clair, Sombre, Auto) puis Minimal, Néon, Verre ; choix en un tap avec retour haptique léger.
+- Nouveaux réglages « Taille du texte » (Petit, Normal, Grand, Très grand) et « Densité » (Confortable, Compacte : lignes de 52 dp au lieu de 64 dp), appliqués en direct.
+- Interrupteur « Réduire les animations » : fondus de 120 ms, sans parallaxe ni flou animé ni pulsation du vinyle ; respecte aussi l'échelle d'animation système à 0.
+- Réglage « Langue » : Français, English, العربية, Hausa, Zarma, Auto, via les langues d'application d'Android ; chaînes en dur déplacées vers les ressources.
+- Nouvelle ligne « Son » dans Lecture : égaliseur en feuille du bas avec préréglages (Normal, Basses, Voix, Classique, Pop, Rock), réglage par bande −/+ et bouton « Comparer » qui alterne avec/sans effet pendant 3 secondes.
+- « Exporter mes réglages » et « Importer » : fichier JSON (thème, style, verre, karaoké, favoris) via le sélecteur système ; la version du schéma est validée et un résumé est affiché avant application.
+- Section IA : clé Groq masquée par défaut, « Tester la clé » avec résultat clair et bouton « Supprimer » ; la clé reste chiffrée et n'est jamais journalisée.
+- Chaque groupe de réglages propose un menu ⋯ « Réinitialiser cette section » : une confirmation en feuille du bas précise exactement ce qui sera remis par défaut, avec « Annuler » au même niveau visuel que « Réinitialiser ».
+
 - Interface plus cohérente en mode sombre, clair et automatique.
 - Navigation et contrôles tactiles plus accessibles.
 - Parcours de recherche, bibliothèque et lecture affinés.

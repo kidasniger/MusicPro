@@ -1,6 +1,8 @@
 package com.example.ui.settings
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -53,6 +55,8 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -60,9 +64,13 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -93,6 +101,12 @@ import androidx.compose.ui.res.stringResource
 import com.example.R
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import com.example.data.backup.BackupFormatException
+import com.example.data.backup.SettingsBackup
+import com.example.ui.audio.AudioViewModel
+import com.example.ui.components.EqualizerSheet
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -118,6 +132,7 @@ import com.example.ui.theme.MusicProVioletPrimary
 import com.example.ui.theme.MusicProWarning
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
@@ -148,6 +163,53 @@ fun SettingsScreen(
     val isClearingCache by settingsViewModel.isClearingCache.collectAsStateWithLifecycle()
     val isCleaningLibrary by settingsViewModel.isCleaningLibrary.collectAsStateWithLifecycle()
     val cacheClearMessage by settingsViewModel.cacheClearMessage.collectAsStateWithLifecycle()
+
+    // Son / égaliseur (mise à jour 037) : le ViewModel audio n'est créé qu'à l'ouverture de
+    // la feuille, pour ne pas instancier MediaController depuis les tests Robolectric.
+    var showEqualizerSheet by remember { mutableStateOf(false) }
+
+    // États sauvegarde des réglages (mise à jour 038)
+    var pendingImportBackup by remember { mutableStateOf<SettingsBackup?>(null) }
+    var backupFeedback by remember { mutableStateOf<Pair<Boolean, String>?>(null) }
+    val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri != null) {
+            scope.launch {
+                try {
+                    val json = settingsViewModel.exportSettingsJson()
+                    withContext(Dispatchers.IO) {
+                        context.contentResolver.openOutputStream(uri)?.use { stream ->
+                            stream.write(json.toByteArray(Charsets.UTF_8))
+                        } ?: throw IllegalStateException("OutputStream indisponible")
+                    }
+                    backupFeedback = Pair(true, context.getString(R.string.settings_backup_exported))
+                } catch (e: Exception) {
+                    backupFeedback = Pair(false, context.getString(R.string.settings_backup_export_failed))
+                }
+            }
+        }
+    }
+    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            scope.launch {
+                try {
+                    val text = withContext(Dispatchers.IO) {
+                        context.contentResolver.openInputStream(uri)?.use { stream ->
+                            stream.readBytes().toString(Charsets.UTF_8)
+                        } ?: ""
+                    }
+                    backupFeedback = null
+                    pendingImportBackup = settingsViewModel.parseImportedSettings(text)
+                } catch (e: BackupFormatException) {
+                    backupFeedback = Pair(false, context.getString(R.string.settings_backup_invalid, e.message ?: ""))
+                } catch (e: Exception) {
+                    backupFeedback = Pair(false, context.getString(R.string.settings_backup_import_failed))
+                }
+            }
+        }
+    }
+
+    // Réinitialisation par section (mise à jour 040)
+    var resetSection by remember { mutableStateOf<SettingsSectionReset?>(null) }
 
     // États de mise à jour de l'application
     val updateCheckState by settingsViewModel.updateCheckState.collectAsStateWithLifecycle()
@@ -180,10 +242,12 @@ fun SettingsScreen(
 
     // Interception du bouton retour Android pour revenir proprement à l'écran précédent
     BackHandler {
-        if (showClearCacheDialog) {
-            showClearCacheDialog = false
-        } else {
-            onBack()
+        when {
+            showEqualizerSheet -> showEqualizerSheet = false
+            resetSection != null -> resetSection = null
+            pendingImportBackup != null -> pendingImportBackup = null
+            showClearCacheDialog -> showClearCacheDialog = false
+            else -> onBack()
         }
     }
 
@@ -265,7 +329,9 @@ fun SettingsScreen(
                 value = stringResource(R.string.settings_group_appearance_desc),
                 icon = Icons.Default.AutoAwesome,
                 expanded = "APPARENCE" in expandedGroups,
-                onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "APPARENCE") }
+                onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "APPARENCE") },
+                resetItems = SettingsSectionReset.APPARENCE.itemRes,
+                onResetRequest = { resetSection = SettingsSectionReset.APPARENCE }
             ) {
                 LanguageSettingsCard()
                 Spacer(modifier = Modifier.height(8.dp))
@@ -298,8 +364,18 @@ fun SettingsScreen(
                 value = stringResource(R.string.settings_group_playback_desc),
                 icon = Icons.Default.MusicNote,
                 expanded = "LECTURE" in expandedGroups,
-                onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "LECTURE") }
+                onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "LECTURE") },
+                resetItems = SettingsSectionReset.LECTURE.itemRes,
+                onResetRequest = { resetSection = SettingsSectionReset.LECTURE }
             ) {
+                SettingsActionRow(
+                    icon = Icons.Default.VolumeUp,
+                    title = stringResource(R.string.settings_sound_title),
+                    value = stringResource(R.string.settings_sound_desc),
+                    tag = "settings_sound_row",
+                    onClick = { showEqualizerSheet = true }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
                 PlaybackSettingsCard(
                     autoPlay = autoPlay,
                     gaplessPlayback = gaplessPlayback,
@@ -315,7 +391,9 @@ fun SettingsScreen(
                 value = stringResource(R.string.settings_group_lyrics_desc),
                 icon = Icons.Default.GraphicEq,
                 expanded = "PAROLES" in expandedGroups,
-                onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "PAROLES") }
+                onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "PAROLES") },
+                resetItems = SettingsSectionReset.PAROLES.itemRes,
+                onResetRequest = { resetSection = SettingsSectionReset.PAROLES }
             ) {
                 SettingsInfoRow(stringResource(R.string.settings_lyrics_info))
             }
@@ -325,7 +403,9 @@ fun SettingsScreen(
                 value = stringResource(if (isConfigured) R.string.settings_groq_configured else R.string.settings_groq_setup),
                 icon = Icons.Default.AutoAwesome,
                 expanded = "INTELLIGENCE ARTIFICIELLE" in expandedGroups,
-                onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "INTELLIGENCE ARTIFICIELLE") }
+                onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "INTELLIGENCE ARTIFICIELLE") },
+                resetItems = SettingsSectionReset.INTELLIGENCE_ARTIFICIELLE.itemRes,
+                onResetRequest = { resetSection = SettingsSectionReset.INTELLIGENCE_ARTIFICIELLE }
             ) {
                 GroqApiKeyCard(
                     apiKeyInput = apiKeyInput,
@@ -392,6 +472,36 @@ fun SettingsScreen(
                 expanded = "STOCKAGE" in expandedGroups,
                 onClick = { expandedGroups = toggleSettingsGroup(expandedGroups, "STOCKAGE") }
             ) {
+                SettingsActionRow(
+                    icon = Icons.Default.Save,
+                    title = stringResource(R.string.settings_export_title),
+                    value = stringResource(R.string.settings_export_desc),
+                    tag = "settings_export_row",
+                    onClick = {
+                        backupFeedback = null
+                        exportLauncher.launch("musicpro-reglages.json")
+                    }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                SettingsActionRow(
+                    icon = Icons.Default.Refresh,
+                    title = stringResource(R.string.settings_import_title),
+                    value = stringResource(R.string.settings_import_desc),
+                    tag = "settings_import_row",
+                    onClick = {
+                        backupFeedback = null
+                        importLauncher.launch(arrayOf("*/*"))
+                    }
+                )
+                backupFeedback?.let { (ok, message) ->
+                    Text(
+                        text = message,
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        fontSize = 12.sp,
+                        color = if (ok) MusicProSuccess else MusicProError
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
                 CacheManagementCard(
                     cacheSize = cacheSize,
                     isClearing = isClearingCache,
@@ -480,6 +590,155 @@ fun SettingsScreen(
             },
             containerColor = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(16.dp)
+        )
+    }
+
+    // Feuille de confirmation de réinitialisation par section (mise à jour 040)
+    resetSection?.let { section ->
+        ModalBottomSheet(
+            onDismissRequest = { resetSection = null },
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 20.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.settings_reset_sheet_title),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = stringResource(R.string.settings_reset_intro),
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
+                section.itemRes.forEach { itemRes ->
+                    Text(
+                        text = "• " + stringResource(itemRes),
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 18.dp, bottom = 14.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = { resetSection = null },
+                        modifier = Modifier
+                            .weight(1f)
+                            .testTag("reset_cancel_button"),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(stringResource(R.string.settings_cancel))
+                    }
+                    Button(
+                        onClick = {
+                            when (section) {
+                                SettingsSectionReset.APPARENCE -> settingsViewModel.resetAppearanceSection()
+                                SettingsSectionReset.LECTURE -> settingsViewModel.resetPlaybackSection()
+                                SettingsSectionReset.PAROLES -> settingsViewModel.resetKaraokeSection()
+                                SettingsSectionReset.INTELLIGENCE_ARTIFICIELLE -> {
+                                    apiKeyStore.clearApiKey()
+                                    apiKeyInput = ""
+                                    isConfigured = false
+                                    maskedKey = ""
+                                }
+                            }
+                            resetSection = null
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .testTag("reset_confirm_button"),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MusicProError)
+                    ) {
+                        Text(stringResource(R.string.settings_reset))
+                    }
+                }
+            }
+        }
+    }
+
+    // Aperçu et confirmation d'import des réglages (mise à jour 038)
+    pendingImportBackup?.let { backup ->
+        AlertDialog(
+            onDismissRequest = { pendingImportBackup = null },
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = {
+                Text(
+                    text = stringResource(R.string.settings_import_summary_title),
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    ImportSummaryLine(stringResource(R.string.reset_item_theme), backup.appearance.name.lowercase())
+                    ImportSummaryLine(stringResource(R.string.reset_item_style), backup.appStyle.name.lowercase() + " · " + backup.accentChoice.name.lowercase())
+                    ImportSummaryLine(stringResource(R.string.reset_item_textsize), backup.textSize.label)
+                    ImportSummaryLine(stringResource(R.string.reset_item_density), backup.listDensity.label)
+                    ImportSummaryLine(stringResource(R.string.reset_item_glass), backup.glass.material.name.lowercase())
+                    ImportSummaryLine(stringResource(R.string.reset_item_karaoke), backup.karaoke.activeColor)
+                    ImportSummaryLine(
+                        stringResource(R.string.settings_import_favorites),
+                        backup.favorites.trackIds.size.toString() + " · " +
+                            backup.favorites.artists.size.toString() + " " +
+                            stringResource(R.string.settings_import_artists)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val toApply = backup
+                        pendingImportBackup = null
+                        scope.launch {
+                            try {
+                                settingsViewModel.applyImportedSettings(toApply)
+                                backupFeedback = Pair(true, context.getString(R.string.settings_backup_imported))
+                            } catch (e: Exception) {
+                                backupFeedback = Pair(false, context.getString(R.string.settings_backup_import_failed))
+                            }
+                        }
+                    },
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.testTag("import_confirm_button")
+                ) {
+                    Text(stringResource(R.string.settings_import_apply), fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingImportBackup = null }) {
+                    Text(stringResource(R.string.settings_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        )
+    }
+
+    // Feuille de l'égaliseur (mise à jour 037)
+    if (showEqualizerSheet) {
+        val audioViewModel: AudioViewModel = viewModel()
+        val eqEnabled by audioViewModel.eqEnabled.collectAsStateWithLifecycle()
+        val eqPreset by audioViewModel.eqPreset.collectAsStateWithLifecycle()
+        val eqLevels by audioViewModel.eqLevels.collectAsStateWithLifecycle()
+        EqualizerSheet(
+            enabled = eqEnabled,
+            preset = eqPreset,
+            levels = eqLevels,
+            onEnabledChange = audioViewModel::setEqualizerEnabled,
+            onPresetChange = audioViewModel::setEqualizerPreset,
+            onBandChange = audioViewModel::setEqualizerBand,
+            onReset = { audioViewModel.resetEqualizer() },
+            onClose = { showEqualizerSheet = false }
         )
     }
 }
@@ -687,6 +946,8 @@ private fun SettingsGroupCard(
     icon: ImageVector,
     expanded: Boolean,
     onClick: () -> Unit,
+    resetItems: List<Int> = emptyList(),
+    onResetRequest: (() -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
     Surface(
@@ -743,6 +1004,34 @@ private fun SettingsGroupCard(
                         .size(20.dp)
                         .then(if (expanded) Modifier else Modifier)
                 )
+                // Mise à jour 040 : menu « Réinitialiser cette section »
+                if (resetItems.isNotEmpty() && onResetRequest != null) {
+                    var resetMenuOpen by remember { mutableStateOf(false) }
+                    Box {
+                        IconButton(
+                            onClick = { resetMenuOpen = true },
+                            modifier = Modifier
+                                .size(28.dp)
+                                .testTag("reset_menu_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = stringResource(R.string.settings_reset_section),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        DropdownMenu(expanded = resetMenuOpen, onDismissRequest = { resetMenuOpen = false }) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.settings_reset_section)) },
+                                onClick = {
+                                    resetMenuOpen = false
+                                    onResetRequest?.invoke()
+                                }
+                            )
+                        }
+                    }
+                }
             }
             AnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.padding(top = 14.dp)) {
@@ -770,4 +1059,112 @@ private fun SettingsInfoRow(message: String) {
         fontSize = 13.sp,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
+}
+
+/** Mise à jour 040 : sections proposant « Réinitialiser cette section » et ce qui sera remis. */
+private enum class SettingsSectionReset(val tag: String, val itemRes: List<Int>) {
+    APPARENCE(
+        "APPARENCE",
+        listOf(
+            R.string.reset_item_theme,
+            R.string.reset_item_style,
+            R.string.reset_item_evening,
+            R.string.reset_item_dyn,
+            R.string.reset_item_textsize,
+            R.string.reset_item_density,
+            R.string.reset_item_anim,
+            R.string.reset_item_glass
+        )
+    ),
+    LECTURE("LECTURE", listOf(R.string.reset_item_playback)),
+    PAROLES("PAROLES", listOf(R.string.reset_item_karaoke)),
+    INTELLIGENCE_ARTIFICIELLE("INTELLIGENCE ARTIFICIELLE", listOf(R.string.reset_item_groq))
+}
+
+/** Ligne de réglage standard : pastille icône 36 dp + libellé + valeur + chevron. */
+@Composable
+private fun SettingsActionRow(
+    icon: ImageVector,
+    title: String,
+    value: String,
+    tag: String,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .testTag(tag),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.size(19.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                Text(
+                    value,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+/** Libellé français du préréglage d'égaliseur (clés internes du moteur audio). */
+private fun eqPresetLabelRes(key: String): Int = when (key) {
+    "Bass Boost" -> R.string.eq_preset_bass
+    "Vocal" -> R.string.eq_preset_vocal
+    "Classical" -> R.string.eq_preset_classical
+    "Pop" -> R.string.eq_preset_pop
+    "Rock" -> R.string.eq_preset_rock
+    else -> R.string.eq_preset_normal
+}
+
+/** Ligne « libellé : valeur » du résumé d'import (mise à jour 038). */
+@Composable
+private fun ImportSummaryLine(label: String, value: String) {
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = label,
+            fontSize = 13.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = value,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
 }

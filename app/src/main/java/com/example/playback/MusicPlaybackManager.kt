@@ -649,6 +649,7 @@ class MusicPlaybackManager private constructor(private val appContext: Context) 
             "Vocal" to listOf(-250, 50, 500, 350, -100),
             "Rock" to listOf(550, 350, -150, 400, 550),
             "Classical" to listOf(350, 150, -100, 250, 450),
+            "Pop" to listOf(-150, 350, 100, 250, -50),
             "Hip-Hop" to listOf(600, 350, 100, 350, 600)
         )
         val levels = presets[name] ?: presets.getValue("Flat")

@@ -18,6 +18,9 @@ import com.example.data.preferences.TextSizePreference
 import com.example.data.preferences.ListDensityPreference
 import com.example.data.preferences.UserPreferencesRepository
 import com.example.data.preferences.isInDarkWindow
+import com.example.data.backup.BackupFormatException
+import com.example.data.backup.SettingsBackup
+import com.example.data.backup.SettingsBackupManager
 import com.example.data.repository.AudioRepository
 import com.example.updater.AppUpdateManager
 import com.example.updater.DownloadState
@@ -413,6 +416,39 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun resetUpdateState() {
         appUpdateManager.resetState()
+    }
+
+    // --- Mise à jour 038 — Sauvegarde et export des réglages -------------------------------------
+
+    /** Sérialise les réglages courants en JSON (thème, style, verre, karaoké, favoris). */
+    suspend fun exportSettingsJson(): String = preferencesRepository.backupSnapshot().toJson()
+
+    /**
+     * Analyse et valide un JSON de sauvegarde sans l'appliquer. Retourne la sauvegarde pour
+     * l'aperçu de confirmation, ou lève [BackupFormatException] si le fichier est invalide.
+     */
+    fun parseImportedSettings(json: String): SettingsBackup = SettingsBackupManager.fromJson(json)
+
+    /** Applique une sauvegarde préalablement validée et confirmée par l'utilisateur. */
+    suspend fun applyImportedSettings(backup: SettingsBackup) {
+        preferencesRepository.applyBackup(backup)
+    }
+
+    // --- Mise à jour 040 — Réinitialisation par section -------------------------------------------
+
+    /** Remet la section Apparence par défaut. */
+    fun resetAppearanceSection() {
+        viewModelScope.launch { preferencesRepository.resetAppearanceSection() }
+    }
+
+    /** Remet la section Lecture par défaut. */
+    fun resetPlaybackSection() {
+        viewModelScope.launch { preferencesRepository.resetPlaybackSection() }
+    }
+
+    /** Remet la section Paroles (karaoké) par défaut. */
+    fun resetKaraokeSection() {
+        viewModelScope.launch { preferencesRepository.resetKaraokeSection() }
     }
 
     private companion object {

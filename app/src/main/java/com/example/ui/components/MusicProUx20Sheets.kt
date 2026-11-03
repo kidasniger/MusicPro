@@ -31,9 +31,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import androidx.compose.ui.res.stringResource
+import com.example.R
 import com.example.data.local.AudioTrackEntity
 import com.example.ui.queue.QueueScreen
 import com.example.ui.theme.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @Composable
@@ -132,26 +137,45 @@ fun EqualizerSheet(
     onEnabledChange: (Boolean) -> Unit, onPresetChange: (String) -> Unit,
     onBandChange: (Int, Int) -> Unit, onReset: () -> Unit, onClose: () -> Unit
 ) {
-    val presets = listOf("Flat", "Bass Boost", "Vocal", "Rock", "Classical", "Hip-Hop")
+    // Mise à jour 037 : préréglages nommés en français, bouton « Comparer » (A/B pendant 3 s).
+    val presetEntries = listOf(
+        "Flat" to R.string.eq_preset_normal,
+        "Bass Boost" to R.string.eq_preset_bass,
+        "Vocal" to R.string.eq_preset_vocal,
+        "Classical" to R.string.eq_preset_classical,
+        "Pop" to R.string.eq_preset_pop,
+        "Rock" to R.string.eq_preset_rock
+    )
     val labels = listOf("60 Hz", "230 Hz", "910 Hz", "3.6 kHz", "14 kHz")
+    val scope = rememberCoroutineScope()
+    var compareJob by remember { mutableStateOf<Job?>(null) }
+    val isComparing = compareJob?.isActive == true
     ModalBottomSheet(onDismissRequest = onClose, containerColor = MaterialTheme.colorScheme.surface) {
         Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Equalizer, null, tint = MusicProCyanNeon)
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text("Égaliseur", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                    Text(stringResource(R.string.eq_title), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                     Text(
-                        if (enabled) "Effet activé" else "Effet désactivé",
+                        stringResource(if (enabled) R.string.eq_effect_on else R.string.eq_effect_off),
                         fontSize = 12.sp,
                         color = if (enabled) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 OutlinedButton(onClick = { onEnabledChange(!enabled) }, shape = RoundedCornerShape(12.dp)) {
-                    Text(if (enabled) "Désactiver" else "Activer", fontSize = 12.sp)
+                    Text(stringResource(if (enabled) R.string.eq_deactivate else R.string.eq_activate), fontSize = 12.sp)
                 }
             }
-            Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)) { presets.forEach { item -> FilterChip(selected = preset == item, onClick = { onPresetChange(item) }, label = { Text(item, fontSize = 9.sp) }) } }
+            Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                presetEntries.forEach { (key, labelRes) ->
+                    FilterChip(
+                        selected = preset == key,
+                        onClick = { onPresetChange(key) },
+                        label = { Text(stringResource(labelRes), fontSize = 9.sp) }
+                    )
+                }
+            }
             labels.forEachIndexed { index, label ->
                 val level = levels.getOrElse(index) { 0 }
                 Row(
@@ -165,14 +189,43 @@ fun EqualizerSheet(
                     IconButton(
                         onClick = { onBandChange(index, (level - 100).coerceIn(-1500, 1500)) },
                         modifier = Modifier.size(44.dp)
-                    ) { Text("−", color = MaterialTheme.colorScheme.onBackground, fontSize = 22.sp) }
+                    ) { Text("\u2212", color = MaterialTheme.colorScheme.onBackground, fontSize = 22.sp) }
                     IconButton(
                         onClick = { onBandChange(index, (level + 100).coerceIn(-1500, 1500)) },
                         modifier = Modifier.size(44.dp)
                     ) { Text("+", color = MaterialTheme.colorScheme.onBackground, fontSize = 20.sp) }
                 }
             }
-            OutlinedButton(onClick = onReset, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) { Icon(Icons.Default.Refresh, null); Spacer(Modifier.width(6.dp)); Text("Tout rétablir") }
+            Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(
+                    onClick = {
+                        compareJob?.cancel()
+                        compareJob = scope.launch {
+                            val initial = enabled
+                            try {
+                                repeat(3) {
+                                    onEnabledChange(if (it % 2 == 0) !initial else initial)
+                                    delay(1000)
+                                }
+                            } finally {
+                                onEnabledChange(initial)
+                            }
+                        }
+                    },
+                    enabled = !isComparing,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Default.Equalizer, null, Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(if (isComparing) R.string.eq_comparing else R.string.eq_compare), fontSize = 12.sp)
+                }
+                OutlinedButton(onClick = onReset, modifier = Modifier.weight(1f), shape = RoundedCornerShape(12.dp)) {
+                    Icon(Icons.Default.Refresh, null, Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.eq_reset_all), fontSize = 12.sp)
+                }
+            }
             Spacer(Modifier.height(8.dp))
         }
     }
