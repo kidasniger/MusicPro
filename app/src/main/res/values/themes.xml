@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.MyApplication" parent="android:Theme.DeviceDefault.NoActionBar" />
+    <!-- Thème AppCompat obligatoire : MainActivity est une AppCompatActivity (mise à jour 036,
+         langues via AppCompatDelegate). Un thème framework provoque un crash au lancement
+         (« You need to use a Theme.AppCompat theme »). DayNight suit le mode système. -->
+    <style name="Theme.MyApplication" parent="Theme.AppCompat.DayNight.NoActionBar" />
 </resources>
