@@ -96,6 +96,8 @@ class UserPreferencesRepository(
         val KEY_SHUFFLE_ENABLED = booleanPreferencesKey("shuffle_enabled")
         /** Présentation du lecteur (mise à jour 048). Absente : pochette carrée. */
         val KEY_PLAYER_PRESENTATION = stringPreferencesKey("player_presentation")
+        /** Tri de la bibliothèque (mise à jour 055). Absent : A–Z. */
+        val KEY_LIBRARY_SORT = stringPreferencesKey("library_sort_mode")
     }
 
     val isOnboardingCompleted: Flow<Boolean> = dataStore.data
@@ -352,8 +354,15 @@ class UserPreferencesRepository(
                 .split("\n")
                 .map(String::trim)
                 .filter(String::isNotBlank)
-                .take(12)
+                .take(20)
         }
+
+    /** Mise à jour 055 — mode de tri mémorisé de la bibliothèque. */
+    val librarySort: Flow<LibrarySortMode> = dataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { preferences -> resolveLibrarySortMode(preferences[KEY_LIBRARY_SORT]) }
 
     val autoPlay: Flow<Boolean> = dataStore.data
         .catch { exception -> if (exception is IOException) emit(emptyPreferences()) else throw exception }
@@ -431,10 +440,14 @@ class UserPreferencesRepository(
             preferences[KEY_SEARCH_HISTORY] = values
                 .map(String::trim)
                 .filter(String::isNotBlank)
-                .distinct()
-                .take(12)
+                .take(20)
                 .joinToString("\n")
         }
+    }
+
+    /** Mise à jour 055 — mémorise le dernier tri choisi pour la bibliothèque. */
+    suspend fun setLibrarySort(mode: LibrarySortMode) {
+        dataStore.edit { preferences -> preferences[KEY_LIBRARY_SORT] = mode.name }
     }
 
     suspend fun setAutoPlay(enabled: Boolean) {

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- التحديثات 051 إلى 060: الرئيسية بالأقسام، المكتبة، البحث، حالات الفراغ. -->
+<resources>
+    <!-- 051 — الرئيسية بالأقسام -->
+    <string name="home_section_resume">استئناف</string>
+    <string name="home_section_recent">شوهد حديثًا</string>
+    <string name="home_section_favorites">مفضلتك</string>
+    <string name="home_section_playlists_for_you">قوائم مخصصة لك</string>
+    <string name="home_section_added">أُضيف حديثًا</string>
+    <string name="home_see_all">عرض الكل</string>
+
+    <!-- 052 / 055 — المكتبة -->
+    <string name="library_title">المكتبة</string>
+    <string name="library_filter_all">الكل</string>
+    <string name="library_filter_tracks">المقاطع</string>
+    <string name="library_filter_albums">الألبومات</string>
+    <string name="library_filter_artists">الفنانون</string>
+    <string name="library_filter_playlists">قوائم التشغيل</string>
+    <string name="library_filter_favorites">المفضلة</string>
+    <string name="library_filter_downloads">التنزيلات</string>
+    <string name="library_sort_action">ترتيب المكتبة</string>
+    <string name="library_sort_sheet_title">الترتيب حسب</string>
+    <string name="library_sort_title">أ–ي</string>
+    <string name="library_sort_recent">الأحدث</string>
+    <string name="library_sort_duration">المدة</string>
+    <string name="library_sort_most_played">الأكثر تشغيلًا</string>
+
+    <!-- 053 / 054 — البحث -->
+    <string name="search_pill_hint">مقاطع، فنانون، ألبومات</string>
+    <string name="search_clear">مسح</string>
+    <string name="search_mic">البحث الصوتي</string>
+    <string name="search_mic_unavailable">البحث الصوتي غير متاح</string>
+    <string name="search_history_title">عمليات البحث الأخيرة</string>
+    <string name="search_history_clear_all">مسح الكل</string>
+    <string name="search_history_remove">إزالة من السجل</string>
+    <string name="search_suggest_genres">الأنواع</string>
+    <string name="search_suggest_decades">العقود</string>
+    <string name="search_decade_chip">سنوات %1$d</string>
+    <string name="search_group_best">أفضل نتيجة</string>
+    <string name="search_group_titles">المقاطع</string>
+    <string name="search_group_albums">الألبومات</string>
+    <string name="search_group_artists">الفنانون</string>
+    <string name="search_group_playlists">قوائم التشغيل</string>
+
+    <!-- 057 — هياكل التحميل -->
+    <string name="scan_banner_tracks_found">تم العثور على %1$d مقطعًا صوتيًا…</string>
+
+    <!-- 058 — حالات الفراغ -->
+    <string name="empty_no_tracks_title">لم يتم العثور على ملفات صوتية</string>
+    <string formatted="false" name="empty_no_tracks_desc">MusicPro مشغّل يعمل دون اتصال بنسبة 100%. ضع ملفات .mp3 أو .flac أو .m4a في مجلد /Music/ أو /Download/ على جهازك.</string>
+    <string name="empty_no_tracks_action">فحص المكتبة</string>
+    <string name="empty_no_playlists_title">لا توجد قوائم تشغيل</string>
+    <string name="empty_no_playlists_desc">أنشئ قوائم تشغيلك الخاصة ونظّم مقاطعك المفضلة.</string>
+    <string name="empty_no_playlists_action">إنشاء قائمة تشغيل</string>
+    <string name="empty_no_favorites_title">لا مفضلات</string>
+    <string name="empty_no_favorites_desc">المس القلب على مقطع صوتي ليجده هنا.</string>
+    <string name="empty_no_favorites_action">استكشاف المكتبة</string>
+    <string name="empty_no_results_title">لا توجد نتائج</string>
+    <string name="empty_no_results_desc">تحقق من الإملاء أو جرّب مصطلحًا أعم.</string>
+    <string name="empty_no_results_action">مسح البحث</string>
+
+    <!-- 059 — إجراءات المقطع -->
+    <string name="track_action_play_next">تشغيل تاليًا</string>
+    <string name="track_action_add_queue">إضافة إلى القائمة</string>
+    <string name="track_action_add_playlist">إضافة إلى قائمة تشغيل</string>
+    <string name="track_action_like">إعجاب</string>
+    <string name="track_action_album">الانتقال إلى الألبوم</string>
+    <string name="track_action_artist">الانتقال إلى الفنان</string>
+    <string name="track_action_lyrics">الكلمات</string>
+    <string name="track_action_share">مشاركة</string>
+    <string name="track_action_delete">حذف من المكتبة</string>
+
+    <!-- 060 — التحديد المتعدد -->
+    <string name="selection_count">تم تحديد %1$d</string>
+    <string name="selection_select_all">تحديد الكل</string>
+    <string name="selection_add_playlist">إضافة إلى قائمة التشغيل</string>
+    <string name="selection_play_next">تشغيل تاليًا</string>
+    <string name="selection_delete">حذف</string>
+    <string name="selection_exit">إنهاء التحديد</string>
+</resources>

@@ -74,11 +74,12 @@ fun FavoritesScreen(
             }
         }
         if (favoriteTracks.isEmpty()) {
-            Column(Modifier.fillMaxWidth().padding(40.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Default.FavoriteBorder, null, tint = MusicProVioletLight, modifier = Modifier.size(56.dp))
-                Text("Aucun favori", color = MaterialTheme.colorScheme.onBackground, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 10.dp))
-                Text("Touchez le cœur sur un morceau pour le retrouver ici.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 8.dp))
-            }
+            // Mise à jour 058 — état vide réutilisé (variante « aucun favori »).
+            EmptyAudioStateView(
+                modifier = Modifier.fillMaxWidth(),
+                variant = EmptyStateVariant.NO_FAVORITES,
+                onPrimaryAction = onBack
+            )
         } else {
             LazyColumn(Modifier.fillMaxWidth(), contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp)) {
                 itemsIndexed(favoriteTracks, key = { _, it -> it.id }) { index, track ->

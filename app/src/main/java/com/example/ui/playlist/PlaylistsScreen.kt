@@ -61,6 +61,8 @@ import com.example.ui.theme.MusicProError
 import com.example.ui.theme.MusicProPrimaryGradient
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
+import com.example.ui.components.EmptyAudioStateView
+import com.example.ui.components.EmptyStateVariant
 import com.example.ui.theme.MusicProVioletPrimary
 
 @Composable
@@ -115,63 +117,14 @@ fun PlaylistsScreen(
             }
 
             if (playlists.isEmpty()) {
-                // Empty state
-                Box(
+                // Mise à jour 058 — état vide réutilisé (variante « aucune playlist »).
+                EmptyAudioStateView(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(24.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Surface(
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            modifier = Modifier.size(80.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Default.QueueMusic,
-                                    contentDescription = null,
-                                    tint = MusicProCyanNeon,
-                                    modifier = Modifier.size(48.dp)
-                                )
-                            }
-                        }
-
-                        Text(
-                            text = "Aucune playlist créée",
-                            color = MaterialTheme.colorScheme.onBackground,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        Text(
-                            text = "Créez vos propres listes de lecture thématiques et organisez vos morceaux préférés avec réordonnancement par glisser-déposer.",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 14.sp,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Button(
-                            onClick = { showCreateDialog = true },
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MusicProVioletPrimary),
-                            modifier = Modifier
-                                .shadow(12.dp, RoundedCornerShape(14.dp), spotColor = MusicProVioletGlow)
-                                .testTag("empty_playlists_create_button")
-                        ) {
-                            Icon(Icons.Default.PlaylistAdd, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Créer ma première playlist", fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
+                    variant = EmptyStateVariant.NO_PLAYLISTS,
+                    onPrimaryAction = { showCreateDialog = true }
+                )
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),

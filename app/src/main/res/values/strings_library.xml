@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mises à jour 051 à 060 : accueil en sections, bibliothèque, recherche, états vides. -->
+<resources>
+    <!-- 051 — accueil en sections -->
+    <string name="home_section_resume">Reprendre</string>
+    <string name="home_section_recent">Récemment joué</string>
+    <string name="home_section_favorites">Vos favoris</string>
+    <string name="home_section_playlists_for_you">Playlists pour vous</string>
+    <string name="home_section_added">Ajouts récents</string>
+    <string name="home_see_all">Tout voir</string>
+
+    <!-- 052 / 055 — bibliothèque -->
+    <string name="library_title">Bibliothèque</string>
+    <string name="library_filter_all">Tout</string>
+    <string name="library_filter_tracks">Titres</string>
+    <string name="library_filter_albums">Albums</string>
+    <string name="library_filter_artists">Artistes</string>
+    <string name="library_filter_playlists">Playlists</string>
+    <string name="library_filter_favorites">Favoris</string>
+    <string name="library_filter_downloads">Téléchargés</string>
+    <string name="library_sort_action">Trier la bibliothèque</string>
+    <string name="library_sort_sheet_title">Trier par</string>
+    <string name="library_sort_title">A–Z</string>
+    <string name="library_sort_recent">Récents</string>
+    <string name="library_sort_duration">Durée</string>
+    <string name="library_sort_most_played">Plus écoutés</string>
+
+    <!-- 053 / 054 — recherche -->
+    <string name="search_pill_hint">Titres, artistes, albums</string>
+    <string name="search_clear">Effacer</string>
+    <string name="search_mic">Recherche vocale</string>
+    <string name="search_mic_unavailable">Recherche vocale indisponible</string>
+    <string name="search_history_title">Recherches récentes</string>
+    <string name="search_history_clear_all">Tout effacer</string>
+    <string name="search_history_remove">Retirer de l’historique</string>
+    <string name="search_suggest_genres">Genres</string>
+    <string name="search_suggest_decades">Décennies</string>
+    <string name="search_decade_chip">Années %1$d</string>
+    <string name="search_group_best">Meilleur résultat</string>
+    <string name="search_group_titles">Titres</string>
+    <string name="search_group_albums">Albums</string>
+    <string name="search_group_artists">Artistes</string>
+    <string name="search_group_playlists">Playlists</string>
+
+    <!-- 057 — squelettes de chargement -->
+    <string name="scan_banner_tracks_found">%1$d morceaux trouvés…</string>
+
+    <!-- 058 — états vides -->
+    <string name="empty_no_tracks_title">Aucun fichier audio trouvé</string>
+    <string formatted="false" name="empty_no_tracks_desc">MusicPro est un lecteur 100% hors ligne. Placez vos fichiers .mp3, .flac ou .m4a dans le dossier /Music/ ou /Download/ de votre appareil.</string>
+    <string name="empty_no_tracks_action">Analyser la bibliothèque</string>
+    <string name="empty_no_playlists_title">Aucune playlist</string>
+    <string name="empty_no_playlists_desc">Créez vos propres listes de lecture thématiques et organisez vos morceaux préférés.</string>
+    <string name="empty_no_playlists_action">Créer une playlist</string>
+    <string name="empty_no_favorites_title">Aucun favori</string>
+    <string name="empty_no_favorites_desc">Touchez le cœur sur un morceau pour le retrouver ici.</string>
+    <string name="empty_no_favorites_action">Explorer la bibliothèque</string>
+    <string name="empty_no_results_title">Aucun résultat</string>
+    <string name="empty_no_results_desc">Vérifiez l’orthographe ou essayez un terme plus général.</string>
+    <string name="empty_no_results_action">Effacer la recherche</string>
+
+    <!-- 059 — actions sur un morceau -->
+    <string name="track_action_play_next">Lire ensuite</string>
+    <string name="track_action_add_queue">Ajouter à la file</string>
+    <string name="track_action_add_playlist">Ajouter à une playlist</string>
+    <string name="track_action_like">J’aime</string>
+    <string name="track_action_album">Aller à l’album</string>
+    <string name="track_action_artist">Aller à l’artiste</string>
+    <string name="track_action_lyrics">Paroles</string>
+    <string name="track_action_share">Partager</string>
+    <string name="track_action_delete">Supprimer de la bibliothèque</string>
+
+    <!-- 060 — sélection multiple -->
+    <string name="selection_count">%1$d sélectionné(s)</string>
+    <string name="selection_select_all">Tout sélectionner</string>
+    <string name="selection_add_playlist">Ajouter à la playlist</string>
+    <string name="selection_play_next">Lire ensuite</string>
+    <string name="selection_delete">Supprimer</string>
+    <string name="selection_exit">Quitter la sélection</string>
+</resources>

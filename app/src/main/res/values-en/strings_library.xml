@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Updates 051 to 060: sectioned home, library, search, empty states. -->
+<resources>
+    <!-- 051 — sectioned home -->
+    <string name="home_section_resume">Resume</string>
+    <string name="home_section_recent">Recently played</string>
+    <string name="home_section_favorites">Your favorites</string>
+    <string name="home_section_playlists_for_you">Playlists for you</string>
+    <string name="home_section_added">Recently added</string>
+    <string name="home_see_all">See all</string>
+
+    <!-- 052 / 055 — library -->
+    <string name="library_title">Library</string>
+    <string name="library_filter_all">All</string>
+    <string name="library_filter_tracks">Tracks</string>
+    <string name="library_filter_albums">Albums</string>
+    <string name="library_filter_artists">Artists</string>
+    <string name="library_filter_playlists">Playlists</string>
+    <string name="library_filter_favorites">Favorites</string>
+    <string name="library_filter_downloads">Downloads</string>
+    <string name="library_sort_action">Sort library</string>
+    <string name="library_sort_sheet_title">Sort by</string>
+    <string name="library_sort_title">A–Z</string>
+    <string name="library_sort_recent">Recent</string>
+    <string name="library_sort_duration">Duration</string>
+    <string name="library_sort_most_played">Most played</string>
+
+    <!-- 053 / 054 — search -->
+    <string name="search_pill_hint">Tracks, artists, albums</string>
+    <string name="search_clear">Clear</string>
+    <string name="search_mic">Voice search</string>
+    <string name="search_mic_unavailable">Voice search unavailable</string>
+    <string name="search_history_title">Recent searches</string>
+    <string name="search_history_clear_all">Clear all</string>
+    <string name="search_history_remove">Remove from history</string>
+    <string name="search_suggest_genres">Genres</string>
+    <string name="search_suggest_decades">Decades</string>
+    <string name="search_decade_chip">%1$ds</string>
+    <string name="search_group_best">Best result</string>
+    <string name="search_group_titles">Tracks</string>
+    <string name="search_group_albums">Albums</string>
+    <string name="search_group_artists">Artists</string>
+    <string name="search_group_playlists">Playlists</string>
+
+    <!-- 057 — loading skeletons -->
+    <string name="scan_banner_tracks_found">%1$d tracks found…</string>
+
+    <!-- 058 — empty states -->
+    <string name="empty_no_tracks_title">No audio file found</string>
+    <string formatted="false" name="empty_no_tracks_desc">MusicPro is a 100% offline player. Place your .mp3, .flac or .m4a files in your device\u2019s /Music/ or /Download/ folder.</string>
+    <string name="empty_no_tracks_action">Scan the library</string>
+    <string name="empty_no_playlists_title">No playlists</string>
+    <string name="empty_no_playlists_desc">Create your own themed playlists and organize your favorite tracks.</string>
+    <string name="empty_no_playlists_action">Create a playlist</string>
+    <string name="empty_no_favorites_title">No favorites</string>
+    <string name="empty_no_favorites_desc">Tap the heart on a track to find it here.</string>
+    <string name="empty_no_favorites_action">Explore the library</string>
+    <string name="empty_no_results_title">No results</string>
+    <string name="empty_no_results_desc">Check the spelling or try a more general term.</string>
+    <string name="empty_no_results_action">Clear the search</string>
+
+    <!-- 059 — track actions -->
+    <string name="track_action_play_next">Play next</string>
+    <string name="track_action_add_queue">Add to queue</string>
+    <string name="track_action_add_playlist">Add to playlist</string>
+    <string name="track_action_like">Like</string>
+    <string name="track_action_album">Go to album</string>
+    <string name="track_action_artist">Go to artist</string>
+    <string name="track_action_lyrics">Lyrics</string>
+    <string name="track_action_share">Share</string>
+    <string name="track_action_delete">Remove from library</string>
+
+    <!-- 060 — multi-selection -->
+    <string name="selection_count">%1$d selected</string>
+    <string name="selection_select_all">Select all</string>
+    <string name="selection_add_playlist">Add to playlist</string>
+    <string name="selection_play_next">Play next</string>
+    <string name="selection_delete">Delete</string>
+    <string name="selection_exit">Exit selection</string>
+</resources>

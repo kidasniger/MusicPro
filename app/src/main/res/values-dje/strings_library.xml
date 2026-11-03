@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Haneyoora 051 hansey 060:(fun) goy nda sections, bibliteek, gaawu, haya timmeyan. -->
+<resources>
+    <!-- 051 — fun nda sections -->
+    <string name="home_section_resume">Koy nda ga</string>
+    <string name="home_section_recent">Bõndi hun zuruyan</string>
+    <string name="home_section_favorites">War baakoy</string>
+    <string name="home_section_playlists_for_you">Playlistey war se</string>
+    <string name="home_section_added">Bõndi hun tontoney</string>
+    <string name="home_see_all">Gaa Kulli</string>
+
+    <!-- 052 / 055 — bibliteek -->
+    <string name="library_title">Bibliteek</string>
+    <string name="library_filter_all">Kulli</string>
+    <string name="library_filter_tracks">Cawyan</string>
+    <string name="library_filter_albums">Albummey</string>
+    <string name="library_filter_artists">Foney</string>
+    <string name="library_filter_playlists">Playlistey</string>
+    <string name="library_filter_favorites">Baakoy</string>
+    <string name="library_filter_downloads">Sawkey</string>
+    <string name="library_sort_action">Bibliteek toendu</string>
+    <string name="library_sort_sheet_title">Toendu nda</string>
+    <string name="library_sort_title">A–Z</string>
+    <string name="library_sort_recent">Zuruyan</string>
+    <string name="library_sort_duration">Hawgay</string>
+    <string name="library_sort_most_played">Ši caw ga bon</string>
+
+    <!-- 053 / 054 — gaawu -->
+    <string name="search_pill_hint">Cawyan, foney, albummey</string>
+    <string name="search_clear">Faasu</string>
+    <string name="search_mic">Gaawu nda gunu</string>
+    <string name="search_mic_unavailable">Gaawu nda gunu bara</string>
+    <string name="search_history_title">Gaawey hun</string>
+    <string name="search_history_clear_all">Faasu kulli</string>
+    <string name="search_history_remove">Kaa tarihi ra</string>
+    <string name="search_suggest_genres">Waamyey</string>
+    <string name="search_suggest_decades">Looru hun</string>
+    <string name="search_decade_chip">Loo %1$d</string>
+    <string name="search_group_best">Bataga kaŋ ga bon</string>
+    <string name="search_group_titles">Cawyan</string>
+    <string name="search_group_albums">Albummey</string>
+    <string name="search_group_artists">Foney</string>
+    <string name="search_group_playlists">Playlistey</string>
+
+    <!-- 057 — kwarangwal haya barmayan -->
+    <string name="scan_banner_tracks_found">Cawyan %1$d nda faaba…</string>
+
+    <!-- 058 — haya timmeyan -->
+    <string name="empty_no_tracks_title">Cawyan tonton baani</string>
+    <string formatted="false" name="empty_no_tracks_desc">MusicPro ga kaŋ INTËRNËT kul se. War tonton .mp3, .flac wala .m4a fayley ga sanda /Music/ wala /Download/ ganda ra.</string>
+    <string name="empty_no_tracks_action">Bibliteek gunu</string>
+    <string name="empty_no_playlists_title">Playlist kul ti</string>
+    <string name="empty_no_playlists_desc">War boŋ playlistey te nda cawyan kaŋ war ga ba.</string>
+    <string name="empty_no_playlists_action">Playlist teeri</string>
+    <string name="empty_no_favorites_title">Baako kul ti</string>
+    <string name="empty_no_favorites_desc">Alkalawi gun cawyan ga, ga hima doo.</string>
+    <string name="empty_no_favorites_action">Bibliteek gunu</string>
+    <string name="empty_no_results_title">Bataga kul ti</string>
+    <string name="empty_no_results_desc">Harfu kul gaa, wala inee šiŋey foo foo.</string>
+    <string name="empty_no_results_action">Gaawu faasu</string>
+
+    <!-- 059 — cawyan haya koney -->
+    <string name="track_action_play_next">Ka hun den</string>
+    <string name="track_action_add_queue">Tonton kunna jerin ga</string>
+    <string name="track_action_add_playlist">Tonton playlist ga</string>
+    <string name="track_action_like">Baako kosi</string>
+    <string name="track_action_album">Album doon</string>
+    <string name="track_action_artist">Fon doon</string>
+    <string name="track_action_lyrics">Cawyan šiihay</string>
+    <string name="track_action_share">Tira woosu</string>
+    <string name="track_action_delete">Bibliteek ra kaa</string>
+
+    <!-- 060 — cawyan suubizey -->
+    <string name="selection_count">%1$d še</string>
+    <string name="selection_select_all">Kulli suubi</string>
+    <string name="selection_add_playlist">Playlist ga tonton</string>
+    <string name="selection_play_next">Ka hun den</string>
+    <string name="selection_delete">Kaa</string>
+    <string name="selection_exit">Suubu kaa</string>
+</resources>

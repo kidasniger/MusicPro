@@ -127,6 +127,14 @@ class AudioRepository(
         }
     }
 
+    /**
+     * Mise à jour 059/060 — retire des morceaux de la bibliothèque indexée
+     * (suppression fichier gérée par le système via MediaStore en amont).
+     */
+    suspend fun deleteTracksByIds(ids: Collection<Long>) =
+        deleteTracksByIdsInChunks(ids)
+
+
     private fun isTrackAccessible(track: AudioTrackEntity): Boolean {
         val path = track.path.trim()
 

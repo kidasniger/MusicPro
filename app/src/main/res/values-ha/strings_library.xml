@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sabuntawa 051 zuwa 060: gidan sasassu, ɗakin karatu, bincike, yanayin fanko. -->
+<resources>
+    <!-- 051 — gidan sasassu -->
+    <string name="home_section_resume">Ci gaba</string>
+    <string name="home_section_recent">Kwanan ana saurara</string>
+    <string name="home_section_favorites">Zaɓin ka</string>
+    <string name="home_section_playlists_for_you">Jerin waƙoƙi a gare ka</string>
+    <string name="home_section_added">Kwanan an ƙara</string>
+    <string name="home_see_all">Duba duka</string>
+
+    <!-- 052 / 055 — ɗakin karatu -->
+    <string name="library_title">Ɗakin karatu</string>
+    <string name="library_filter_all">Duka</string>
+    <string name="library_filter_tracks">Waƙoƙi</string>
+    <string name="library_filter_albums">Kundin waƙoƙi</string>
+    <string name="library_filter_artists">Mawakan</string>
+    <string name="library_filter_playlists">Jerin waƙoƙi</string>
+    <string name="library_filter_favorites">Zaɓaɓɓu</string>
+    <string name="library_filter_downloads">Abin da aka sauke</string>
+    <string name="library_sort_action">Tsara ɗakin karatu</string>
+    <string name="library_sort_sheet_title">Tsara bisa</string>
+    <string name="library_sort_title">A–Z</string>
+    <string name="library_sort_recent">Kwanan</string>
+    <string name="library_sort_duration">Tsawon lokaci</string>
+    <string name="library_sort_most_played">Fiye da kowa ana ji</string>
+
+    <!-- 053 / 054 — bincike -->
+    <string name="search_pill_hint">Waƙoƙi, mawakan, kundin</string>
+    <string name="search_clear">Goge</string>
+    <string name="search_mic">Binciken murya</string>
+    <string name="search_mic_unavailable">Binciken murya ba a iya ba</string>
+    <string name="search_history_title">Kwanan bincike</string>
+    <string name="search_history_clear_all">Goge duka</string>
+    <string name="search_history_remove">Cire daga tarihi</string>
+    <string name="search_suggest_genres">Kagaggun waƙa</string>
+    <string name="search_suggest_decades">Shekaru goma</string>
+    <string name="search_decade_chip">Shekarar %1$d</string>
+    <string name="search_group_best">Sakamako mafi kyau</string>
+    <string name="search_group_titles">Waƙoƙi</string>
+    <string name="search_group_albums">Kundin waƙoƙi</string>
+    <string name="search_group_artists">Mawakan</string>
+    <string name="search_group_playlists">Jerin waƙoƙi</string>
+
+    <!-- 057 — kwarangwal ɗin lodawa -->
+    <string name="scan_banner_tracks_found">An sami waƙoƙi %1$d…</string>
+
+    <!-- 058 — yanayin fanko -->
+    <string name="empty_no_tracks_title">Ba a sami fayil ɗin sauti ba</string>
+    <string formatted="false" name="empty_no_tracks_desc">MusicPro mai kunna waƙa ne bisa layi 100%. Sanya fayilolin .mp3, .flac ko .m4a a cikin babban fayil ɗin /Music/ ko /Download/ na na’urarka.</string>
+    <string name="empty_no_tracks_action">Bincika ɗakin karatu</string>
+    <string name="empty_no_playlists_title">Babu jerin waƙoƙi</string>
+    <string name="empty_no_playlists_desc">Ƙirƙiri jerin waƙoƙin da kake so ka tsara waƙoƙin da kafi so.</string>
+    <string name="empty_no_playlists_action">Ƙirƙiri jerin waƙoƙi</string>
+    <string name="empty_no_favorites_title">Babu zaɓaɓɓu</string>
+    <string name="empty_no_favorites_desc">Taɓa zuciyar wata waƙa don ka samu ta nan.</string>
+    <string name="empty_no_favorites_action">Bincika ɗakin karatu</string>
+    <string name="empty_no_results_title">Babu sakamako</string>
+    <string name="empty_no_results_desc">Duba rubutun ko gwada kalma mafi faɗi.</string>
+    <string name="empty_no_results_action">Goge binciken</string>
+
+    <!-- 059 — ayyuka akan waƙa -->
+    <string name="track_action_play_next">Kunna na gaba</string>
+    <string name="track_action_add_queue">Ƙara ga jerin kunna</string>
+    <string name="track_action_add_playlist">Ƙara zuwa jerin waƙoƙi</string>
+    <string name="track_action_like">So</string>
+    <string name="track_action_album">Kai ga kundin</string>
+    <string name="track_action_artist">Kai ga mawaki</string>
+    <string name="track_action_lyrics">Waƙar rubutu</string>
+    <string name="track_action_share">Raba</string>
+    <string name="track_action_delete">Cire daga ɗakin karatu</string>
+
+    <!-- 060 — zaɓin yawa -->
+    <string name="selection_count">%1$d an zaɓi</string>
+    <string name="selection_select_all">Zaɓi duka</string>
+    <string name="selection_add_playlist">Ƙara zuwa jerin waƙoƙi</string>
+    <string name="selection_play_next">Kunna na gaba</string>
+    <string name="selection_delete">Goge</string>
+    <string name="selection_exit">Fita daga zaɓi</string>
+</resources>

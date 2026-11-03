@@ -16,6 +16,7 @@ import com.example.data.local.AudioTrackEntity
 import com.example.data.local.PlaylistSummary
 import com.example.data.repository.AudioRepository
 import com.example.data.repository.PlaylistRepository
+import com.example.data.preferences.LibrarySortMode
 import com.example.data.preferences.UserPreferencesRepository
 import com.example.data.security.GroqApiKeyStore
 import com.example.groq.GroqLyricsQueryAssistant
@@ -34,6 +35,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
@@ -57,13 +59,24 @@ sealed class LrclibSearchUiState {
 }
 
 enum class LibraryTab(val label: String) {
-    RECENT("Récents"),
-    TRACKS("Morceaux"),
-    FAVORITES("Favoris"),
-    PLAYLISTS("Playlists"),
+    // Mise à jour 055 — pastilles : Tout, Titres, Albums, Artistes, Playlists,
+    // Favoris, Téléchargés. RECENT et FOLDERS restent des cibles internes
+    // (compatibilité des sauvegardes d'état) mais ne sont plus affichées.
+    ALL("Tout"),
+    TRACKS("Titres"),
     ALBUMS("Albums"),
     ARTISTS("Artistes"),
-    FOLDERS("Dossiers")
+    PLAYLISTS("Playlists"),
+    FAVORITES("Favoris"),
+    DOWNLOADS("Téléchargés"),
+    RECENT("Récents"),
+    FOLDERS("Dossiers");
+
+    companion object {
+        /** Pastilles affichées dans la bibliothèque, dans l'ordre de la spec 055. */
+        val visibleTabs: List<LibraryTab> =
+            listOf(ALL, TRACKS, ALBUMS, ARTISTS, PLAYLISTS, FAVORITES, DOWNLOADS)
+    }
 }
 
 enum class SearchFilter(val label: String) {
@@ -159,8 +172,32 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     private val _selectedTab = MutableStateFlow(LibraryTab.TRACKS)
     val selectedTab: StateFlow<LibraryTab> = _selectedTab.asStateFlow()
 
+    /** Mise à jour 055 — mode de tri mémorisé de la bibliothèque. */
+    val librarySort: StateFlow<LibrarySortMode> = preferencesRepository.librarySort
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = LibrarySortMode.TITLE_AZ
+        )
+
+    /** Mémorise le dernier tri choisi (DataStore). */
+    fun selectLibrarySort(mode: LibrarySortMode) {
+        viewModelScope.launch { preferencesRepository.setLibrarySort(mode) }
+    }
+
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    /** Mise à jour 053 — requête lissée : les résultats se rafraîchissent
+     *  après 200 ms d'inactivité de la saisie. */
+    @OptIn(kotlinx.coroutines.FlowPreview::class)
+    private val debouncedSearchQuery: StateFlow<String> = _searchQuery
+        .debounce(200L)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ""
+        )
 
     private val _searchFilter = MutableStateFlow(SearchFilter.ALL)
     val searchFilter: StateFlow<SearchFilter> = _searchFilter.asStateFlow()
@@ -220,6 +257,9 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
 
     // Gestion des permissions d'écriture Scoped Storage / MediaStore (style Musicolet)
     private val _pendingLyricsWrite = MutableStateFlow<PendingLyricsWrite?>(null)
+
+    /** Mise à jour 059/060 — morceaux en attente de suppression (autorisation système). */
+    private val _pendingDeleteTracks = MutableStateFlow<List<AudioTrackEntity>>(emptyList())
     val pendingLyricsWrite: StateFlow<PendingLyricsWrite?> = _pendingLyricsWrite.asStateFlow()
 
     private val _intentSenderRequest = MutableSharedFlow<IntentSenderRequest>(extraBufferCapacity = 1)
@@ -244,20 +284,32 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     val groqErrorMessage: StateFlow<String?> = groqController.groqErrorMessage
 
     // Filtered search results
+    // Mise à jour 053 : les résultats utilisent la requête lissée (200 ms d'inactivité).
+    // Mise à jour 054 : le champ « genre » et les requêtes de décennie (« Années 1990 »)
+    // sont recherchables dans le filtre Tous.
     val searchResults: StateFlow<List<AudioTrackEntity>> = combine(
         tracks,
-        _searchQuery,
+        debouncedSearchQuery,
         _searchFilter
     ) { allTracks, query, filter ->
         if (query.isBlank()) {
             emptyList()
         } else {
             val q = query.trim().lowercase()
+            val decadeRange = SearchUtils.decadeRangeForQuery(query)
             allTracks.filter { track ->
+                val decadeMatches = decadeRange?.let { range ->
+                    val year = java.util.Calendar.getInstance().apply {
+                        timeInMillis = track.dateAdded * 1000L
+                    }.get(java.util.Calendar.YEAR)
+                    year in range
+                } ?: false
                 when (filter) {
                     SearchFilter.ALL -> track.title.lowercase().contains(q) ||
                             track.artist.lowercase().contains(q) ||
-                            track.album.lowercase().contains(q)
+                            track.album.lowercase().contains(q) ||
+                            track.genre.lowercase().contains(q) ||
+                            decadeMatches
                     SearchFilter.TITLES -> track.title.lowercase().contains(q)
                     SearchFilter.ARTISTS -> track.artist.lowercase().contains(q)
                     SearchFilter.ALBUMS -> track.album.lowercase().contains(q)
@@ -399,13 +451,20 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun addSearchToHistory(query: String) {
-        val value = query.trim()
-        if (value.isBlank()) return
         viewModelScope.launch {
-            val current = _searchHistory.value.toMutableList()
-            current.removeAll { it.equals(value, ignoreCase = true) }
-            current.add(0, value)
-            preferencesRepository.setSearchHistory(current.take(12))
+            // Mise à jour 054 : limite 20 entrées, dédoublonnage insensible à la casse.
+            preferencesRepository.setSearchHistory(
+                SearchUtils.mergeSearchHistory(_searchHistory.value, query, limit = 20)
+            )
+        }
+    }
+
+    /** Mise à jour 054 — supprime une puce d'historique individuellement. */
+    fun removeSearchFromHistory(entry: String) {
+        viewModelScope.launch {
+            preferencesRepository.setSearchHistory(
+                SearchUtils.removeEntry(_searchHistory.value, entry)
+            )
         }
     }
 
@@ -759,6 +818,18 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
      * Callback invoqué lorsque l'utilisateur répond à la boîte de dialogue système d'autorisation.
      */
     fun onWritePermissionResult(granted: Boolean) {
+        // Mise à jour 059/060 — une suppression de morceaux était en attente d'autorisation.
+        val pendingDeletion = _pendingDeleteTracks.value
+        if (pendingDeletion.isNotEmpty()) {
+            _pendingDeleteTracks.value = emptyList()
+            if (granted) {
+                performLibraryDelete(pendingDeletion, deleteFiles = true)
+            } else {
+                _saveFeedbackMessage.value = "Suppression annulée : autorisation refusée."
+            }
+            return
+        }
+
         val pending = _pendingLyricsWrite.value ?: return
         _pendingLyricsWrite.value = null
 
@@ -779,6 +850,69 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
             is PendingLyricsWrite.EmbedCurrent -> {
                 embedLyricsInTrack(pending.track, pending.lyricsData)
             }
+        }
+    }
+
+    /**
+     * Mise à jour 059/060 — « Supprimer de la bibliothèque ».
+     * Sur Android 11+, MediaStore.createDeleteRequest ouvre la boîte système
+     * (une seule pour la liste complète) puis supprime physiquement les fichiers.
+     * Sur versions plus anciennes, la permission d'écriture est demandée si besoin,
+     * sinon la suppression du fichier est tentée directement.
+     */
+    fun requestDeleteTracks(tracksToDelete: List<AudioTrackEntity>) {
+        if (tracksToDelete.isEmpty()) return
+        val context = getApplication<Application>()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            try {
+                val uris = tracksToDelete.map { track ->
+                    if (track.contentUri.isNotBlank()) Uri.parse(track.contentUri)
+                    else ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, track.id)
+                }
+                val pendingIntent = MediaStore.createDeleteRequest(context.contentResolver, uris)
+                _pendingDeleteTracks.value = tracksToDelete
+                _intentSenderRequest.tryEmit(
+                    IntentSenderRequest.Builder(pendingIntent.intentSender).build()
+                )
+            } catch (e: Exception) {
+                Log.e("AudioViewModel", "createDeleteRequest: ${e.message}", e)
+                // Fallback : retirer au moins de la bibliothèque indexée.
+                performLibraryDelete(tracksToDelete, deleteFiles = false)
+            }
+        } else if (needsWritePermission(tracksToDelete.first())) {
+            _pendingDeleteTracks.value = tracksToDelete
+            _legacyWritePermissionRequest.tryEmit(true)
+        } else {
+            performLibraryDelete(tracksToDelete, deleteFiles = true)
+        }
+    }
+
+    /**
+     * Suppression effective : pause si le morceau courant est concerné,
+     * retrait de Room (la bibliothèque indexée) et suppression du fichier en
+     * best effort (déjà faite par le système sur Android 11+).
+     */
+    private fun performLibraryDelete(tracksToDelete: List<AudioTrackEntity>, deleteFiles: Boolean) {
+        viewModelScope.launch {
+            val deletedIds = tracksToDelete.map { it.id }.toSet()
+            val current = playbackManager.currentTrack.value
+            if (current != null && current.id in deletedIds && playbackManager.isPlaying.value) {
+                playbackManager.pause()
+            }
+            if (deleteFiles) {
+                tracksToDelete.forEach { track ->
+                    if (track.path.isNotBlank()) {
+                        runCatching { File(track.path).delete() }
+                    }
+                }
+            }
+            runCatching { repository.deleteTracksByIds(deletedIds) }
+            _saveFeedbackMessage.value =
+                if (tracksToDelete.size == 1) {
+                    "Morceau supprimé de la bibliothèque"
+                } else {
+                    "${tracksToDelete.size} morceaux supprimés de la bibliothèque"
+                }
         }
     }
 

@@ -121,6 +121,7 @@ import com.example.R
 import com.example.data.local.AudioTrackEntity
 import com.example.data.local.PlaylistSummary
 import com.example.data.preferences.PlayerPresentation
+import com.example.data.preferences.LibrarySortMode
 import com.example.permissions.PermissionUtils
 import com.example.ui.audio.AudioViewModel
 import com.example.ui.audio.LibraryTab
@@ -131,6 +132,9 @@ import com.example.ui.components.QueueSheet
 import com.example.ui.components.EqualizerSheet
 import com.example.ui.components.KaraokeSettingsDialog
 import com.example.ui.components.EmptyAudioStateView
+import com.example.ui.components.EmptyStateVariant
+import com.example.ui.components.SkeletonTracksList
+import com.example.ui.components.TrackActionsSheet
 import com.example.ui.components.glass.GlassBackdropHost
 import com.example.ui.components.glass.GlassMiniPlayer
 import com.example.ui.components.glass.GlassNavBar
@@ -267,6 +271,8 @@ fun HomeScreen(
     val artists by audioViewModel.artistSummaries.collectAsStateWithLifecycle()
     val folders by audioViewModel.folderSummaries.collectAsStateWithLifecycle()
     val selectedLibraryTab by audioViewModel.selectedTab.collectAsStateWithLifecycle()
+    // Mise à jour 055 — tri mémorisé de la bibliothèque.
+    val librarySort by audioViewModel.librarySort.collectAsStateWithLifecycle()
 
     val searchQuery by audioViewModel.searchQuery.collectAsStateWithLifecycle()
     val searchFilter by audioViewModel.searchFilter.collectAsStateWithLifecycle()
@@ -307,7 +313,11 @@ fun HomeScreen(
     val selectedPlaylist by audioViewModel.selectedPlaylist.collectAsStateWithLifecycle()
     val selectedPlaylistTracks by audioViewModel.selectedPlaylistTracks.collectAsStateWithLifecycle()
     var isAddTracksToPlaylistOpen by remember { mutableStateOf(false) }
-    var trackForAddToPlaylistChooser by remember { mutableStateOf<AudioTrackEntity?>(null) }
+    var tracksForPlaylistChooser by remember { mutableStateOf<List<AudioTrackEntity>>(emptyList()) }
+    // Mise à jour 059 — morceau dont la feuille d'actions ⋯ est ouverte.
+    var trackForActions by remember { mutableStateOf<AudioTrackEntity?>(null) }
+    // Cible des paroles quand elles sont ouvertes depuis la feuille d'actions.
+    var lyricsTargetTrack by remember { mutableStateOf<AudioTrackEntity?>(null) }
 
     val saveFeedbackMessage by audioViewModel.saveFeedbackMessage.collectAsStateWithLifecycle()
 
@@ -458,8 +468,11 @@ fun HomeScreen(
             isAddTracksToPlaylistOpen -> {
                 isAddTracksToPlaylistOpen = false
             }
-            trackForAddToPlaylistChooser != null -> {
-                trackForAddToPlaylistChooser = null
+            tracksForPlaylistChooser.isNotEmpty() -> {
+                tracksForPlaylistChooser = emptyList()
+            }
+            trackForActions != null -> {
+                trackForActions = null
             }
             isKaraokeSettingsOpen -> isKaraokeSettingsOpen = false
             isEqualizerOpen -> isEqualizerOpen = false
@@ -531,13 +544,19 @@ fun HomeScreen(
                                     onNavigateToLibrary = { currentSectionName = NavigationSection.LIBRARY.name },
                                     onNavigateToRecent = {
                                         currentSectionName = NavigationSection.LIBRARY.name
-                                        audioViewModel.selectTab(LibraryTab.RECENT)
+                                        audioViewModel.selectTab(LibraryTab.ALL)
                                     },
                                     onNavigateToSearch = { currentSectionName = NavigationSection.SEARCH.name },
+                                    onNavigateToNew = { currentSectionName = NavigationSection.NEW.name },
+                                    onNavigateToPlaylists = {
+                                        currentSectionName = NavigationSection.LIBRARY.name
+                                        audioViewModel.selectTab(LibraryTab.PLAYLISTS)
+                                    },
                                     onOpenFavorites = { isFavoritesOpen = true },
                                     onOpenAlbum = { openDetailKey = DetailTarget.albumKey(it) },
                                     onTrackClick = { audioViewModel.playTrack(it) },
                                     onToggleFavorite = { audioViewModel.toggleFavorite(it) },
+                                    onOpenTrackActions = { trackForActions = it },
                                     onRefreshScan = { audioViewModel.refreshScan() }
                                 )
                             }
@@ -576,14 +595,20 @@ fun HomeScreen(
                                     isPlaying = isPlaying,
                                     favorites = favorites,
                                     playlists = playlists,
+                                    librarySort = librarySort,
                                     onPlaylistClick = { pl -> audioViewModel.selectPlaylist(pl.id) },
                                     onPlayPlaylistDirectly = { pl -> audioViewModel.playPlaylistDirectly(pl.id) },
                                     onCreatePlaylist = { name, desc -> audioViewModel.createPlaylist(name, desc) },
                                     onRenamePlaylist = { id, name, desc -> audioViewModel.updatePlaylistName(id, name, desc) },
                                     onDeletePlaylist = { id -> audioViewModel.deletePlaylist(id) },
                                     onSelectTab = { audioViewModel.selectTab(it) },
+                                    onSelectSort = { audioViewModel.selectLibrarySort(it) },
                                     onTrackClick = { audioViewModel.playTrack(it) },
                                     onToggleFavorite = { audioViewModel.toggleFavorite(it) },
+                                    onPlayNextTracks = { list -> list.forEach { audioViewModel.addToQueue(it, playNext = true) } },
+                                    onOpenTrackActions = { trackForActions = it },
+                                    onAddTracksToPlaylist = { tracksForPlaylistChooser = it },
+                                    onDeleteTracks = { audioViewModel.requestDeleteTracks(it) },
                                     onRefreshScan = { audioViewModel.refreshScan() }
                                 )
                             }
@@ -599,6 +624,8 @@ fun HomeScreen(
                                     filter = searchFilter,
                                     searchResults = searchResults,
                                     allTracks = tracks,
+                                    albums = albums,
+                                    artists = artists,
                                     currentPlayingTrack = currentTrack,
                                     isPlaying = isPlaying,
                                     favorites = favorites,
@@ -608,7 +635,11 @@ fun HomeScreen(
                                     onToggleFavorite = { audioViewModel.toggleFavorite(it) },
                                     searchHistory = searchHistory,
                                     onSearchSubmit = { audioViewModel.addSearchToHistory(it) },
+                                    onRemoveSearchHistory = { audioViewModel.removeSearchFromHistory(it) },
                                     onClearSearchHistory = { audioViewModel.clearSearchHistory() },
+                                    onOpenTrackActions = { trackForActions = it },
+                                    onOpenAlbum = { openDetailKey = DetailTarget.albumKey(it) },
+                                    onOpenArtist = { openDetailKey = DetailTarget.artistKey(it) },
                                     playlists = playlists,
                                     onPlaylistClick = { playlist ->
                                         audioViewModel.selectPlaylist(playlist.id)
@@ -675,7 +706,7 @@ fun HomeScreen(
                 onOpenQueue = { isQueueOpen = true },
                 onOpenEqualizer = { isEqualizerOpen = true },
                 onOpenKaraokeSettings = { isKaraokeSettingsOpen = true },
-                onAddToPlaylist = { activeTrack?.let { trackForAddToPlaylistChooser = it } },
+                onAddToPlaylist = { activeTrack?.let { tracksForPlaylistChooser = listOf(it) } },
                 onShare = {
                     activeTrack?.let { track ->
                         val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
@@ -763,7 +794,7 @@ fun HomeScreen(
             exit = fadeOut()
         ) {
             LyricsScreen(
-                track = activeTrack,
+                track = lyricsTargetTrack ?: activeTrack,
                 lyricsData = lyricsData,
                 currentPositionMs = progressMs,
                 durationMs = durationMs,
@@ -918,20 +949,62 @@ fun HomeScreen(
             )
         }
 
-        // Dialogue pour ajouter un morceau spécifique à une playlist
-        trackForAddToPlaylistChooser?.let { trk ->
+        // Dialogue pour ajouter un ou plusieurs morceaux à une playlist
+        if (tracksForPlaylistChooser.isNotEmpty()) {
             AddToPlaylistChooserDialog(
-                track = trk,
+                tracks = tracksForPlaylistChooser,
                 playlists = playlists,
-                onDismiss = { trackForAddToPlaylistChooser = null },
+                onDismiss = { tracksForPlaylistChooser = emptyList() },
                 onSelectPlaylist = { plId ->
-                    audioViewModel.addTracksToPlaylist(plId, listOf(trk.id))
-                    trackForAddToPlaylistChooser = null
+                    audioViewModel.addTracksToPlaylist(plId, tracksForPlaylistChooser.map { it.id })
+                    tracksForPlaylistChooser = emptyList()
                 },
                 onCreateAndAdd = { name, desc ->
-                    audioViewModel.createPlaylist(name, desc, initialTrackIds = listOf(trk.id))
-                    trackForAddToPlaylistChooser = null
+                    audioViewModel.createPlaylist(
+                        name,
+                        desc,
+                        initialTrackIds = tracksForPlaylistChooser.map { it.id }
+                    )
+                    tracksForPlaylistChooser = emptyList()
                 }
+            )
+        }
+
+        // Mise à jour 059 — feuille du bas des actions d'un morceau (menu ⋯ des lignes).
+        trackForActions?.let { actionTrack ->
+            TrackActionsSheet(
+                track = actionTrack,
+                isFavorite = favorites.contains(actionTrack.id),
+                onDismiss = { trackForActions = null },
+                onPlayNext = { audioViewModel.addToQueue(actionTrack, playNext = true) },
+                onAddToQueue = { audioViewModel.addToQueue(actionTrack) },
+                onAddToPlaylist = { tracksForPlaylistChooser = listOf(actionTrack) },
+                onToggleFavorite = { audioViewModel.toggleFavorite(actionTrack.id) },
+                onGoToAlbum = {
+                    isNowPlayingOpen = false
+                    openDetailKey = DetailTarget.albumKey(actionTrack.album)
+                },
+                onGoToArtist = {
+                    isNowPlayingOpen = false
+                    openDetailKey = DetailTarget.artistKey(actionTrack.artist)
+                },
+                onOpenLyrics = {
+                    lyricsTargetTrack = actionTrack
+                    isLyricsOpen = true
+                },
+                onShare = {
+                    val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(
+                            android.content.Intent.EXTRA_TEXT,
+                            actionTrack.title + " — " + actionTrack.artist
+                        )
+                    }
+                    context.startActivity(
+                        android.content.Intent.createChooser(shareIntent, "Partager le morceau")
+                    )
+                },
+                onDelete = { audioViewModel.requestDeleteTracks(listOf(actionTrack)) }
             )
         }
 
@@ -1033,10 +1106,13 @@ private fun HomeExplorerContent(
     onNavigateToLibrary: () -> Unit,
     onNavigateToRecent: () -> Unit,
     onNavigateToSearch: () -> Unit,
+    onNavigateToNew: () -> Unit = {},
+    onNavigateToPlaylists: () -> Unit = {},
     onOpenFavorites: () -> Unit = {},
     onOpenAlbum: (String) -> Unit = {},
     onTrackClick: (AudioTrackEntity) -> Unit,
     onToggleFavorite: (Long) -> Unit,
+    onOpenTrackActions: (AudioTrackEntity) -> Unit = {},
     onRefreshScan: () -> Unit
 ) {
     val context = LocalContext.current
@@ -1060,12 +1136,23 @@ private fun HomeExplorerContent(
         else -> stringResource(R.string.home_greeting_night)
     }
 
+    // Mise à jour 051 — sections de l'accueil, données stables par identifiant.
+    val favoriteTracks = remember(tracks, favorites) {
+        tracks.filter { favorites.contains(it.id) }
+    }
+    val recentlyAddedTracks = remember(tracks) {
+        tracks.sortedByDescending { it.dateAdded }
+    }
+    val recentSection = remember(recentTracks, tracks) {
+        if (recentTracks.isNotEmpty()) recentTracks else tracks
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 24.dp)
     ) {
         // En-tête Top App Bar
-        item {
+        item(key = "home_header") {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1091,14 +1178,12 @@ private fun HomeExplorerContent(
 
                     Spacer(modifier = Modifier.width(12.dp))
 
-                    Column {
-                        Text(
-                            text = "MusicPro",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
+                    Text(
+                        text = "MusicPro",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1157,15 +1242,22 @@ private fun HomeExplorerContent(
             }
         }
 
-        item {
+        item(key = "home_greeting") {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
                 Text(greeting, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onBackground)
                 Text(stringResource(R.string.home_welcome_back), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
+        // Section « Reprendre » — la lecture en cours, titre 20 sp + lien « Tout voir ».
         if (currentPlayingTrack != null) {
-            item {
+            item(key = "home_section_resume_header") {
+                HomeSectionHeader(
+                    title = stringResource(R.string.home_section_resume),
+                    onSeeAll = onNavigateToLibrary
+                )
+            }
+            item(key = "home_section_resume_card") {
                 Surface(
                     onClick = onResumePlayback,
                     shape = RoundedCornerShape(18.dp),
@@ -1186,196 +1278,261 @@ private fun HomeExplorerContent(
             }
         }
 
-        // Bandeau statistiques du cache Room
-        item {
-            Surface(
-                onClick = onNavigateToLibrary,
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.28f)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp)
-                    .testTag("home_library_summary")
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(MusicProCyanNeon.copy(alpha = 0.12f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.AutoMirrored.Filled.QueueMusic, null, tint = MusicProCyanNeon, modifier = Modifier.size(21.dp))
-                        }
-                        Spacer(Modifier.width(10.dp))
-                        Column {
-                            Text("Votre bibliothèque", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                            Text("${tracks.size} morceaux • $albumsCount albums • $artistsCount artistes", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        }
-                    }
-                    Icon(Icons.AutoMirrored.Filled.QueueMusic, contentDescription = "Ouvrir la bibliothèque", tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+        // État vide / squelettes pendant le scan initial (mise à jour 057).
+        if (tracks.isEmpty()) {
+            if (isScanning) {
+                item(key = "home_skeletons") {
+                    SkeletonTracksList(rows = 6, reduceAnimations = false)
                 }
-            }
-        }
-
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Surface(
-                    onClick = onOpenFavorites,
-                    shape = RoundedCornerShape(14.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.35f)),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Row(Modifier.padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Favorite, contentDescription = "Favoris", tint = Color(0xFFFF4081), modifier = Modifier.size(20.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Column {
-                            Text("Favoris", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                            Text(favorites.size.toString() + " titres", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
+            } else {
+                item(key = "home_empty_state") {
+                    EmptyAudioStateView(
+                        modifier = Modifier.fillMaxWidth(),
+                        variant = EmptyStateVariant.NO_TRACKS,
+                        onPrimaryAction = onRefreshScan
+                    )
                 }
-                Surface(
-                    onClick = onNavigateToLibrary,
-                    shape = RoundedCornerShape(14.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    border = BorderStroke(1.dp, MusicProCyanNeon.copy(alpha = 0.25f)),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Row(Modifier.padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.AutoMirrored.Filled.QueueMusic, null, tint = MusicProCyanNeon, modifier = Modifier.size(19.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Column {
-                            Text("Bibliothèque", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                            Text(tracks.size.toString() + " titres", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
-                }
-            }
-        }
-
-        if (albums.isNotEmpty() || playlists.isNotEmpty()) {
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Collections", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Albums ${albums.size}", fontSize = 12.sp, color = MusicProVioletLight)
-                    Spacer(Modifier.width(6.dp))
-                    Text("Playlists ${playlists.size}", fontSize = 12.sp, color = MusicProCyanNeon)
-                }
-            }
-            if (albums.isNotEmpty()) {
-                item {
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        items(albums.take(8), key = { it.name }) { album ->
-                            Surface(
-                                onClick = { onOpenAlbum(album.name) },
-                                shape = RoundedCornerShape(14.dp),
-                                color = MaterialTheme.colorScheme.surface,
-                                border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.24f)),
-                                modifier = Modifier.width(150.dp)
-                            ) {
-                                Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Box(Modifier.size(48.dp).clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
-                                        if (!album.coverUri.isNullOrBlank()) AsyncImage(model = album.coverUri, contentDescription = album.name, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()) else Icon(Icons.Default.Album, null, tint = MusicProVioletLight)
-                                    }
-                                    Spacer(Modifier.width(8.dp))
-                                    Column(Modifier.weight(1f)) {
-                                        Text(album.name, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                                        Text(album.artist, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            if (playlists.isNotEmpty()) {
-                item {
-                    LazyRow(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(playlists.take(6), key = { it.id }) { playlist ->
-                            Surface(onClick = onNavigateToLibrary, shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceVariant, border = BorderStroke(1.dp, MusicProCyanNeon.copy(alpha = 0.20f))) {
-                                Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.MusicNote, contentDescription = null, tint = MusicProCyanNeon, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text(playlist.name, fontSize = 12.sp, color = MaterialTheme.colorScheme.onBackground, maxLines = 1, overflow = TextOverflow.Ellipsis) }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Si aucun morceau en cache
-        if (tracks.isEmpty() && !isScanning) {
-            item {
-                EmptyAudioStateView(
-                    onRefreshScan = onRefreshScan,
-                    modifier = Modifier.fillMaxWidth()
-                )
             }
         } else {
-            val displayedRecentTracks = if (recentTracks.isNotEmpty()) recentTracks else tracks.take(10)
-            val sectionTitle = if (recentTracks.isNotEmpty()) "Récemment écoutés" else "Morceaux récents"
-
-            // Section Récents / Bibliothèque
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+            // Section « Récemment joué » — LazyRow horizontale, clés stables.
+            item(key = "home_section_recent_header") {
+                HomeSectionHeader(
+                    title = stringResource(R.string.home_section_recent),
+                    onSeeAll = onNavigateToRecent
+                )
+            }
+            item(key = "home_section_recent_row") {
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Text(
-                        text = sectionTitle,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    TextButton(
-                        onClick = onNavigateToRecent,
-                        modifier = Modifier.heightIn(min = 48.dp)
-                    ) {
-                        Text(
-                            text = "Voir tout",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MusicProCyanNeon
+                    items(recentSection.take(12), key = { it.id }) { track ->
+                        HomeTrackCard(
+                            track = track,
+                            isCurrent = currentPlayingTrack?.id == track.id,
+                            onClick = { onTrackClick(track) }
                         )
                     }
                 }
             }
 
-            // Liste des morceaux
-            items(displayedRecentTracks, key = { it.id }) { track ->
-                val isCurrent = currentPlayingTrack?.id == track.id
-                val isFav = favorites.contains(track.id)
+            // Section « Vos favoris ».
+            if (favoriteTracks.isNotEmpty()) {
+                item(key = "home_section_favorites_header") {
+                    HomeSectionHeader(
+                        title = stringResource(R.string.home_section_favorites),
+                        onSeeAll = onOpenFavorites
+                    )
+                }
+                item(key = "home_section_favorites_row") {
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(favoriteTracks.take(12), key = { it.id }) { track ->
+                            HomeTrackCard(
+                                track = track,
+                                isCurrent = currentPlayingTrack?.id == track.id,
+                                onClick = { onTrackClick(track) }
+                            )
+                        }
+                    }
+                }
+            }
 
-                TrackRowItem(
-                    index = displayedRecentTracks.indexOf(track) + 1,
-                    track = track,
-                    isCurrent = isCurrent,
-                    isPlaying = isPlaying && isCurrent,
-                    isFavorite = isFav,
-                    onClick = { onTrackClick(track) },
-                    onToggleFavorite = { onToggleFavorite(track.id) }
+            // Section « Playlists pour vous ».
+            if (playlists.isNotEmpty()) {
+                item(key = "home_section_playlists_header") {
+                    HomeSectionHeader(
+                        title = stringResource(R.string.home_section_playlists_for_you),
+                        onSeeAll = onNavigateToPlaylists
+                    )
+                }
+                item(key = "home_section_playlists_row") {
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(playlists.take(8), key = { it.id }) { playlist ->
+                            HomePlaylistCard(
+                                playlist = playlist,
+                                onClick = onNavigateToPlaylists
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Section « Ajouts récents » — les derniers morceaux ajoutés à la bibliothèque.
+            item(key = "home_section_added_header") {
+                HomeSectionHeader(
+                    title = stringResource(R.string.home_section_added),
+                    onSeeAll = onNavigateToNew
+                )
+            }
+            item(key = "home_section_added_row") {
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(recentlyAddedTracks.take(12), key = { it.id }) { track ->
+                        HomeTrackCard(
+                            track = track,
+                            isCurrent = currentPlayingTrack?.id == track.id,
+                            onClick = { onTrackClick(track) }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Mise à jour 051 — en-tête de section d'accueil : titre 20 sp + lien « Tout voir ». */
+@Composable
+private fun HomeSectionHeader(
+    title: String,
+    onSeeAll: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        TextButton(
+            onClick = onSeeAll,
+            modifier = Modifier.heightIn(min = 48.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.home_see_all),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MusicProCyanNeon
+            )
+        }
+    }
+}
+
+/** Mise à jour 051 — carte de morceau horizontale (pochette carrée, titre, artiste). */
+@Composable
+private fun HomeTrackCard(
+    track: AudioTrackEntity,
+    isCurrent: Boolean,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .width(128.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .clickable(onClick = onClick)
+            .padding(4.dp)
+    ) {
+        var imageLoadError by remember(track.id) { mutableStateOf(false) }
+        Box(
+            modifier = Modifier
+                .size(120.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .border(
+                    1.dp,
+                    if (isCurrent) MusicProCyanNeon else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+                    RoundedCornerShape(12.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (!track.albumArtUri.isNullOrBlank() && !imageLoadError) {
+                AsyncImage(
+                    model = track.albumArtUri,
+                    contentDescription = track.title,
+                    contentScale = ContentScale.Crop,
+                    onError = { imageLoadError = true },
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.MusicNote,
+                    contentDescription = null,
+                    tint = MusicProVioletLight,
+                    modifier = Modifier.size(36.dp)
                 )
             }
         }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = track.title,
+            fontSize = 13.sp,
+            fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.SemiBold,
+            color = if (isCurrent) MusicProCyanNeon else MaterialTheme.colorScheme.onBackground,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            text = track.artist,
+            fontSize = 11.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+/** Mise à jour 051 — carte de playlist horizontale pour l'accueil. */
+@Composable
+private fun HomePlaylistCard(
+    playlist: com.example.data.local.PlaylistSummary,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .width(140.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .clickable(onClick = onClick)
+            .padding(4.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(120.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(
+                    Brush.linearGradient(
+                        listOf(
+                            MusicProVioletPrimary.copy(alpha = 0.55f),
+                            MusicProCyanNeon.copy(alpha = 0.35f)
+                        )
+                    )
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.QueueMusic,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(40.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = playlist.name,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onBackground,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            text = "${playlist.trackCount} titres",
+            fontSize = 11.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1
+        )
     }
 }
 

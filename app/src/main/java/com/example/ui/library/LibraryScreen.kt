@@ -1,22 +1,32 @@
 package com.example.ui.library
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.material3.Surface
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,18 +35,25 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.Album
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -48,6 +65,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.Badge
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
@@ -61,30 +79,43 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.R
 import com.example.data.local.AudioTrackEntity
 import com.example.data.local.PlaylistSummary
+import com.example.data.preferences.LibrarySortMode
 import com.example.ui.audio.AlbumSummary
 import com.example.ui.audio.ArtistSummary
+import com.example.ui.audio.SearchUtils
 import com.example.ui.detail.DetailRouter
 import com.example.ui.audio.FolderSummary
 import com.example.ui.audio.LibraryTab
+import com.example.ui.components.AlphabetIndexer
 import com.example.ui.components.EmptyAudioStateView
+import com.example.ui.components.EmptyStateVariant
+import com.example.ui.components.LibrarySortSheet
+import com.example.ui.components.ScanProgressBanner
+import com.example.ui.components.SkeletonTracksList
+import com.example.ui.components.minItemsForIndex
 import com.example.ui.playlist.PlaylistsScreen
 import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
@@ -96,7 +127,22 @@ import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPrimary
 import com.example.ui.theme.MusicProVioletVibrant
 import com.example.ui.theme.LocalMusicProListRowHeight
+import kotlinx.coroutines.launch
 
+/** Mise à jour 055 — libellé localisé d'une pastille de la bibliothèque. */
+@Composable
+private fun LibraryTab.displayLabel(): String = when (this) {
+    LibraryTab.ALL -> stringResource(R.string.library_filter_all)
+    LibraryTab.TRACKS -> stringResource(R.string.library_filter_tracks)
+    LibraryTab.ALBUMS -> stringResource(R.string.library_filter_albums)
+    LibraryTab.ARTISTS -> stringResource(R.string.library_filter_artists)
+    LibraryTab.PLAYLISTS -> stringResource(R.string.library_filter_playlists)
+    LibraryTab.FAVORITES -> stringResource(R.string.library_filter_favorites)
+    LibraryTab.DOWNLOADS -> stringResource(R.string.library_filter_downloads)
+    // Pastilles internes jamais affichées (compatibilité d'état sauvegardé).
+    LibraryTab.RECENT -> "Récents"
+    LibraryTab.FOLDERS -> "Dossiers"
+}
 @Composable
 fun LibraryScreen(
     tracks: List<AudioTrackEntity>,
@@ -111,16 +157,22 @@ fun LibraryScreen(
     isPlaying: Boolean,
     favorites: Set<Long>,
     playlists: List<PlaylistSummary> = emptyList(),
+    librarySort: LibrarySortMode = LibrarySortMode.TITLE_AZ,
     onPlaylistClick: (PlaylistSummary) -> Unit = {},
     onPlayPlaylistDirectly: (PlaylistSummary) -> Unit = {},
     onCreatePlaylist: (String, String) -> Unit = { _, _ -> },
     onRenamePlaylist: (Long, String, String) -> Unit = { _, _, _ -> },
     onDeletePlaylist: (Long) -> Unit = {},
     onSelectTab: (LibraryTab) -> Unit,
+    onSelectSort: (LibrarySortMode) -> Unit = {},
     onTrackClick: (AudioTrackEntity) -> Unit,
     onToggleFavorite: (Long) -> Unit,
     onPlayTracks: (List<AudioTrackEntity>, Boolean) -> Unit = { list, _ -> list.firstOrNull()?.let(onTrackClick) },
     onAddToQueue: (AudioTrackEntity) -> Unit = {},
+    onPlayNextTracks: (List<AudioTrackEntity>) -> Unit = {},
+    onOpenTrackActions: (AudioTrackEntity) -> Unit = {},
+    onAddTracksToPlaylist: (List<AudioTrackEntity>) -> Unit = {},
+    onDeleteTracks: (List<AudioTrackEntity>) -> Unit = {},
     onRefreshScan: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -139,6 +191,55 @@ fun LibraryScreen(
     var selectedArtist by remember { mutableStateOf<ArtistSummary?>(null) }
     var selectedFolder by remember { mutableStateOf<FolderSummary?>(null) }
 
+    // Mise à jour 055 — tri mémorisé appliqué à chaque liste.
+    val sortedTracks = remember(tracks, librarySort) { LibrarySorting.sortTracks(tracks, librarySort) }
+    val sortedAlbums = remember(albums, librarySort) { LibrarySorting.sortAlbums(albums, librarySort) }
+    val sortedArtists = remember(artists, librarySort) { LibrarySorting.sortArtists(artists, librarySort) }
+    val sortedRecent = remember(recentTracks, librarySort) { LibrarySorting.sortTracks(recentTracks, librarySort) }
+    val favoriteTracks = remember(sortedTracks, favorites) { sortedTracks.filter { favorites.contains(it.id) } }
+    val downloadTracks = remember(sortedTracks) {
+        sortedTracks.filter {
+            it.folder.contains("download", ignoreCase = true) ||
+                it.path.contains("download", ignoreCase = true)
+        }
+    }
+
+    // Mise à jour 060 — sélection multi-morceaux ; l'état survit à la rotation.
+    var isSelectionMode by rememberSaveable { mutableStateOf(false) }
+    var selectedTrackIds by rememberSaveable { mutableStateOf(LinkedHashSet<Long>()) }
+    var isSortSheetOpen by remember { mutableStateOf(false) }
+
+    val displayedTracks: List<AudioTrackEntity> = when (selectedTab) {
+        LibraryTab.RECENT -> sortedRecent
+        LibraryTab.TRACKS, LibraryTab.ALL -> sortedTracks
+        LibraryTab.FAVORITES -> favoriteTracks
+        LibraryTab.DOWNLOADS -> downloadTracks
+        LibraryTab.PLAYLISTS, LibraryTab.ALBUMS, LibraryTab.ARTISTS, LibraryTab.FOLDERS -> emptyList()
+    }
+    val selectedTracks = remember(sortedTracks, selectedTrackIds) {
+        sortedTracks.filter { selectedTrackIds.contains(it.id) }
+    }
+
+    fun enterSelection(trackId: Long) {
+        isSelectionMode = true
+        selectedTrackIds = LinkedHashSet(setOf(trackId))
+    }
+
+    fun toggleSelection(trackId: Long) {
+        val next = LinkedHashSet(selectedTrackIds)
+        if (!next.add(trackId)) next.remove(trackId)
+        selectedTrackIds = next
+        if (next.isEmpty()) isSelectionMode = false
+    }
+
+    fun exitSelection() {
+        isSelectionMode = false
+        selectedTrackIds = LinkedHashSet()
+    }
+
+    // Le retour quitte d'abord le mode sélection (au-dessus du BackHandler de HomeScreen).
+    BackHandler(enabled = isSelectionMode) { exitSelection() }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -155,7 +256,7 @@ fun LibraryScreen(
         ) {
             Column {
                 Text(
-                    text = "Bibliothèque",
+                    text = stringResource(R.string.library_title),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
@@ -200,6 +301,11 @@ fun LibraryScreen(
             }
         }
 
+        // Mise à jour 057 — compteur animé « 128 morceaux trouvés… » pendant le scan.
+        AnimatedVisibility(visible = isScanning) {
+            ScanProgressBanner(foundCount = tracks.size)
+        }
+
         // Indicateur d'activité de scan
         AnimatedVisibility(visible = isScanning) {
             LinearProgressIndicator(
@@ -211,113 +317,101 @@ fun LibraryScreen(
             )
         }
 
-        // Onglets de la bibliothèque : Morceaux / Playlists / Albums / Artistes / Dossiers
-        androidx.compose.foundation.lazy.LazyRow(
+        // Mise à jour 055 — pastilles défilantes + icône de tri ↑↓ à droite.
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            items(LibraryTab.entries.size) { index ->
-                val tab = LibraryTab.entries[index]
-                val isSelected = tab == selectedTab
-                val countLabel = when (tab) {
-                    LibraryTab.RECENT -> "(${recentTracks.size})"
-                    LibraryTab.TRACKS -> "(${tracks.size})"
-                    LibraryTab.FAVORITES -> "(${favorites.size})"
-                    LibraryTab.PLAYLISTS -> "(${playlists.size})"
-                    LibraryTab.ALBUMS -> "(${albums.size})"
-                    LibraryTab.ARTISTS -> "(${artists.size})"
-                    LibraryTab.FOLDERS -> "(${folders.size})"
+            LazyRow(
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(LibraryTab.visibleTabs, key = { it.name }) { tab ->
+                    // RECENT (cible interne) met visuellement en avant « Tout ».
+                    val isSelected =
+                        tab == selectedTab ||
+                            (tab == LibraryTab.ALL && selectedTab == LibraryTab.RECENT)
+                    Box(
+                        modifier = Modifier
+                            .heightIn(min = 44.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(
+                                if (isSelected) MusicProPrimaryGradient
+                                else SolidColor(MaterialTheme.colorScheme.surfaceVariant)
+                            )
+                            .border(
+                                1.dp,
+                                if (isSelected) MusicProVioletGlow
+                                else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+                                RoundedCornerShape(20.dp)
+                            )
+                            .selectable(
+                                selected = isSelected,
+                                role = Role.Tab,
+                                onClick = {
+                                    selectedAlbum = null
+                                    selectedArtist = null
+                                    selectedFolder = null
+                                    exitSelection()
+                                    onSelectTab(tab)
+                                }
+                            )
+                            .padding(horizontal = 14.dp)
+                            .testTag("library_tab_${tab.name.lowercase()}"),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = tab.displayLabel(),
+                            fontSize = 12.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
+                        )
+                    }
                 }
+            }
 
-                Box(
-                    modifier = Modifier
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(
-                            if (isSelected) MusicProPrimaryGradient
-                            else Brush.linearGradient(listOf(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.surfaceVariant))
-                        )
-                        .border(
-                            1.dp,
-                            if (isSelected) MusicProVioletGlow else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
-                            RoundedCornerShape(12.dp)
-                        )
-                        .selectable(
-                            selected = isSelected,
-                            role = Role.Tab,
-                            onClick = {
-                                selectedAlbum = null
-                                selectedArtist = null
-                                selectedFolder = null
-                                onSelectTab(tab)
-                            }
-                        )
-                        .padding(horizontal = 14.dp)
-                        .testTag("library_tab_${tab.name.lowercase()}"),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "${tab.label} $countLabel",
-                        fontSize = 12.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1
-                    )
-                }
+            IconButton(
+                onClick = { isSortSheetOpen = true },
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .testTag("library_sort_button")
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Sort,
+                    contentDescription = stringResource(R.string.library_sort_action),
+                    tint = MusicProCyanNeon,
+                    modifier = Modifier.size(20.dp)
+                )
             }
         }
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Contenu principal selon l'onglet
-        if (
-            ((selectedTab == LibraryTab.TRACKS && tracks.isEmpty()) ||
-             (selectedTab == LibraryTab.RECENT && recentTracks.isEmpty())) &&
-            !isScanning &&
-            selectedTab != LibraryTab.PLAYLISTS &&
-            selectedTab != LibraryTab.FAVORITES
-        ) {
-            EmptyAudioStateView(
-                onRefreshScan = onRefreshScan,
-                modifier = Modifier.fillMaxSize()
-            )
-        } else {
-            when (selectedTab) {
-                LibraryTab.RECENT -> {
-                    TracksList(
-                        tracks = recentTracks,
-                        currentPlayingTrack = currentPlayingTrack,
-                        isPlaying = isPlaying,
-                        favorites = favorites,
-                        onTrackClick = onTrackClick,
-                        onToggleFavorite = onToggleFavorite,
-                        onAddToQueue = onAddToQueue
+        // Contenu principal selon l'onglet, barre contextuelle de sélection en bas.
+        Box(modifier = Modifier.weight(1f)) {
+            val trackTabEmpty = displayedTracks.isEmpty() && !isScanning
+            when {
+                (selectedTab == LibraryTab.TRACKS || selectedTab == LibraryTab.ALL ||
+                    selectedTab == LibraryTab.RECENT || selectedTab == LibraryTab.DOWNLOADS) &&
+                    trackTabEmpty -> {
+                    EmptyAudioStateView(
+                        modifier = Modifier.fillMaxSize(),
+                        variant = EmptyStateVariant.NO_TRACKS,
+                        onPrimaryAction = onRefreshScan
                     )
                 }
-                LibraryTab.TRACKS -> {
-                    TracksList(
-                        tracks = tracks,
-                        currentPlayingTrack = currentPlayingTrack,
-                        isPlaying = isPlaying,
-                        favorites = favorites,
-                        onTrackClick = onTrackClick,
-                        onToggleFavorite = onToggleFavorite,
-                        onAddToQueue = onAddToQueue
+                selectedTab == LibraryTab.FAVORITES && favoriteTracks.isEmpty() && !isScanning -> {
+                    EmptyAudioStateView(
+                        modifier = Modifier.fillMaxSize(),
+                        variant = EmptyStateVariant.NO_FAVORITES,
+                        onPrimaryAction = { onSelectTab(LibraryTab.ALL) }
                     )
                 }
-                LibraryTab.FAVORITES -> {
-                    TracksList(
-                        tracks = tracks.filter { favorites.contains(it.id) },
-                        currentPlayingTrack = currentPlayingTrack,
-                        isPlaying = isPlaying,
-                        favorites = favorites,
-                        onTrackClick = onTrackClick,
-                        onToggleFavorite = onToggleFavorite,
-                        onAddToQueue = onAddToQueue
-                    )
-                }
-                LibraryTab.PLAYLISTS -> {
+                selectedTab == LibraryTab.PLAYLISTS -> {
                     PlaylistsScreen(
                         playlists = playlists,
                         onPlaylistClick = onPlaylistClick,
@@ -327,7 +421,7 @@ fun LibraryScreen(
                         onDeletePlaylist = onDeletePlaylist
                     )
                 }
-                LibraryTab.ALBUMS -> {
+                selectedTab == LibraryTab.ALBUMS -> {
                     if (selectedAlbum != null) {
                         val albumTracks = tracks.filter { it.album == selectedAlbum!!.name }
                         AlbumDetailView(
@@ -343,9 +437,12 @@ fun LibraryScreen(
                             onTrackClick = onTrackClick,
                             onToggleFavorite = onToggleFavorite
                         )
+                    } else if (isScanning && albums.isEmpty()) {
+                        // Mise à jour 057 — squelettes pendant le scan initial.
+                        SkeletonTracksList(reduceAnimations = false)
                     } else {
                         AlbumsGrid(
-                            albums = albums,
+                            albums = sortedAlbums,
                             onAlbumClick = { album ->
                                 // Mise à jour 023 : la grille ouvre l'écran Album.
                                 DetailRouter.openAlbum(album.name)
@@ -353,7 +450,7 @@ fun LibraryScreen(
                         )
                     }
                 }
-                LibraryTab.ARTISTS -> {
+                selectedTab == LibraryTab.ARTISTS -> {
                     if (selectedArtist != null) {
                         val artistTracks = tracks.filter { it.artist == selectedArtist!!.name }
                         ArtistDetailView(
@@ -369,9 +466,11 @@ fun LibraryScreen(
                             onTrackClick = onTrackClick,
                             onToggleFavorite = onToggleFavorite
                         )
+                    } else if (isScanning && artists.isEmpty()) {
+                        SkeletonTracksList(reduceAnimations = false)
                     } else {
                         ArtistsList(
-                            artists = artists,
+                            artists = sortedArtists,
                             tracks = tracks,
                             onArtistClick = { artist ->
                                 // Mise à jour 024 : la liste ouvre l'écran Artiste.
@@ -380,7 +479,7 @@ fun LibraryScreen(
                         )
                     }
                 }
-                LibraryTab.FOLDERS -> {
+                selectedTab == LibraryTab.FOLDERS -> {
                     if (selectedFolder != null) {
                         val folderTracks = tracks.filter { it.folder == selectedFolder!!.name }
                         FolderDetailView(
@@ -406,44 +505,237 @@ fun LibraryScreen(
                         )
                     }
                 }
+                isScanning && displayedTracks.isEmpty() -> {
+                    // Mise à jour 057 — squelettes reprenant la forme des lignes.
+                    SkeletonTracksList(reduceAnimations = false)
+                }
+                else -> {
+                    TracksList(
+                        tracks = displayedTracks,
+                        currentPlayingTrack = currentPlayingTrack,
+                        isPlaying = isPlaying,
+                        favorites = favorites,
+                        inSelectionMode = isSelectionMode,
+                        selectedIds = selectedTrackIds,
+                        onTrackClick = onTrackClick,
+                        onToggleFavorite = onToggleFavorite,
+                        onAddToQueue = onAddToQueue,
+                        onTrackLongPress = { enterSelection(it.id) },
+                        onToggleTrackSelected = { toggleSelection(it.id) },
+                        onOpenActions = onOpenTrackActions
+                    )
+                }
+            }
+
+            // Mise à jour 060 — barre contextuelle de sélection multiple.
+            androidx.compose.animation.AnimatedVisibility(
+                visible = isSelectionMode,
+                modifier = Modifier.align(Alignment.BottomCenter),
+                enter = slideInVertically { it } + fadeIn(),
+                exit = slideOutVertically { it } + fadeOut()
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .testTag("library_selection_bar"),
+                    shape = RoundedCornerShape(18.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MusicProVioletGlow.copy(alpha = 0.5f)),
+                    shadowElevation = 8.dp
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.selection_count, selectedTrackIds.size),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MusicProCyanNeon,
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(start = 10.dp),
+                            maxLines = 1
+                        )
+                        IconButton(
+                            onClick = {
+                                selectedTrackIds = LinkedHashSet(displayedTracks.map { it.id })
+                            },
+                            modifier = Modifier.testTag("selection_select_all")
+                        ) {
+                            Icon(
+                                Icons.Default.DoneAll,
+                                contentDescription = stringResource(R.string.selection_select_all),
+                                tint = MaterialTheme.colorScheme.onBackground,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        IconButton(
+                            enabled = selectedTrackIds.isNotEmpty(),
+                            onClick = {
+                                onAddTracksToPlaylist(selectedTracks)
+                                exitSelection()
+                            },
+                            modifier = Modifier.testTag("selection_add_playlist")
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.PlaylistAdd,
+                                contentDescription = stringResource(R.string.selection_add_playlist),
+                                tint = MaterialTheme.colorScheme.onBackground,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        IconButton(
+                            enabled = selectedTrackIds.isNotEmpty(),
+                            onClick = {
+                                onPlayNextTracks(selectedTracks)
+                                exitSelection()
+                            },
+                            modifier = Modifier.testTag("selection_play_next")
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.QueueMusic,
+                                contentDescription = stringResource(R.string.selection_play_next),
+                                tint = MaterialTheme.colorScheme.onBackground,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        IconButton(
+                            enabled = selectedTrackIds.isNotEmpty(),
+                            onClick = {
+                                onDeleteTracks(selectedTracks)
+                                exitSelection()
+                            },
+                            modifier = Modifier.testTag("selection_delete")
+                        ) {
+                            Icon(
+                                Icons.Default.DeleteOutline,
+                                contentDescription = stringResource(R.string.selection_delete),
+                                tint = Color(0xFFE57373),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        IconButton(
+                            onClick = { exitSelection() },
+                            modifier = Modifier.testTag("selection_exit")
+                        ) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = stringResource(R.string.selection_exit),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
             }
         }
     }
-}
 
+    // Mise à jour 055 — feuille du bas du tri, dernier choix mémorisé.
+    if (isSortSheetOpen) {
+        LibrarySortSheet(
+            currentSort = librarySort,
+            onSelect = {
+                onSelectSort(it)
+                isSortSheetOpen = false
+            },
+            onDismiss = { isSortSheetOpen = false }
+        )
+    }
+}
 @Composable
 private fun TracksList(
     tracks: List<AudioTrackEntity>,
     currentPlayingTrack: AudioTrackEntity?,
     isPlaying: Boolean,
     favorites: Set<Long>,
+    inSelectionMode: Boolean = false,
+    selectedIds: Set<Long> = emptySet(),
     onTrackClick: (AudioTrackEntity) -> Unit,
     onToggleFavorite: (Long) -> Unit,
-    onAddToQueue: (AudioTrackEntity) -> Unit = {}
+    onAddToQueue: (AudioTrackEntity) -> Unit = {},
+    onTrackLongPress: (AudioTrackEntity) -> Unit = {},
+    onToggleTrackSelected: (AudioTrackEntity) -> Unit = {},
+    onOpenActions: (AudioTrackEntity) -> Unit = {}
 ) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 120.dp, top = 4.dp)
-    ) {
-        itemsIndexed(tracks, key = { _, track -> track.id }) { index, track ->
-            val isCurrent = currentPlayingTrack?.id == track.id
-            val isFav = favorites.contains(track.id)
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
 
-            TrackRowItem(
-                index = index + 1,
-                track = track,
-                isCurrent = isCurrent,
-                isPlaying = isPlaying,
-                isFavorite = isFav,
-                onClick = { onTrackClick(track) },
-                onToggleFavorite = { onToggleFavorite(track.id) },
-                onSwipeLeft = { onAddToQueue(track) },
-                onSwipeRight = { onToggleFavorite(track.id) }
+    // Mise à jour 056 — index A–Z : première position de chaque lettre.
+    val letterIndex = remember(tracks) {
+        val map = LinkedHashMap<Char, Int>()
+        tracks.forEachIndexed { position, track ->
+            val letter = SearchUtils.firstLetterOf(track.title)
+            if (!map.containsKey(letter)) map[letter] = position
+        }
+        map
+    }
+    val letters = remember(letterIndex) {
+        SearchUtils.lettersFor(tracks.map { it.title })
+    }
+    val showIndexer = tracks.size >= minItemsForIndex
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                bottom = 120.dp,
+                top = 4.dp,
+                end = if (showIndexer) 26.dp else 0.dp
+            )
+        ) {
+            itemsIndexed(tracks, key = { _, track -> track.id }) { index, track ->
+                val isCurrent = currentPlayingTrack?.id == track.id
+                val isFav = favorites.contains(track.id)
+
+                TrackRowItem(
+                    index = index + 1,
+                    track = track,
+                    isCurrent = isCurrent,
+                    isPlaying = isPlaying,
+                    isFavorite = isFav,
+                    inSelectionMode = inSelectionMode,
+                    selected = selectedIds.contains(track.id),
+                    onClick = {
+                        if (inSelectionMode) onToggleTrackSelected(track) else onTrackClick(track)
+                    },
+                    onToggleFavorite = { onToggleFavorite(track.id) },
+                    onSwipeLeft = { onAddToQueue(track) },
+                    onSwipeRight = { onToggleFavorite(track.id) },
+                    onLongPress = { onTrackLongPress(track) },
+                    onToggleSelected = { onToggleTrackSelected(track) },
+                    onOpenActions = { onOpenActions(track) }
+                )
+            }
+        }
+
+        // Mise à jour 056 — index A–Z glissable, masqué si moins de 40 éléments.
+        if (showIndexer && letters.isNotEmpty()) {
+            var currentLetter by remember { mutableStateOf<Char?>(null) }
+            AlphabetIndexer(
+                letters = letters,
+                currentLetter = { currentLetter },
+                onLetterSelected = { letter ->
+                    currentLetter = letter
+                    letterIndex[letter]?.let { target ->
+                        scope.launch { listState.scrollToItem(target) }
+                    }
+                },
+                onDragEnded = { currentLetter = null },
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .width(34.dp)
+                    .heightIn(max = 470.dp)
+                    .testTag("alphabet_indexer")
             )
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TrackRowItem(
     index: Int,
@@ -455,6 +747,11 @@ fun TrackRowItem(
     onToggleFavorite: () -> Unit,
     onSwipeLeft: () -> Unit = {},
     onSwipeRight: () -> Unit = {},
+    inSelectionMode: Boolean = false,
+    selected: Boolean = false,
+    onLongPress: () -> Unit = {},
+    onToggleSelected: () -> Unit = {},
+    onOpenActions: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val targetRowHeight = LocalMusicProListRowHeight.current
@@ -463,34 +760,78 @@ fun TrackRowItem(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = targetRowHeight)
-            .clickable(onClick = onClick)
+            .combinedClickable(
+                onClick = onClick,
+                // Mise à jour 060 — appui long = mode sélection.
+                onLongClick = onLongPress
+            )
             .background(
-                if (isCurrent) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)
-                else Color.Transparent
+                when {
+                    inSelectionMode && selected -> MusicProCyanNeon.copy(alpha = 0.14f)
+                    isCurrent -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)
+                    else -> Color.Transparent
+                }
             )
             .padding(horizontal = 16.dp, vertical = if (compactRow) 3.dp else 9.dp)
             .testTag("track_item_${track.id}"),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Numéro ou icône de lecture animée
-        Box(
-            modifier = Modifier.width(28.dp),
-            contentAlignment = Alignment.CenterStart
-        ) {
-            if (isCurrent && isPlaying) {
-                Icon(
-                    imageVector = Icons.Default.GraphicEq,
-                    contentDescription = "Lecture en cours",
-                    tint = MusicProCyanNeon,
-                    modifier = Modifier.size(18.dp)
-                )
-            } else {
-                Text(
-                    text = "%02d".format(index),
-                    fontSize = 12.sp,
-                    color = if (isCurrent) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.Medium
-                )
+        // En mode sélection : case ronde animée à la place du numéro.
+        if (inSelectionMode) {
+            val checkScale by animateFloatAsState(
+                targetValue = if (selected) 1f else 0.82f,
+                animationSpec = tween(durationMillis = 180),
+                label = "selection_check_scale"
+            )
+            Box(
+                modifier = Modifier
+                    .width(28.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .scale(checkScale)
+                        .clip(CircleShape)
+                        .background(if (selected) MusicProCyanNeon else Color.Transparent)
+                        .border(
+                            2.dp,
+                            if (selected) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
+                            CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (selected) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(15.dp)
+                        )
+                    }
+                }
+            }
+        } else {
+            // Numéro ou icône de lecture animée
+            Box(
+                modifier = Modifier.width(28.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                if (isCurrent && isPlaying) {
+                    Icon(
+                        imageVector = Icons.Default.GraphicEq,
+                        contentDescription = "Lecture en cours",
+                        tint = MusicProCyanNeon,
+                        modifier = Modifier.size(18.dp)
+                    )
+                } else {
+                    Text(
+                        text = "%02d".format(index),
+                        fontSize = 12.sp,
+                        color = if (isCurrent) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         }
 
@@ -593,38 +934,58 @@ fun TrackRowItem(
 
         Spacer(modifier = Modifier.width(10.dp))
 
-        // Durée
-        Text(
-            text = track.formatDuration(),
-            fontSize = 12.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.Medium
-        )
-
-        Spacer(modifier = Modifier.width(6.dp))
-
-        // Bouton favori
-        IconButton(
-            onClick = onToggleFavorite,
-            modifier = Modifier.size(48.dp)
-        ) {
-            Icon(
-                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                contentDescription = "Favori",
-                tint = if (isFavorite) Color(0xFFFF4081) else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(18.dp)
+        if (inSelectionMode) {
+            // En mode sélection, la ligne entière bascule la case : rien à droite.
+        } else {
+            // Durée
+            Text(
+                text = track.formatDuration(),
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.Medium
             )
+
+            Spacer(modifier = Modifier.width(6.dp))
+
+            // Bouton favori
+            IconButton(
+                onClick = onToggleFavorite,
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(
+                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = "Favori",
+                    tint = if (isFavorite) Color(0xFFFF4081) else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+
+            // Mise à jour 059 — menu ⋯ ouvrant la feuille d'actions du morceau.
+            IconButton(
+                onClick = onOpenActions,
+                modifier = Modifier
+                    .size(48.dp)
+                    .testTag("track_actions_${track.id}")
+            ) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "Actions du morceau",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
         }
     }
 }
-
 @Composable
 private fun AlbumsGrid(
     albums: List<AlbumSummary>,
     onAlbumClick: (AlbumSummary) -> Unit
 ) {
+    // Mise à jour 052 — grille adaptative : 150 dp par cellule ; la densité de
+    // colonnes (2 à 6+) s'ajuste automatiquement à la tablette et au paysage.
     LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
+        columns = GridCells.Adaptive(150.dp),
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 120.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -652,10 +1013,11 @@ private fun AlbumGridItem(
             .padding(10.dp)
             .testTag("album_item_${album.name}")
     ) {
+        // Mise à jour 052 — pochette carrée (ratio 1:1), coins 12 dp.
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(130.dp)
+                .aspectRatio(1f)
                 .clip(RoundedCornerShape(12.dp))
                 .background(
                     Brush.linearGradient(
@@ -720,68 +1082,110 @@ private fun ArtistsList(
     tracks: List<AudioTrackEntity>,
     onArtistClick: (ArtistSummary) -> Unit
 ) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 120.dp, top = 6.dp)
-    ) {
-        items(artists, key = { it.name }) { artist ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onArtistClick(artist) }
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-                    .testTag("artist_item_${artist.name}"),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Avatar rond artiste
-                Box(
+    // Mise à jour 056 — index A–Z sur les longues listes d'artistes.
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val letterIndex = remember(artists) {
+        val map = LinkedHashMap<Char, Int>()
+        artists.forEachIndexed { position, artist ->
+            val letter = SearchUtils.firstLetterOf(artist.name)
+            if (!map.containsKey(letter)) map[letter] = position
+        }
+        map
+    }
+    val letters = remember(letterIndex) {
+        SearchUtils.lettersFor(artists.map { it.name })
+    }
+    val showIndexer = artists.size >= minItemsForIndex
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                bottom = 120.dp,
+                top = 6.dp,
+                end = if (showIndexer) 26.dp else 0.dp
+            )
+        ) {
+            items(artists, key = { it.name }) { artist ->
+                Row(
                     modifier = Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .background(
-                            Brush.linearGradient(
-                                listOf(MusicProVioletPrimary, MusicProCyanVibrant)
-                            )
-                        )
-                        .border(1.5.dp, MusicProCyanNeon, CircleShape),
-                    contentAlignment = Alignment.Center
+                        .fillMaxWidth()
+                        .clickable { onArtistClick(artist) }
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                        .testTag("artist_item_${artist.name}"),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // Avatar rond artiste
+                    Box(
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(MusicProVioletPrimary, MusicProCyanVibrant)
+                                )
+                            )
+                            .border(1.5.dp, MusicProCyanNeon, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(26.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(14.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = artist.name,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "${artist.trackCount} morceaux • ${artist.albumsCount} album(s)",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
                     Icon(
-                        imageVector = Icons.Default.Person,
+                        imageVector = Icons.Default.PlayArrow,
                         contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(26.dp)
+                        tint = MusicProCyanNeon,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
-
-                Spacer(modifier = Modifier.width(14.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = artist.name,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = "${artist.trackCount} morceaux • ${artist.albumsCount} album(s)",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Icon(
-                    imageVector = Icons.Default.PlayArrow,
-                    contentDescription = null,
-                    tint = MusicProCyanNeon,
-                    modifier = Modifier.size(20.dp)
-                )
             }
+        }
+
+        if (showIndexer && letters.isNotEmpty()) {
+            var currentLetter by remember { mutableStateOf<Char?>(null) }
+            AlphabetIndexer(
+                letters = letters,
+                currentLetter = { currentLetter },
+                onLetterSelected = { letter ->
+                    currentLetter = letter
+                    letterIndex[letter]?.let { target ->
+                        scope.launch { listState.scrollToItem(target) }
+                    }
+                },
+                onDragEnded = { currentLetter = null },
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .width(34.dp)
+                    .heightIn(max = 470.dp)
+                    .testTag("alphabet_indexer")
+            )
         }
     }
 }
-
 @Composable
 private fun FoldersList(
     folders: List<FolderSummary>,
@@ -1252,3 +1656,4 @@ private fun FolderDetailView(
         }
     }
 }
+

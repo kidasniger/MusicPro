@@ -65,13 +65,15 @@ import com.example.ui.theme.MusicProVioletPrimary
 
 @Composable
 fun AddToPlaylistChooserDialog(
-    track: AudioTrackEntity,
+    tracks: List<AudioTrackEntity>,
     playlists: List<PlaylistSummary>,
     onDismiss: () -> Unit,
     onSelectPlaylist: (playlistId: Long) -> Unit,
     onCreateAndAdd: (name: String, description: String) -> Unit
 ) {
     var showCreateDialog by remember { mutableStateOf(false) }
+    // Mise à jour 059/060 — le dialogue accepte un ou plusieurs morceaux
+    // (feuille d'actions d'une ligne, sélection multiple).
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -113,7 +115,15 @@ fun AddToPlaylistChooserDialog(
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = track.title,
+                                text = if (tracks.size == 1) {
+                                    tracks.firstOrNull()?.title ?: ""
+                                } else {
+                                    pluralStringResource(
+                                        R.plurals.playlist_selected_tracks,
+                                        tracks.size,
+                                        tracks.size
+                                    )
+                                },
                                 color = MusicProTextMuted,
                                 fontSize = 12.sp,
                                 maxLines = 1,
