@@ -156,6 +156,7 @@ fun SettingsScreen(
     val autoPlay by settingsViewModel.autoPlay.collectAsStateWithLifecycle()
     val gaplessPlayback by settingsViewModel.gaplessPlayback.collectAsStateWithLifecycle()
     val resumePlayback by settingsViewModel.resumePlayback.collectAsStateWithLifecycle()
+    val playerPresentation by settingsViewModel.playerPresentation.collectAsStateWithLifecycle()
     val textSizePreference by settingsViewModel.textSizePreference.collectAsStateWithLifecycle()
     val listDensityPreference by settingsViewModel.listDensityPreference.collectAsStateWithLifecycle()
     val reduceAnimations by settingsViewModel.reduceAnimations.collectAsStateWithLifecycle()
@@ -382,7 +383,9 @@ fun SettingsScreen(
                     resumePlayback = resumePlayback,
                     onAutoPlayChanged = { settingsViewModel.setAutoPlay(it) },
                     onGaplessChanged = { settingsViewModel.setGaplessPlayback(it) },
-                    onResumeChanged = { settingsViewModel.setResumePlayback(it) }
+                    onResumeChanged = { settingsViewModel.setResumePlayback(it) },
+                    presentation = playerPresentation,
+                    onPresentationSelected = { settingsViewModel.setPlayerPresentation(it) }
                 )
             }
 
@@ -889,6 +892,7 @@ private val settingsSearchIndex = listOf(
     SettingsSearchEntry(R.string.settings_autoplay, "LECTURE", listOf("lecture", "lecteur", "auto play", "autoplay")),
     SettingsSearchEntry(R.string.settings_gapless, "LECTURE", listOf("gapless", "enchaînement", "transition")),
     SettingsSearchEntry(R.string.settings_resume, "LECTURE", listOf("reprise", "continuer", "resume")),
+    SettingsSearchEntry(R.string.settings_presentation, "LECTURE", listOf("présentation", "pochette", "vinyle", "vinyl", "minimal", "apparience lecteur", "player")),
     SettingsSearchEntry(R.string.settings_lyrics_assistance, "PAROLES", listOf("lyrics", "synchronisation", "texte")),
     SettingsSearchEntry(R.string.settings_groq_setup, "INTELLIGENCE ARTIFICIELLE", listOf("ia", "intelligence artificielle", "api", "groq", "clé")),
     SettingsSearchEntry(R.string.settings_storage_local, "STOCKAGE", listOf("cache", "stockage", "mémoire", "temporaire")),
@@ -1076,7 +1080,7 @@ private enum class SettingsSectionReset(val tag: String, val itemRes: List<Int>)
             R.string.reset_item_glass
         )
     ),
-    LECTURE("LECTURE", listOf(R.string.reset_item_playback)),
+    LECTURE("LECTURE", listOf(R.string.reset_item_playback, R.string.reset_item_presentation)),
     PAROLES("PAROLES", listOf(R.string.reset_item_karaoke)),
     INTELLIGENCE_ARTIFICIELLE("INTELLIGENCE ARTIFICIELLE", listOf(R.string.reset_item_groq))
 }

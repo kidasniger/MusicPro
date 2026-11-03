@@ -14,6 +14,7 @@ import com.example.data.preferences.DefaultGlassColorStrength
 import com.example.data.preferences.DefaultGlassFilmOpacity
 import com.example.data.preferences.DefaultGlassFrostDp
 import com.example.data.preferences.GlassMaterial
+import com.example.data.preferences.PlayerPresentation
 import com.example.data.preferences.TextSizePreference
 import com.example.data.preferences.ListDensityPreference
 import com.example.data.preferences.UserPreferencesRepository
@@ -157,6 +158,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     val resumePlayback: StateFlow<Boolean> = preferencesRepository.resumePlayback
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    /** Présentation du lecteur (mise à jour 048) : pochette, vinyle ou minimal. */
+    val playerPresentation: StateFlow<PlayerPresentation> = preferencesRepository.playerPresentation
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PlayerPresentation.POCHETTE)
 
     // --- Aperçu en direct du verre (mise à jour 010) ---------------------------------------------
 
@@ -348,6 +353,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun setResumePlayback(enabled: Boolean) {
         viewModelScope.launch { preferencesRepository.setResumePlayback(enabled) }
+    }
+
+    /** Choisit la présentation du lecteur (mise à jour 048). */
+    fun setPlayerPresentation(value: PlayerPresentation) {
+        viewModelScope.launch { preferencesRepository.setPlayerPresentation(value) }
     }
 
     fun refreshCacheSize() {

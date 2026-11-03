@@ -94,6 +94,8 @@ class UserPreferencesRepository(
         val KEY_LAST_PLAYED_POSITION_MS = longPreferencesKey("last_played_position_ms")
         val KEY_LAST_PLAYED_WAS_PLAYING = booleanPreferencesKey("last_played_was_playing")
         val KEY_SHUFFLE_ENABLED = booleanPreferencesKey("shuffle_enabled")
+        /** Présentation du lecteur (mise à jour 048). Absente : pochette carrée. */
+        val KEY_PLAYER_PRESENTATION = stringPreferencesKey("player_presentation")
     }
 
     val isOnboardingCompleted: Flow<Boolean> = dataStore.data
@@ -365,6 +367,11 @@ class UserPreferencesRepository(
         .catch { exception -> if (exception is IOException) emit(emptyPreferences()) else throw exception }
         .map { it[KEY_RESUME_PLAYBACK] ?: true }
 
+    /** Présentation du lecteur : pochette, vinyle ou minimal (mise à jour 048). */
+    val playerPresentation: Flow<PlayerPresentation> = themeData.map { preferences ->
+        resolvePlayerPresentation(preferences[KEY_PLAYER_PRESENTATION])
+    }
+
     val karaokeFontSize: Flow<Float> = dataStore.data
         .catch { exception -> if (exception is IOException) emit(emptyPreferences()) else throw exception }
         .map { it[KEY_KARAOKE_FONT_SIZE]?.toFloatOrNull() ?: 18f }
@@ -440,6 +447,11 @@ class UserPreferencesRepository(
 
     suspend fun setResumePlayback(enabled: Boolean) {
         dataStore.edit { preferences -> preferences[KEY_RESUME_PLAYBACK] = enabled }
+    }
+
+    /** Enregistre la présentation du lecteur (mise à jour 048). */
+    suspend fun setPlayerPresentation(value: PlayerPresentation) {
+        dataStore.edit { preferences -> preferences[KEY_PLAYER_PRESENTATION] = value.name }
     }
 
     suspend fun setKaraokeFontSize(size: Float) {
@@ -566,12 +578,13 @@ class UserPreferencesRepository(
         }
     }
 
-    /** Remet la section Lecture (lecture auto, enchaînement, reprise) par défaut. */
+    /** Remet la section Lecture (lecture auto, enchaînement, reprise, présentation) par défaut. */
     suspend fun resetPlaybackSection() {
         dataStore.edit { preferences ->
             preferences[KEY_AUTO_PLAY] = true
             preferences[KEY_GAPLESS] = true
             preferences[KEY_RESUME_PLAYBACK] = true
+            preferences[KEY_PLAYER_PRESENTATION] = PlayerPresentation.POCHETTE.name
         }
     }
 

@@ -33,6 +33,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
@@ -44,6 +45,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.NetworkCheck
+import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Tune
@@ -99,7 +101,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.data.preferences.AppThemeMode
+import com.example.data.preferences.PlayerPresentation
 import com.example.data.security.GroqApiKeyStore
 import com.example.groq.GroqTranscriptionManager
 import com.example.ui.theme.MusicProCyanLight
@@ -962,7 +966,9 @@ fun PlaybackSettingsCard(
     resumePlayback: Boolean,
     onAutoPlayChanged: (Boolean) -> Unit,
     onGaplessChanged: (Boolean) -> Unit,
-    onResumeChanged: (Boolean) -> Unit
+    onResumeChanged: (Boolean) -> Unit,
+    presentation: PlayerPresentation = PlayerPresentation.POCHETTE,
+    onPresentationSelected: (PlayerPresentation) -> Unit = {}
 ) {
     Card(
         modifier = Modifier.fillMaxWidth().border(1.dp, MusicProVioletPrimary.copy(alpha = 0.3f), RoundedCornerShape(18.dp)),
@@ -986,6 +992,84 @@ fun PlaybackSettingsCard(
             SettingToggleRow(stringResource(R.string.settings_autoplay), stringResource(R.string.settings_autoplay_desc), autoPlay, onAutoPlayChanged)
             SettingToggleRow(stringResource(R.string.settings_gapless), stringResource(R.string.settings_gapless_desc), gaplessPlayback, onGaplessChanged)
             SettingToggleRow(stringResource(R.string.settings_resume), stringResource(R.string.settings_resume_desc), resumePlayback, onResumeChanged)
+
+            // Mise à jour 048 — présentation du lecteur : pochette, vinyle ou minimal.
+            Column(Modifier.padding(top = 12.dp)) {
+                Text(
+                    stringResource(R.string.settings_presentation),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    stringResource(R.string.settings_presentation_desc),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.height(8.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    PresentationOption(
+                        label = stringResource(R.string.np_presentation_pochette),
+                        icon = Icons.Default.Album,
+                        selected = presentation == PlayerPresentation.POCHETTE,
+                        onClick = { onPresentationSelected(PlayerPresentation.POCHETTE) },
+                        modifier = Modifier.weight(1f)
+                    )
+                    PresentationOption(
+                        label = stringResource(R.string.np_presentation_vinyle),
+                        icon = Icons.Default.Album,
+                        selected = presentation == PlayerPresentation.VINYLE,
+                        onClick = { onPresentationSelected(PlayerPresentation.VINYLE) },
+                        modifier = Modifier.weight(1f)
+                    )
+                    PresentationOption(
+                        label = stringResource(R.string.np_presentation_minimal),
+                        icon = Icons.Default.Notes,
+                        selected = presentation == PlayerPresentation.MINIMAL,
+                        onClick = { onPresentationSelected(PlayerPresentation.MINIMAL) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PresentationOption(
+    label: String,
+    icon: ImageVector,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(10.dp),
+        color = if (selected) MusicProVioletPrimary else MaterialTheme.colorScheme.outline.copy(alpha = 0.10f),
+        border = BorderStroke(
+            1.dp,
+            if (selected) MusicProCyanNeon else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
+        ),
+        modifier = modifier
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)
+        ) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp)
+            )
+            Text(
+                label,
+                fontSize = 11.sp,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                color = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+            )
         }
     }
 }

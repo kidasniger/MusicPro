@@ -62,6 +62,37 @@ private fun extractArtworkAccent(context: Context, uriString: String, isDark: Bo
     }
 }
 
+/**
+ * Mise à jour 041 — Couleur dominante brute d'une pochette donnée, pour le fond immersif du
+ * lecteur. Contrairement à [rememberArtworkAccent], fonctionne pour n'importe quel URI de pochette
+ * (pas seulement le morceau en cours) et ne dépend pas du réglage d'accent.
+ * `null` tant qu'il n'y a pas de pochette exploitable.
+ */
+@Composable
+fun rememberTrackDominantColor(artworkUri: String?, isDark: Boolean): State<Color?> {
+    val context = LocalContext.current.applicationContext
+    return produceState<Color?>(initialValue = null, artworkUri, isDark) {
+        value = if (artworkUri.isNullOrBlank()) {
+            null
+        } else {
+            withContext(Dispatchers.IO) {
+                runCatching { extractArtworkAccent(context, artworkUri, isDark) }.getOrNull()
+            }?.let { Color(it) }
+        }
+    }
+}
+
+/**
+ * Assombrit une couleur de [fraction] (0..1) — mise à jour 041 : fond du lecteur = couleur
+ * dominante de la pochette assombrie de 35 %.
+ */
+fun Color.darkened(fraction: Float): Color = Color(
+    red = red * (1f - fraction),
+    green = green * (1f - fraction),
+    blue = blue * (1f - fraction),
+    alpha = alpha
+)
+
 /** Décode la pochette en au plus ~128 px de côté : largement suffisant pour une couleur dominante. */
 private fun decodeSmallBitmap(context: Context, uri: Uri): Bitmap? = runCatching {
     val resolver = context.contentResolver

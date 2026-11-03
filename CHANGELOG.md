@@ -2,6 +2,17 @@
 
 ## Prochaine mise à jour
 
+- **041 — Pochette immersive pleine largeur** : la pochette s'affiche en haut sur toute la largeur, sans cadre, et se fond vers le fond avec un dégradé vertical de 160 dp. Le fond de l'écran reprend la couleur dominante de la pochette (assombrie de 35 %) et se met à jour en 400 ms à chaque morceau.
+- **042 — Bandeau titre/artiste en pilule de verre** : titre (2 lignes max) et artiste dans une pilule de verre, avec à droite trois boutons ronds de 40 dp (Radio, File d'attente, J'aime). Le cœur s'anime (échelle 1→1,25→1, 220 ms) et vibre légèrement quand on aime.
+- **043 — Barre de progression fine et tactile** : barre de 4 dp (10 dp au toucher) avec temps écoulé à gauche et restant/total à droite, zone tactile de 40 dp, aperçu flottant du temps au-dessus du doigt pendant le glissement ; toujours sans `Slider` Material.
+- **044 — Boutons de transport en verre** : lecture/pause en cercle de 88 dp, précédent et suivant en 64 dp, aléatoire et répéter en icônes 28 dp aux extrémités ; l'état actif s'affiche par un point sous l'icône (accessibilité).
+- **045 — Onglets inférieurs du lecteur** : pilule de verre à quatre onglets (Lecture, Paroles, Réglages audio, Infos) ; le changement glisse horizontalement avec fondu et l'onglet actif est dans une capsule plus claire. Paroles synchronisées défilantes et égaliseur complet intégrés au lecteur.
+- **046 — Bouton « Passer à la vidéo »** : si un fichier vidéo existe à côté du morceau, une pilule apparaît au-dessus du titre ; la position de lecture est conservée à ±100 ms près dans les deux sens.
+- **047 — Gestes du lecteur** : glisser vers le bas réduit en mini-lecteur (la pochette voyage avec la transition partagée), double tap à gauche/droite = −10 s / +10 s avec onde visuelle, appui long sur la pochette = menu (playlist, album, artiste, partager).
+- **048 — Présentation du lecteur** : dans Réglages › Lecture, choisir Pochette (carrée, par défaut), Vinyle (rotation 33 tours, geste horizontal réservé au morceau précédent/suivant) ou Minimal (texte seul sur fond uni). La rotation respecte « Réduire les animations » et se met en pause avec la lecture.
+- **049 — Contrôle du volume et sortie audio** : icône « appareils » en haut à droite ouvrant une feuille du bas listant haut-parleur, casque filaire et Bluetooth avec l'appareil actif coché, plus les boutons −/+ de volume ; un toast discret signale les branchements (« Casque connecté »).
+- **050 — Minuterie de sommeil** : dans le menu ⋯ du lecteur, minuteries de 5 à 60 minutes ou « Fin du morceau » ; une pastille de compte à rebours apparaît près du titre et le volume baisse en fondu pendant les 10 dernières secondes avant l'arrêt.
+
 - Réglages réorganisés en groupes à fond arrondi (24 dp) avec en-têtes en majuscules : Apparence, Lecture, Paroles, Intelligence artificielle, Stockage, Notifications, À propos ; chaque ligne affiche une icône en pastille 36 dp, la valeur choisie et un chevron.
 - Champ de recherche dans les réglages : filtre en direct par libellé et synonymes (« couleur », « flou », « cache », « thème »), met en évidence le terme trouvé et ouvre le groupe concerné.
 - Carte « Apparence » en tête de page : trois miniatures (Clair, Sombre, Auto) puis Minimal, Néon, Verre ; choix en un tap avec retour haptique léger.

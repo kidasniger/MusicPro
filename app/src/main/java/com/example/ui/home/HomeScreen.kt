@@ -1,8 +1,12 @@
 package com.example.ui.home
 
 import android.app.Activity
+import android.content.Context
+import android.media.AudioManager
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import java.io.File
 import java.util.Calendar
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -85,7 +89,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -114,6 +120,7 @@ import coil.compose.AsyncImage
 import com.example.R
 import com.example.data.local.AudioTrackEntity
 import com.example.data.local.PlaylistSummary
+import com.example.data.preferences.PlayerPresentation
 import com.example.permissions.PermissionUtils
 import com.example.ui.audio.AudioViewModel
 import com.example.ui.audio.LibraryTab
@@ -158,7 +165,13 @@ import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPastel
 import com.example.ui.theme.MusicProVioletPrimary
 import com.example.ui.theme.MusicProVioletVibrant
+import com.example.ui.nowplaying.VideoMatcher
+import com.example.ui.nowplaying.VideoPlayerScreen
 import com.example.ui.whatsnew.NewScreen
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
 
 /**
  * Sections de la barre de navigation flottante, dans l'ordre d'affichage.
@@ -282,6 +295,9 @@ fun HomeScreen(
     val lyricsData by audioViewModel.lyricsData.collectAsStateWithLifecycle()
     val isLyricsLoading by audioViewModel.isLyricsLoading.collectAsStateWithLifecycle()
 
+    // Mise à jour 048 — présentation du lecteur (pochette, vinyle, minimal).
+    val playerPresentation by settingsViewModel.playerPresentation.collectAsStateWithLifecycle()
+
     val isGroqTranscribing by audioViewModel.isGroqTranscribing.collectAsStateWithLifecycle()
     val groqProgressMessage by audioViewModel.groqProgressMessage.collectAsStateWithLifecycle()
     val groqErrorMessage by audioViewModel.groqErrorMessage.collectAsStateWithLifecycle()
@@ -344,6 +360,83 @@ fun HomeScreen(
     // Le mini-player et le popup doivent refléter exclusivement le dernier morceau connu du lecteur.
     // Ne jamais retomber sur le premier morceau indexé pendant la restauration au démarrage.
     val activeTrack = currentTrack
+
+    // Mise à jour 046 — vidéo associée au morceau (même nom de base ou clip du même dossier).
+    var videoPath by remember { mutableStateOf<String?>(null) }
+    var isVideoOpen by remember { mutableStateOf(false) }
+    var videoStartMs by rememberSaveable { mutableLongStateOf(0L) }
+    LaunchedEffect(activeTrack?.id) {
+        videoPath = withContext(Dispatchers.IO) {
+            runCatching {
+                val path = activeTrack?.path
+                val dir = path?.let { File(it).parentFile } ?: return@runCatching null
+                val siblings = dir.list()?.toList().orEmpty()
+                VideoMatcher.findVideoFile(path, siblings)?.let { dir.resolve(it).absolutePath }
+            }.getOrNull()
+        }
+    }
+
+    // Mise à jour 050 — minuterie de sommeil : état hissé pour que le compte à rebours,
+    // le fondu de volume des 10 dernières secondes et la pause continuent écran fermé.
+    val isPlayingNow by rememberUpdatedState(isPlaying)
+    var sleepDeadlineMs by rememberSaveable { mutableLongStateOf(0L) }
+    var sleepMinutes by rememberSaveable { mutableIntStateOf(0) }
+    var sleepEndOfTrack by rememberSaveable { mutableStateOf(false) }
+    var sleepOriginalVolume by rememberSaveable { mutableIntStateOf(-1) }
+    var sleepTick by remember { mutableLongStateOf(0L) }
+    LaunchedEffect(sleepDeadlineMs) {
+        if (sleepDeadlineMs <= 0L) return@LaunchedEffect
+        while (true) {
+            sleepTick = System.currentTimeMillis()
+            if (sleepTick >= sleepDeadlineMs) break
+            delay(500L)
+        }
+    }
+    val sleepRemainingMs: Long =
+        if (sleepDeadlineMs > 0L) (sleepDeadlineMs - sleepTick).coerceAtLeast(0L) else 0L
+
+    // Fondu de volume sur les 10 dernières secondes, puis pause et restauration du volume.
+    LaunchedEffect(sleepDeadlineMs) {
+        if (sleepDeadlineMs <= 0L) return@LaunchedEffect
+        val am = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+        try {
+            while (true) {
+                val remaining = sleepDeadlineMs - System.currentTimeMillis()
+                if (remaining <= 0L) break
+                if (remaining < 10_000L && am != null && sleepOriginalVolume > 0) {
+                    val scaled = (sleepOriginalVolume * (remaining / 10_000f))
+                        .roundToInt().coerceIn(0, sleepOriginalVolume)
+                    runCatching { am.setStreamVolume(AudioManager.STREAM_MUSIC, scaled, 0) }
+                }
+                delay(200L)
+            }
+        } finally {
+            if (isPlayingNow) {
+                audioViewModel.togglePlayPause()
+            }
+            if (am != null && sleepOriginalVolume >= 0) {
+                runCatching { am.setStreamVolume(AudioManager.STREAM_MUSIC, sleepOriginalVolume, 0) }
+            }
+            sleepDeadlineMs = 0L
+            sleepMinutes = 0
+        }
+    }
+
+    // Mode « Fin du morceau » : pause dès que la piste arrive à son terme.
+    LaunchedEffect(sleepEndOfTrack, progressMs, durationMs) {
+        if (!sleepEndOfTrack || !isPlaying || durationMs <= 0L) return@LaunchedEffect
+        if (progressMs >= durationMs - 150L) {
+            audioViewModel.togglePlayPause()
+            sleepEndOfTrack = false
+        }
+    }
+
+    val restoreSleepVolume: () -> Unit = {
+        val am = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+        if (am != null && sleepOriginalVolume >= 0) {
+            runCatching { am.setStreamVolume(AudioManager.STREAM_MUSIC, sleepOriginalVolume, 0) }
+        }
+    }
 
     // Gestion intelligente du retour arrière :
     // 1. Fermer les dialogues / sous-écrans ouverts (Paroles, Recherche Lrclib, Plein écran Now Playing, Détail Playlist)
@@ -593,8 +686,74 @@ fun HomeScreen(
                     }
                 },
                 lyricsData = lyricsData,
-                onOpenLyrics = { isLyricsOpen = true }
+                onOpenLyrics = { isLyricsOpen = true },
+                presentationMode = playerPresentation,
+                hasVideo = videoPath != null,
+                onOpenVideo = {
+                    videoStartMs = progressMs
+                    if (isPlayingNow) {
+                        audioViewModel.togglePlayPause()
+                    }
+                    isVideoOpen = true
+                },
+                onOpenRadio = {
+                    isNowPlayingOpen = false
+                    currentSectionName = NavigationSection.RADIO.name
+                },
+                onOpenAlbum = { album ->
+                    isNowPlayingOpen = false
+                    openDetailKey = DetailTarget.albumKey(album)
+                },
+                onOpenArtist = { artist ->
+                    isNowPlayingOpen = false
+                    openDetailKey = DetailTarget.artistKey(artist)
+                },
+                onSeekBy = { deltaMs ->
+                    audioViewModel.seekTo((progressMs + deltaMs).coerceAtLeast(0L))
+                },
+                eqEnabled = eqEnabled,
+                eqPreset = eqPreset,
+                eqLevels = eqLevels,
+                onEqEnabledChange = { audioViewModel.setEqualizerEnabled(it) },
+                onEqPresetChange = { audioViewModel.setEqualizerPreset(it) },
+                onEqBandChange = { index, value -> audioViewModel.setEqualizerBand(index, value) },
+                onEqReset = { audioViewModel.resetEqualizer() },
+                sleepRemainingMs = sleepRemainingMs,
+                sleepMinutes = sleepMinutes,
+                sleepEndOfTrack = sleepEndOfTrack,
+                onSetSleepTimerMinutes = { minutes ->
+                    val am = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+                    sleepOriginalVolume = am?.getStreamVolume(AudioManager.STREAM_MUSIC) ?: -1
+                    sleepDeadlineMs = System.currentTimeMillis() + minutes * 60_000L
+                    sleepMinutes = minutes
+                    sleepEndOfTrack = false
+                },
+                onSetSleepTimerEndOfTrack = {
+                    sleepEndOfTrack = true
+                    sleepDeadlineMs = 0L
+                    sleepMinutes = 0
+                },
+                onCancelSleepTimer = {
+                    restoreSleepVolume()
+                    sleepDeadlineMs = 0L
+                    sleepMinutes = 0
+                    sleepEndOfTrack = false
+                }
             )
+        }
+
+        // Mise à jour 046 — lecteur vidéo plein écran « Passer à la vidéo ».
+        if (isVideoOpen && videoPath != null) {
+            VideoPlayerScreen(
+                videoUri = Uri.fromFile(File(videoPath!!)),
+                startPositionMs = videoStartMs
+            ) { finalPositionMs, videoWasPlaying ->
+                isVideoOpen = false
+                audioViewModel.seekTo(finalPositionMs)
+                if (videoWasPlaying && !isPlayingNow) {
+                    audioViewModel.togglePlayPause()
+                }
+            }
         }
 
         // Modal plein écran Paroles Synchronisées (LRC / ID3 SYLT)
