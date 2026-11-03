@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mise à jour 080 — raccourcis d'application : Lecture aléatoire, Dernière lecture
+     (réutilise l'ouverture du lecteur depuis la notification) et Rechercher. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="shuffle_play"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_shuffle"
+        android:shortcutShortLabel="@string/shortcut_shuffle"
+        android:shortcutLongLabel="@string/shortcut_shuffle_long">
+        <intent
+            android:action="com.example.musicpro.action.SHUFFLE_PLAY"
+            android:targetPackage="${applicationId}"
+            android:targetClass="com.example.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="last_played"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_last_played"
+        android:shortcutShortLabel="@string/shortcut_last_played"
+        android:shortcutLongLabel="@string/shortcut_last_played_long">
+        <intent
+            android:action="com.example.musicpro.ACTION_SHOW_NOW_PLAYING"
+            android:targetPackage="${applicationId}"
+            android:targetClass="com.example.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="search"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_search"
+        android:shortcutShortLabel="@string/shortcut_search"
+        android:shortcutLongLabel="@string/shortcut_search_long">
+        <intent
+            android:action="com.example.musicpro.action.OPEN_SEARCH"
+            android:targetPackage="${applicationId}"
+            android:targetClass="com.example.MainActivity" />
+    </shortcut>
+</shortcuts>

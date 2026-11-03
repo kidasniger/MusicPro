@@ -75,6 +75,9 @@ internal val LocalCoverVisibilityScope = compositionLocalOf<AnimatedVisibilitySc
 
 private const val COVER_SHARED_KEY = "now_playing_cover"
 
+/** Durée de la transition partagée de la pochette (mise à jour 072). */
+internal const val COVER_TRANSITION_MS = 320
+
 /**
  * Conteneur racine de la transition partagée de la pochette (mini-lecteur <-> lecteur plein écran).
  * Remplace un simple Box plein écran.
@@ -93,8 +96,8 @@ fun SharedCoverHost(
 }
 
 /**
- * AnimatedVisibility (fondu) qui expose sa portée à [sharedCover].
- * Durée 0 si l'utilisateur a désactivé les animations.
+ * AnimatedVisibility (fondu) qui expose sa portée à [sharedCover]. Durée 0 si
+ * l'utilisateur ou le système a désactivé les animations.
  */
 @Composable
 fun SharedCoverVisibility(
@@ -124,18 +127,21 @@ fun SharedCoverVisibility(
 
 /**
  * Marque une pochette comme élément partagé. Sans [SharedCoverHost] / [SharedCoverVisibility]
- * parents, ne fait rien. Sans animations système : bascule instantanée.
+ * parents, ne fait rien (repli en fondu de l'écran hôte). Sans animations système :
+ * bascule instantanée. [key] permet de partager plusieurs pochettes distinctes
+ * (mini-lecteur <-> lecteur : « now_playing_cover », liste -> album : « album:<nom »).
  */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun Modifier.sharedCover(): Modifier {
+fun Modifier.sharedCover(key: String = COVER_SHARED_KEY): Modifier {
     val transitionScope = LocalSharedTransitionScope.current ?: return this
     val visibilityScope = LocalCoverVisibilityScope.current ?: return this
     val animationsEnabled = rememberAnimationsEnabled()
     val boundsTransform = remember(animationsEnabled) {
         BoundsTransform { _, _ ->
             if (animationsEnabled) {
-                tween(durationMillis = 350, easing = FastOutSlowInEasing)
+                // Mise à jour 072 — 320 ms, courbe FastOutSlowInEasing.
+                tween(durationMillis = COVER_TRANSITION_MS, easing = FastOutSlowInEasing)
             } else {
                 snap()
             }
@@ -143,7 +149,7 @@ fun Modifier.sharedCover(): Modifier {
     }
     return with(transitionScope) {
         this@sharedCover.sharedElement(
-            rememberSharedContentState(key = COVER_SHARED_KEY),
+            rememberSharedContentState(key = key),
             animatedVisibilityScope = visibilityScope,
             boundsTransform = boundsTransform
         )

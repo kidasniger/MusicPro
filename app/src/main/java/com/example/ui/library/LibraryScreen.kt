@@ -20,6 +20,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,6 +40,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -100,6 +102,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.R
+import com.example.ui.components.EqualizerIndicator
+import com.example.ui.components.pressFeedback
+import com.example.ui.components.glass.SharedCoverVisibility
+import com.example.ui.components.glass.sharedCover
+import com.example.ui.home.NavigationSection
+import com.example.ui.navigation.ScrollToTopEffect
 import com.example.data.local.AudioTrackEntity
 import com.example.data.local.PlaylistSummary
 import com.example.data.preferences.LibrarySortMode
@@ -667,6 +675,9 @@ private fun TracksList(
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
+    // Mise à jour 071 — second tap sur l'onglet Bibliothèque : retour en haut animé.
+    ScrollToTopEffect(NavigationSection.LIBRARY.name, listState)
+
     // Mise à jour 056 — index A–Z : première position de chaque lettre.
     val letterIndex = remember(tracks) {
         val map = LinkedHashMap<Char, Int>()
@@ -760,11 +771,16 @@ fun TrackRowItem(
 ) {
     val targetRowHeight = LocalMusicProListRowHeight.current
     val compactRow = targetRowHeight < 60.dp
+    // Mise à jour 075 — échelle 0,97 au toucher, voile 8 % au lieu du ripple.
+    val interactionSource = remember { MutableInteractionSource() }
     Row(
         modifier = modifier
+            .pressFeedback(interactionSource)
             .fillMaxWidth()
             .heightIn(min = targetRowHeight)
             .combinedClickable(
+                interactionSource = interactionSource,
+                indication = null,
                 onClick = onClick,
                 // Mise à jour 060 — appui long = mode sélection.
                 onLongClick = onLongPress
@@ -822,11 +838,11 @@ fun TrackRowItem(
                 contentAlignment = Alignment.CenterStart
             ) {
                 if (isCurrent && isPlaying) {
-                    Icon(
-                        imageVector = Icons.Default.GraphicEq,
-                        contentDescription = "Lecture en cours",
-                        tint = MusicProCyanNeon,
-                        modifier = Modifier.size(18.dp)
+                    // Mise à jour 076 — égaliseur 3 barres animé, figé à la pause.
+                    EqualizerIndicator(
+                        color = MusicProCyanNeon,
+                        isPlaying = isPlaying,
+                        modifier = Modifier.size(width = 16.dp, height = 18.dp)
                     )
                 } else {
                     Text(
@@ -988,7 +1004,10 @@ private fun AlbumsGrid(
 ) {
     // Mise à jour 052 — grille adaptative : 150 dp par cellule ; la densité de
     // colonnes (2 à 6+) s'ajuste automatiquement à la tablette et au paysage.
+    val gridState = rememberLazyGridState()
+    ScrollToTopEffect(NavigationSection.LIBRARY.name, gridState)
     LazyVerticalGrid(
+        state = gridState,
         columns = GridCells.Adaptive(150.dp),
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 120.dp),
@@ -1018,33 +1037,37 @@ private fun AlbumGridItem(
             .testTag("album_item_${album.name}")
     ) {
         // Mise à jour 052 — pochette carrée (ratio 1:1), coins 12 dp.
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f)
-                .clip(RoundedCornerShape(12.dp))
-                .background(
-                    Brush.linearGradient(
-                        listOf(MusicProVioletPrimary.copy(alpha = 0.5f), MusicProCyanVibrant.copy(alpha = 0.3f))
+        // Mise à jour 072 — élément partagé avec l'en-tête de l'écran Album.
+        SharedCoverVisibility(visible = true) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .sharedCover("album:${album.name}")
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(
+                        Brush.linearGradient(
+                            listOf(MusicProVioletPrimary.copy(alpha = 0.5f), MusicProCyanVibrant.copy(alpha = 0.3f))
+                        )
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                if (!album.coverUri.isNullOrBlank() && !imageLoadError) {
+                    AsyncImage(
+                        model = album.coverUri,
+                        contentDescription = album.name,
+                        contentScale = ContentScale.Crop,
+                        onError = { imageLoadError = true },
+                        modifier = Modifier.fillMaxSize()
                     )
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            if (!album.coverUri.isNullOrBlank() && !imageLoadError) {
-                AsyncImage(
-                    model = album.coverUri,
-                    contentDescription = album.name,
-                    contentScale = ContentScale.Crop,
-                    onError = { imageLoadError = true },
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.Default.Album,
-                    contentDescription = null,
-                    tint = MusicProCyanNeon,
-                    modifier = Modifier.size(48.dp)
-                )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Album,
+                        contentDescription = null,
+                        tint = MusicProCyanNeon,
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
             }
         }
 
@@ -1087,7 +1110,8 @@ private fun ArtistsList(
     onArtistClick: (ArtistSummary) -> Unit
 ) {
     // Mise à jour 056 — index A–Z sur les longues listes d'artistes.
-    val listState = rememberLazyListState()
+    val artistsListState = rememberLazyListState()
+    ScrollToTopEffect(NavigationSection.LIBRARY.name, artistsListState)
     val scope = rememberCoroutineScope()
     val letterIndex = remember(artists) {
         val map = LinkedHashMap<Char, Int>()
@@ -1104,7 +1128,7 @@ private fun ArtistsList(
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
-            state = listState,
+            state = artistsListState,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 bottom = 120.dp,
@@ -1177,7 +1201,7 @@ private fun ArtistsList(
                 onLetterSelected = { letter ->
                     currentLetter = letter
                     letterIndex[letter]?.let { target ->
-                        scope.launch { listState.scrollToItem(target) }
+                        scope.launch { artistsListState.scrollToItem(target) }
                     }
                 },
                 onDragEnded = { currentLetter = null },
@@ -1276,7 +1300,10 @@ private fun AlbumDetailView(
     onTrackClick: (AudioTrackEntity) -> Unit,
     onToggleFavorite: (Long) -> Unit
 ) {
+    val extraListState = rememberLazyListState()
+    ScrollToTopEffect(NavigationSection.LIBRARY.name, extraListState)
     LazyColumn(
+        state = extraListState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 120.dp)
     ) {
@@ -1423,7 +1450,10 @@ private fun ArtistDetailView(
     onTrackClick: (AudioTrackEntity) -> Unit,
     onToggleFavorite: (Long) -> Unit
 ) {
+    val extraListState = rememberLazyListState()
+    ScrollToTopEffect(NavigationSection.LIBRARY.name, extraListState)
     LazyColumn(
+        state = extraListState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 120.dp)
     ) {
@@ -1547,7 +1577,10 @@ private fun FolderDetailView(
     onTrackClick: (AudioTrackEntity) -> Unit,
     onToggleFavorite: (Long) -> Unit
 ) {
+    val extraListState = rememberLazyListState()
+    ScrollToTopEffect(NavigationSection.LIBRARY.name, extraListState)
     LazyColumn(
+        state = extraListState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 120.dp)
     ) {

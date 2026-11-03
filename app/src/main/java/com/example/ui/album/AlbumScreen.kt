@@ -11,6 +11,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -66,6 +67,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -86,6 +88,8 @@ import coil.compose.AsyncImage
 import com.example.R
 import com.example.data.local.AudioTrackEntity
 import com.example.ui.components.EqualizerIndicator
+import com.example.ui.components.pressFeedback
+import com.example.ui.components.glass.sharedCover
 import com.example.ui.detail.DetailRouter
 import com.example.ui.theme.MusicProTerracotta
 import com.example.ui.theme.MusicProTokens
@@ -182,6 +186,20 @@ fun AlbumScreen(
     }
     val barProgress = ((scrolledDp - 120f) / 80f).coerceIn(0f, 1f)
 
+    // Mise à jour 079 — parallaxe : la pochette se déplace à 50 % de la vitesse de
+    // défilement et s'estompe progressivement. L'effet est limité à l'en-tête
+    // (item 0) — jamais aux listes — pour garder 60 images/s sur les appareils modestes.
+    val headerScrollPx by remember {
+        derivedStateOf {
+            if (listState.firstVisibleItemIndex == 0) {
+                listState.firstVisibleItemScrollOffset.toFloat()
+            } else {
+                Float.MAX_VALUE
+            }
+        }
+    }
+    val coverSizePx = with(density) { coverSize.toPx() }
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -218,6 +236,14 @@ fun AlbumScreen(
                         val coverShape = RoundedCornerShape(MusicProTokens.Radius.Lg)
                         Box(
                             modifier = Modifier
+                                // Mise à jour 072 — élément partagé avec la pochette de la
+                                // ligne de liste (repli : fondu de l'écran hôte).
+                                .sharedCover("album:${albumName}")
+                                .graphicsLayer {
+                                    val scroll = headerScrollPx.coerceAtMost(coverSizePx * 2f)
+                                    translationY = scroll * 0.5f
+                                    alpha = 1f - (scroll / (coverSizePx * 0.9f)).coerceIn(0f, 1f)
+                                }
                                 .size(coverSize)
                                 .shadow(MusicProTokens.Elevation.Raised, coverShape)
                                 .clip(coverShape)
@@ -510,21 +536,31 @@ private fun AlbumTrackRow(
     val reduceMotion = remember {
         Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
     }
+    // Mise à jour 075 — voile de 8 % au lieu du ripple Material, échelle 0,97 au toucher.
+    val interactionSource = remember { MutableInteractionSource() }
     val titleColor = if (isCurrent) scheme.primary else scheme.onBackground
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = AlbumTrackRowHeight)
-            .clickable(role = Role.Button, onClick = onClick)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                role = Role.Button,
+                onClick = onClick
+            )
+            .pressFeedback(interactionSource)
             .padding(horizontal = MusicProTokens.Spacing.Lg, vertical = MusicProTokens.Spacing.Xs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(MusicProTokens.Spacing.Md)
     ) {
         Box(modifier = Modifier.width(MusicProTokens.Spacing.Xl), contentAlignment = Alignment.Center) {
             if (isPlaying) {
-                // Mise à jour 065 — égaliseur animé pour le morceau en cours de lecture.
+                // Mises à jour 065/076 — égaliseur animé : 3 barres 30–100 %, décalées de
+                // 120 ms, figées à la pause et sans animation si « Réduire les animations ».
                 EqualizerIndicator(
                     color = scheme.primary,
+                    isPlaying = isPlaying,
                     animate = !reduceMotion
                 )
             } else {

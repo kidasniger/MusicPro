@@ -161,6 +161,10 @@ fun ChatScreen() {
                 }
             }
         } else {
+            com.example.ui.navigation.ScrollToTopEffect(
+                com.example.ui.home.NavigationSection.CHAT.name,
+                listState
+            )
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)

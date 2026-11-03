@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -53,6 +54,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -123,6 +125,19 @@ fun ArtistScreen(
     }
     val hasTracks = artistTracks.isNotEmpty()
 
+    // Mise à jour 079 — parallaxe : la pochette du héros se déplace à 50 % de la vitesse
+    // de défilement et s'estompe. Limitée à l'en-tête, jamais aux listes (60 images/s).
+    val heroListState = rememberLazyListState()
+    val heroScrollPx by remember {
+        androidx.compose.runtime.derivedStateOf {
+            if (heroListState.firstVisibleItemIndex == 0) {
+                heroListState.firstVisibleItemScrollOffset.toFloat()
+            } else {
+                Float.MAX_VALUE
+            }
+        }
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -130,12 +145,13 @@ fun ArtistScreen(
             .testTag("artist_screen")
     ) {
         LazyColumn(
+            state = heroListState,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = MusicProTokens.Spacing.Xxl),
             verticalArrangement = Arrangement.spacedBy(MusicProTokens.Spacing.Md)
         ) {
             item {
-                ArtistHero(name = artistName, coverUri = coverUri)
+                ArtistHero(name = artistName, coverUri = coverUri, scrollPx = heroScrollPx)
             }
 
             item {
@@ -323,10 +339,13 @@ fun ArtistScreen(
 }
 
 @Composable
-private fun ArtistHero(name: String, coverUri: String?) {
+private fun ArtistHero(name: String, coverUri: String?, scrollPx: Float = 0f) {
     val scheme = MaterialTheme.colorScheme
     val grayscale = remember { ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) }) }
     val fontSize = artistNameFontSizeSp(name)
+    val heroHeightPx = with(androidx.compose.ui.platform.LocalDensity.current) {
+        MusicProTokens.Size.HeroHeight.toPx()
+    }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -339,7 +358,13 @@ private fun ArtistHero(name: String, coverUri: String?) {
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 colorFilter = grayscale,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        val scroll = scrollPx.coerceAtMost(heroHeightPx * 2f)
+                        translationY = scroll * 0.5f
+                        alpha = 1f - (scroll / (heroHeightPx * 0.9f)).coerceIn(0f, 1f)
+                    }
             )
         } else {
             Icon(

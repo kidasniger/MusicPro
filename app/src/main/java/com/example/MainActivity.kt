@@ -3,6 +3,7 @@ package com.example
 import android.os.Bundle
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -45,20 +46,30 @@ import com.example.ui.theme.rememberArtworkAccent
 import com.example.ui.theme.resolveIsDark
 import com.example.updater.DownloadState
 import com.example.updater.UpdateCheckState
+import com.example.widget.MusicWidgetUpdater
 import com.example.ui.theme.MyApplicationTheme
+import com.example.util.ShortcutActions
 import androidx.compose.material3.MaterialTheme
 
 class MainActivity : AppCompatActivity() {
 
   private val mediaUiRequestState = mutableStateOf<Pair<String, Long>?>(null)
 
+  // Mise à jour 080 — raccourcis d'application (Lecture aléatoire, Rechercher).
+  // « Dernière lecture » est couvert par ACTION_SHOW_NOW_PLAYING (mediaUiRequestState).
+  private val shortcutRequestState = mutableStateOf<ShortcutActions.ShortcutRequest?>(null)
+
   private val permissionViewModel: PermissionViewModel by viewModels()
   private val onboardingViewModel: OnboardingViewModel by viewModels()
   private val settingsViewModel: SettingsViewModel by viewModels()
 
   override fun onCreate(savedInstanceState: Bundle?) {
+    // Mise à jour 077 — API SplashScreen d'Android 12 : un seul écran de démarrage,
+    // aucun double écran blanc, couleurs du thème appliquées dès la fenêtre froide.
+    installSplashScreen()
     super.onCreate(savedInstanceState)
     mediaUiRequestState.value = readMediaUiRequest(intent)
+    shortcutRequestState.value = readShortcutRequest(intent)
     enableEdgeToEdge()
 
     setContent {
@@ -70,6 +81,7 @@ class MainActivity : AppCompatActivity() {
       val reduceAnimations by settingsViewModel.reduceAnimations.collectAsStateWithLifecycle()
       val eveningDark by settingsViewModel.eveningDarkActive.collectAsStateWithLifecycle()
       val mediaUiRequest by mediaUiRequestState
+      val shortcutRequest by shortcutRequestState
       val isDynamicColor by settingsViewModel.isDynamicColor.collectAsStateWithLifecycle()
       val glassMaterial by settingsViewModel.glassMaterial.collectAsStateWithLifecycle()
       val glassColorStrength by settingsViewModel.glassColorStrength.collectAsStateWithLifecycle()
@@ -99,6 +111,12 @@ class MainActivity : AppCompatActivity() {
           ) { isDark }
         )
         onDispose { }
+      }
+
+      // Mise à jour 080 — le widget suit le style choisi (clair / sombre / verre) :
+      // on le rafraîchit à chaque changement d'apparence.
+      LaunchedEffect(appearance, appStyle) {
+        MusicWidgetUpdater.refreshStyle(this@MainActivity)
       }
 
       // Accent « Selon la pochette » : couleur dominante du morceau en cours (null sinon).
@@ -169,6 +187,9 @@ class MainActivity : AppCompatActivity() {
               initialOpenNowPlaying = openNowPlaying,
               initialOpenQueue = mediaUiRequest?.first == MusicPlaybackService.ACTION_SHOW_QUEUE,
               initialOpenLyrics = mediaUiRequest?.first == MusicPlaybackService.ACTION_SHOW_LYRICS,
+              initialShufflePlay = shortcutRequest == ShortcutActions.ShortcutRequest.SHUFFLE_PLAY,
+              initialOpenSearch = shortcutRequest == ShortcutActions.ShortcutRequest.OPEN_SEARCH,
+              isWarmStart = savedInstanceState != null,
               mediaUiRequestId = mediaUiRequest?.second ?: 0L,
               onCompleteOnboarding = {
                 onboardingViewModel.completeOnboarding()
@@ -211,6 +232,14 @@ class MainActivity : AppCompatActivity() {
     super.onNewIntent(intent)
     setIntent(intent)
     mediaUiRequestState.value = readMediaUiRequest(intent)
+    shortcutRequestState.value = readShortcutRequest(intent)
+  }
+
+  private fun readShortcutRequest(intent: Intent?): ShortcutActions.ShortcutRequest? {
+    val request = ShortcutActions.parse(intent?.action)
+    // OPEN_LAST_PLAYED correspond à ACTION_SHOW_NOW_PLAYING, déjà traité par
+    // [readMediaUiRequest] ; on évite un double déclenchement.
+    return request?.takeIf { it != ShortcutActions.ShortcutRequest.OPEN_LAST_PLAYED }
   }
 
   private fun readMediaUiRequest(intent: Intent?): Pair<String, Long>? {

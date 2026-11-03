@@ -1,8 +1,8 @@
 package com.example.widget
 
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -39,11 +39,19 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.example.MainActivity
 import com.example.R
-import com.example.playback.MusicPlaybackService
+import android.content.res.Configuration
+import com.example.data.preferences.AppearanceMode
+import com.example.data.preferences.AppStyle
+import com.example.data.preferences.UserPreferencesRepository
+import kotlinx.coroutines.flow.first
 
 /**
  * Widget d'écran d'accueil Glance MusicPro.
  * Prend en charge les formats Petit (compact) et Moyen (étendu).
+ *
+ * Mise à jour 080 — le widget suit le style choisi dans l'application (clair,
+ * sombre, auto ou verre), avec des coins de 24 dp et des boutons
+ * Précédent/Lecture/Suivant de 48 dp.
  */
 class MusicGlanceWidget : GlanceAppWidget() {
 
@@ -51,12 +59,11 @@ class MusicGlanceWidget : GlanceAppWidget() {
         val SMALL_SIZE = DpSize(110.dp, 90.dp)
         val MEDIUM_SIZE = DpSize(240.dp, 90.dp)
 
-        val BackgroundDark = Color(0xFF130924)
-        val SurfaceCard = Color(0xFF1E1338)
-        val CyanNeon = Color(0xFF00D4FF)
-        val VioletPrimary = Color(0xFF8A2BE2)
-        val TextPrimary = Color(0xFFFFFFFF)
-        val TextSecondary = Color(0xFFB0A8C4)
+        /** Rayon des coins du widget (mise à jour 080). */
+        val CORNER_DP = 24.dp
+
+        /** Taille des boutons Précédent / Lecture / Suivant (mise à jour 080). */
+        val BUTTON_DP = 48.dp
     }
 
     override val sizeMode: SizeMode = SizeMode.Responsive(
@@ -64,33 +71,43 @@ class MusicGlanceWidget : GlanceAppWidget() {
     )
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        // Mise à jour 080 — le style du widget suit l'apparence et l'effet verre
+        // choisis dans l'application (lecture directe des préférences DataStore).
+        val isNight = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        val palette = runCatching {
+            val repository = UserPreferencesRepository(context.applicationContext)
+            val appearance = repository.appearanceMode.first()
+            val appStyle = repository.appStyle.first()
+            WidgetPalette.forAppearance(appearance, appStyle == AppStyle.GLASS, isNight)
+        }.getOrDefault(if (isNight) WidgetPalette.DARK else WidgetPalette.LIGHT)
+
         provideContent {
             val size = LocalSize.current
             val state = MusicWidgetState.load(context)
             val artBitmap = MusicWidgetState.loadBitmap(context)
-
             val componentName = android.content.ComponentName(context, MainActivity::class.java)
 
             Box(
                 modifier = GlanceModifier
                     .fillMaxSize()
-                    .background(ColorProvider(BackgroundDark))
-                    .cornerRadius(18.dp)
+                    .background(palette.backgroundProvider())
+                    .cornerRadius(CORNER_DP)
                     .padding(8.dp)
                     .clickable(actionStartActivity(componentName)),
                 contentAlignment = Alignment.Center
             ) {
                 if (size.width < 220.dp) {
                     SmallWidgetContent(
-                        context = context,
                         state = state,
-                        artBitmap = artBitmap
+                        artBitmap = artBitmap,
+                        palette = palette
                     )
                 } else {
                     MediumWidgetContent(
-                        context = context,
                         state = state,
-                        artBitmap = artBitmap
+                        artBitmap = artBitmap,
+                        palette = palette
                     )
                 }
             }
@@ -98,14 +115,22 @@ class MusicGlanceWidget : GlanceAppWidget() {
     }
 }
 
+/** Fournisseurs de couleur Glance pour la palette résolue. */
+private fun WidgetPalette.Colors.backgroundProvider(): ColorProvider = ColorProvider(background)
+
+private fun WidgetPalette.Colors.cardProvider(): ColorProvider = ColorProvider(card)
+
+private fun WidgetPalette.Colors.textProvider(): ColorProvider = ColorProvider(text)
+
 /**
- * Disposition compacte (Petit widget : ~2x1 ou 2x2)
+ * Disposition compacte (Petit widget : ~2x1 ou 2x2). Place disponible réduite :
+ * Lecture + Suivant (48 dp).
  */
-@androidx.compose.runtime.Composable
+@Composable
 fun SmallWidgetContent(
-    context: Context,
     state: MusicWidgetState,
-    artBitmap: Bitmap?
+    artBitmap: Bitmap?,
+    palette: WidgetPalette.Colors
 ) {
     Column(
         modifier = GlanceModifier.fillMaxSize().padding(horizontal = 4.dp, vertical = 4.dp),
@@ -117,7 +142,6 @@ fun SmallWidgetContent(
             modifier = GlanceModifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Pochette
             WidgetAlbumArt(
                 artBitmap = artBitmap,
                 size = 36.dp
@@ -129,7 +153,7 @@ fun SmallWidgetContent(
                 Text(
                     text = state.title,
                     style = TextStyle(
-                        color = ColorProvider(MusicGlanceWidget.TextPrimary),
+                        color = palette.textProvider(),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     ),
@@ -138,7 +162,7 @@ fun SmallWidgetContent(
                 Text(
                     text = state.artist,
                     style = TextStyle(
-                        color = ColorProvider(MusicGlanceWidget.CyanNeon),
+                        color = ColorProvider(palette.accent),
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Normal
                     ),
@@ -149,59 +173,39 @@ fun SmallWidgetContent(
 
         Spacer(modifier = GlanceModifier.height(8.dp))
 
-        // Contrôles Play/Pause et Suivant
+        // Contrôles 48 dp : Lecture / Suivant (Précédent sur le format moyen).
         Row(
             modifier = GlanceModifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Bouton Play/Pause
-            Box(
-                modifier = GlanceModifier
-                    .size(34.dp)
-                    .background(ColorProvider(if (state.isPlaying) MusicGlanceWidget.CyanNeon else MusicGlanceWidget.VioletPrimary))
-                    .cornerRadius(17.dp)
-                    .clickable(actionSendBroadcast(MusicWidgetReceiver.createPlayPauseIntent(context))),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    provider = ImageProvider(
-                        if (state.isPlaying) R.drawable.ic_widget_pause else R.drawable.ic_widget_play
-                    ),
-                    contentDescription = if (state.isPlaying) "Pause" else "Lecture",
-                    modifier = GlanceModifier.size(18.dp)
-                )
-            }
+            WidgetControlButton(
+                background = palette.accentProvider(),
+                iconRes = if (state.isPlaying) R.drawable.ic_widget_pause else R.drawable.ic_widget_play,
+                contentDescription = if (state.isPlaying) "Pause" else "Lecture",
+                action = actionSendBroadcast(MusicWidgetReceiver.createPlayPauseIntent(LocalContext.current))
+            )
 
             Spacer(modifier = GlanceModifier.width(14.dp))
 
-            // Bouton Suivant
-            Box(
-                modifier = GlanceModifier
-                    .size(32.dp)
-                    .background(ColorProvider(MusicGlanceWidget.SurfaceCard))
-                    .cornerRadius(16.dp)
-                    .clickable(actionSendBroadcast(MusicWidgetReceiver.createNextIntent(context))),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    provider = ImageProvider(R.drawable.ic_widget_next),
-                    contentDescription = "Suivant",
-                    modifier = GlanceModifier.size(16.dp)
-                )
-            }
+            WidgetControlButton(
+                background = palette.cardProvider(),
+                iconRes = R.drawable.ic_widget_next,
+                contentDescription = "Suivant",
+                action = actionSendBroadcast(MusicWidgetReceiver.createNextIntent(LocalContext.current))
+            )
         }
     }
 }
 
 /**
- * Disposition étendue (Moyen widget : ~4x1 ou 4x2)
+ * Disposition étendue (Moyen widget : ~4x1 ou 4x2) — Précédent / Lecture / Suivant 48 dp.
  */
-@androidx.compose.runtime.Composable
+@Composable
 fun MediumWidgetContent(
-    context: Context,
     state: MusicWidgetState,
-    artBitmap: Bitmap?
+    artBitmap: Bitmap?,
+    palette: WidgetPalette.Colors
 ) {
     Row(
         modifier = GlanceModifier
@@ -225,7 +229,7 @@ fun MediumWidgetContent(
             Text(
                 text = state.title,
                 style = TextStyle(
-                    color = ColorProvider(MusicGlanceWidget.TextPrimary),
+                    color = palette.textProvider(),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 ),
@@ -235,7 +239,7 @@ fun MediumWidgetContent(
             Text(
                 text = state.artist,
                 style = TextStyle(
-                    color = ColorProvider(MusicGlanceWidget.CyanNeon),
+                    color = ColorProvider(palette.accent),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium
                 ),
@@ -246,7 +250,7 @@ fun MediumWidgetContent(
                 Text(
                     text = state.album,
                     style = TextStyle(
-                        color = ColorProvider(MusicGlanceWidget.TextSecondary),
+                        color = ColorProvider(palette.accentAlt),
                         fontSize = 10.sp
                     ),
                     maxLines = 1
@@ -256,76 +260,67 @@ fun MediumWidgetContent(
 
         Spacer(modifier = GlanceModifier.width(8.dp))
 
-        // Contrôles de lecture droits : Précédent, Play/Pause, Suivant
+        // Contrôles de lecture droits : Précédent, Play/Pause, Suivant — 48 dp (080).
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalAlignment = Alignment.End
         ) {
-            // Précédent
-            Box(
-                modifier = GlanceModifier
-                    .size(34.dp)
-                    .background(ColorProvider(MusicGlanceWidget.SurfaceCard))
-                    .cornerRadius(17.dp)
-                    .clickable(actionSendBroadcast(MusicWidgetReceiver.createPrevIntent(context))),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    provider = ImageProvider(R.drawable.ic_widget_prev),
-                    contentDescription = "Précédent",
-                    modifier = GlanceModifier.size(18.dp)
-                )
-            }
+            WidgetControlButton(
+                background = palette.cardProvider(),
+                iconRes = R.drawable.ic_widget_prev,
+                contentDescription = "Précédent",
+                action = actionSendBroadcast(MusicWidgetReceiver.createPrevIntent(LocalContext.current))
+            )
 
-            Spacer(modifier = GlanceModifier.width(10.dp))
+            Spacer(modifier = GlanceModifier.width(8.dp))
 
-            // Play / Pause principal
-            Box(
-                modifier = GlanceModifier
-                    .size(42.dp)
-                    .background(
-                        ColorProvider(
-                            if (state.isPlaying) MusicGlanceWidget.CyanNeon else MusicGlanceWidget.VioletPrimary
-                        )
-                    )
-                    .cornerRadius(21.dp)
-                    .clickable(actionSendBroadcast(MusicWidgetReceiver.createPlayPauseIntent(context))),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    provider = ImageProvider(
-                        if (state.isPlaying) R.drawable.ic_widget_pause else R.drawable.ic_widget_play
-                    ),
-                    contentDescription = if (state.isPlaying) "Pause" else "Lecture",
-                    modifier = GlanceModifier.size(22.dp)
-                )
-            }
+            WidgetControlButton(
+                background = palette.accentProvider(),
+                iconRes = if (state.isPlaying) R.drawable.ic_widget_pause else R.drawable.ic_widget_play,
+                contentDescription = if (state.isPlaying) "Pause" else "Lecture",
+                action = actionSendBroadcast(MusicWidgetReceiver.createPlayPauseIntent(LocalContext.current))
+            )
 
-            Spacer(modifier = GlanceModifier.width(10.dp))
+            Spacer(modifier = GlanceModifier.width(8.dp))
 
-            // Suivant
-            Box(
-                modifier = GlanceModifier
-                    .size(34.dp)
-                    .background(ColorProvider(MusicGlanceWidget.SurfaceCard))
-                    .cornerRadius(17.dp)
-                    .clickable(actionSendBroadcast(MusicWidgetReceiver.createNextIntent(context))),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    provider = ImageProvider(R.drawable.ic_widget_next),
-                    contentDescription = "Suivant",
-                    modifier = GlanceModifier.size(18.dp)
-                )
-            }
+            WidgetControlButton(
+                background = palette.cardProvider(),
+                iconRes = R.drawable.ic_widget_next,
+                contentDescription = "Suivant",
+                action = actionSendBroadcast(MusicWidgetReceiver.createNextIntent(LocalContext.current))
+            )
         }
+    }
+}
+
+/** Bouton circulaire 48 dp (coins 24 dp) avec action broadcast (mise à jour 080). */
+@Composable
+private fun WidgetControlButton(
+    background: ColorProvider,
+    iconRes: Int,
+    contentDescription: String,
+    action: androidx.glance.action.Action
+) {
+    Box(
+        modifier = GlanceModifier
+            .size(MusicGlanceWidget.BUTTON_DP)
+            .background(background)
+            .cornerRadius(MusicGlanceWidget.BUTTON_DP / 2)
+            .clickable(action),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            provider = ImageProvider(iconRes),
+            contentDescription = contentDescription,
+            modifier = GlanceModifier.size(22.dp)
+        )
     }
 }
 
 /**
  * Affichage de la pochette ou icône par défaut
  */
-@androidx.compose.runtime.Composable
+@Composable
 private fun WidgetAlbumArt(
     artBitmap: Bitmap?,
     size: androidx.compose.ui.unit.Dp
@@ -334,7 +329,7 @@ private fun WidgetAlbumArt(
         modifier = GlanceModifier
             .size(size)
             .cornerRadius(10.dp)
-            .background(ColorProvider(MusicGlanceWidget.SurfaceCard)),
+            .background(ColorProvider(WidgetPalette.DARK.card)),
         contentAlignment = Alignment.Center
     ) {
         if (artBitmap != null) {
@@ -352,3 +347,5 @@ private fun WidgetAlbumArt(
         }
     }
 }
+
+private fun WidgetPalette.Colors.accentProvider(): ColorProvider = ColorProvider(accent)

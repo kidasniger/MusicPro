@@ -76,7 +76,13 @@ fun RadioScreen(
         MixEngine.generate(tracks, favorites, dayBucket * MixEngine.DayMs)
     }
 
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    com.example.ui.navigation.ScrollToTopEffect(
+        com.example.ui.home.NavigationSection.RADIO.name,
+        listState
+    )
     LazyColumn(
+        state = listState,
         modifier = modifier
             .fillMaxSize()
             .testTag("radio_screen"),

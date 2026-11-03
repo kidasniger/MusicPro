@@ -43,6 +43,9 @@ fun MusicProNavGraph(
     initialOpenNowPlaying: Boolean = false,
     initialOpenQueue: Boolean = false,
     initialOpenLyrics: Boolean = false,
+    initialShufflePlay: Boolean = false,
+    initialOpenSearch: Boolean = false,
+    isWarmStart: Boolean = false,
     mediaUiRequestId: Long = 0L,
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController()
@@ -76,14 +79,26 @@ fun MusicProNavGraph(
             )
         }
     ) {
-        // Écran 1: Splash avec logo animé (1,5s)
-        composable(Destinations.SPLASH) {
+        // Écran 1: Splash avec logo animé (mise à jour 077 : 600 ms maximum).
+        // Fondu enchaîné vers l'écran suivant ; entièrement sauté au redémarrage à chaud
+        // (isWarmStart) et raccourci pour les ouvertures depuis une notification.
+        composable(
+            Destinations.SPLASH,
+            enterTransition = { fadeIn(animationSpec = tween(260)) },
+            exitTransition = { fadeOut(animationSpec = tween(260)) },
+            popEnterTransition = { fadeIn(animationSpec = tween(260)) },
+            popExitTransition = { fadeOut(animationSpec = tween(260)) }
+        ) {
             val currentOnboardingCompleted by rememberUpdatedState(isOnboardingCompleted)
             val currentCanProceed by rememberUpdatedState(uiState.canProceedToApp)
 
             SplashScreen(
                 isReadyToNavigate = (isOnboardingCompleted != null),
-                splashDurationMillis = if (initialOpenNowPlaying || initialOpenQueue || initialOpenLyrics) 260L else 650L,
+                splashDurationMillis = when {
+                    isWarmStart -> 0L
+                    initialOpenNowPlaying || initialOpenQueue || initialOpenLyrics -> 260L
+                    else -> 600L
+                },
                 onSplashFinished = {
                     val onboardingDone = currentOnboardingCompleted == true
                     if (!onboardingDone) {
@@ -153,6 +168,8 @@ fun MusicProNavGraph(
                 initialOpenNowPlaying = initialOpenNowPlaying,
                 initialOpenQueue = initialOpenQueue,
                 initialOpenLyrics = initialOpenLyrics,
+                initialShufflePlay = initialShufflePlay,
+                initialOpenSearch = initialOpenSearch,
                 mediaUiRequestId = mediaUiRequestId,
                 onOpenSettings = {
                     navController.navigate(Destinations.SETTINGS)

@@ -74,7 +74,13 @@ fun StatsScreen(statsViewModel: StatsViewModel = viewModel()) {
     val accent = MaterialTheme.colorScheme.primary
     val textColor = MaterialTheme.colorScheme.onBackground
 
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    com.example.ui.navigation.ScrollToTopEffect(
+        com.example.ui.home.NavigationSection.STATS.name,
+        listState
+    )
     LazyColumn(
+        state = listState,
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {

@@ -103,6 +103,8 @@ dependencies {
   implementation(libs.androidx.room.runtime)
   implementation(libs.androidx.glance.appwidget)
   implementation(libs.androidx.glance.material3)
+  // Mise à jour 077 — API SplashScreen (Android 12+, repli pré-31 fourni par la lib).
+  implementation(libs.androidx.core.splashscreen)
   implementation(libs.coil.compose)
   implementation(libs.converter.moshi)
   implementation(libs.firebase.ai)

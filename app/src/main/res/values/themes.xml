@@ -5,4 +5,14 @@
          langues via AppCompatDelegate). Un thème framework provoque un crash au lancement
          (« You need to use a Theme.AppCompat theme »). DayNight suit le mode système. -->
     <style name="Theme.MyApplication" parent="Theme.AppCompat.DayNight.NoActionBar" />
+
+    <!-- Mise à jour 077 — thème de démarrage Android 12 (API SplashScreen) : le logo est
+         affiché par le système dès la fenêtre froide, sans double écran. postSplashScreenTheme
+         restaure le thème applicatif dès que MainActivity est prête. -->
+    <style name="Theme.MyApplication.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenAnimationDuration">400</item>
+        <item name="postSplashScreenTheme">@style/Theme.MyApplication</item>
+    </style>
 </resources>

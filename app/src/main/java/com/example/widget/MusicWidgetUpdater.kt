@@ -68,6 +68,20 @@ object MusicWidgetUpdater {
         }
     }
 
+    /**
+     * Mise à jour 080 — rafraîchit le widget lorsque l'utilisateur change le style
+     * (clair / sombre / verre) : la palette est relue depuis les préférences.
+     */
+    fun refreshStyle(context: Context) {
+        scope.launch {
+            try {
+                MusicGlanceWidget().updateAll(context)
+            } catch (_: Exception) {
+                // Widget pas encore posé sur l'écran d'accueil.
+            }
+        }
+    }
+
     private fun loadAlbumArtBitmap(context: Context, uriString: String): Bitmap? {
         return try {
             val uri = Uri.parse(uriString)

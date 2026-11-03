@@ -5,7 +5,8 @@ import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.widget.Toast
-import androidx.activity.compose.BackHandler
+import androidx.activity.BackEventCompat
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
@@ -134,6 +135,7 @@ import com.example.ui.components.glass.GlassSurface
 import com.example.ui.components.glass.LocalReduceAnimations
 import com.example.ui.components.glass.rememberAnimationsEnabled
 import com.example.ui.components.glass.rememberSystemAnimationsEnabled
+import com.example.ui.components.AnchoredSheet
 import com.example.ui.components.glass.sharedCover
 import com.example.ui.theme.MusicProCyanGlow
 import com.example.ui.theme.MusicProCyanLight
@@ -146,6 +148,7 @@ import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPrimary
 import com.example.ui.theme.darkened
 import com.example.ui.theme.rememberTrackDominantColor
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.DateFormat
@@ -339,9 +342,21 @@ fun NowPlayingScreen(
         }
     }
 
-    // Interception de la touche retour pour fermer l'écran Now Playing
-    BackHandler {
-        onBack()
+    // Mise à jour 073 — retour prédictif Android 14 : la pochette rétrécit pendant le
+    // geste (progress 0→1) et revient à sa taille si l'utilisateur annule le geste.
+    // Sur les versions sans retour prédictif, le flux se termine immédiatement :
+    // l'écran se ferme comme avec un BackHandler classique.
+    var predictiveBackProgress by remember { mutableFloatStateOf(0f) }
+    PredictiveBackHandler {
+        try {
+            it.collect { event -> predictiveBackProgress = event.progress }
+            predictiveBackProgress = 0f
+            onBack()
+        } catch (e: CancellationException) {
+            // Geste annulé : la pochette reprend sa taille d'origine.
+            predictiveBackProgress = 0f
+            throw e
+        }
     }
 
     Surface(
@@ -375,6 +390,12 @@ fun NowPlayingScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(coverHeight)
+                            .graphicsLayer {
+                                val p = predictiveBackProgress.coerceIn(0f, 1f)
+                                scaleX = 1f - 0.08f * p
+                                scaleY = 1f - 0.08f * p
+                                alpha = 1f - 0.25f * p
+                            }
                     ) {
                         ImmersiveCover(
                             track = track,
@@ -602,31 +623,35 @@ fun NowPlayingScreen(
         }
     }
 
-    // 050 — Feuille de la minuterie de sommeil.
+    // 050/074 — Feuille de la minuterie de sommeil : deux ancrages (mi-hauteur et
+    // plein écran), poignée 36×4 dp, fermeture par glissement, voile à 40 %.
+    // Le contenu ne défile que lorsque la feuille est pleine.
     if (showSleepSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showSleepSheet = false },
-            containerColor = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-        ) {
-            SleepTimerSheetContent(
-                active = sleepRemainingMs > 0L,
-                endOfTrack = sleepEndOfTrack,
-                remainingMs = sleepRemainingMs,
-                selectedMinutes = sleepMinutes,
-                onSetMinutes = { minutes ->
-                    onSetSleepTimerMinutes(minutes)
-                    showSleepSheet = false
-                },
-                onSetEndOfTrack = {
-                    onSetSleepTimerEndOfTrack()
-                    showSleepSheet = false
-                },
-                onCancel = {
-                    onCancelSleepTimer()
-                    showSleepSheet = false
-                }
-            )
+        AnchoredSheet(onDismissed = { showSleepSheet = false }) { isFull ->
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState(), enabled = isFull)
+            ) {
+                SleepTimerSheetContent(
+                    active = sleepRemainingMs > 0L,
+                    endOfTrack = sleepEndOfTrack,
+                    remainingMs = sleepRemainingMs,
+                    selectedMinutes = sleepMinutes,
+                    onSetMinutes = { minutes ->
+                        onSetSleepTimerMinutes(minutes)
+                        showSleepSheet = false
+                    },
+                    onSetEndOfTrack = {
+                        onSetSleepTimerEndOfTrack()
+                        showSleepSheet = false
+                    },
+                    onCancel = {
+                        onCancelSleepTimer()
+                        showSleepSheet = false
+                    }
+                )
+            }
         }
     }
 

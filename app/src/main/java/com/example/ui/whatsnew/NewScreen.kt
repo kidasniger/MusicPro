@@ -101,7 +101,13 @@ fun NewScreen(
     val unplayed = remember(tracks) { unplayedTracks(tracks) }
     val albums = remember(tracks) { recentAlbums(tracks) }
 
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    com.example.ui.navigation.ScrollToTopEffect(
+        com.example.ui.home.NavigationSection.NEW.name,
+        listState
+    )
     LazyColumn(
+        state = listState,
         modifier = modifier
             .fillMaxSize()
             .testTag("new_screen"),

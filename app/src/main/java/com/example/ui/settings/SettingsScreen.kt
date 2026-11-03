@@ -116,7 +116,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.data.preferences.AppThemeMode
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import com.example.data.preferences.AppearanceMode
+import com.example.ui.components.ThemeRevealHost
+import com.example.ui.components.ThemeRevealState
+import com.example.ui.components.beginReveal
+import com.example.ui.components.rememberThemeRevealState
 import com.example.data.preferences.AppStyle
 import com.example.data.preferences.TextSizePreference
 import com.example.data.preferences.ListDensityPreference
@@ -168,6 +175,9 @@ fun SettingsScreen(
     // Son / égaliseur (mise à jour 037) : le ViewModel audio n'est créé qu'à l'ouverture de
     // la feuille, pour ne pas instancier MediaController depuis les tests Robolectric.
     var showEqualizerSheet by remember { mutableStateOf(false) }
+
+    // Mise à jour 078 — révélation circulaire du nouveau thème depuis le bouton touché.
+    val themeReveal = rememberThemeRevealState()
 
     // États sauvegarde des réglages (mise à jour 038)
     var pendingImportBackup by remember { mutableStateOf<SettingsBackup?>(null) }
@@ -252,8 +262,9 @@ fun SettingsScreen(
         }
     }
 
+    ThemeRevealHost(state = themeReveal, modifier = modifier.fillMaxSize()) {
     Scaffold(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
@@ -274,6 +285,7 @@ fun SettingsScreen(
             QuickAppearanceCard(
                 appearance = appearance,
                 style = appStyle,
+                reveal = themeReveal,
                 onAppearanceSelected = {
                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     settingsViewModel.setAppearanceMode(it)
@@ -744,6 +756,7 @@ fun SettingsScreen(
             onClose = { showEqualizerSheet = false }
         )
     }
+    }
 }
 
 
@@ -753,6 +766,7 @@ fun SettingsScreen(
 private fun QuickAppearanceCard(
     appearance: AppearanceMode,
     style: AppStyle,
+    reveal: ThemeRevealState,
     onAppearanceSelected: (AppearanceMode) -> Unit,
     onStyleSelected: (AppStyle) -> Unit
 ) {
@@ -773,13 +787,18 @@ private fun QuickAppearanceCard(
                     background = Color(0xFFF4F5F8), foreground = Color(0xFF252936),
                     accent = Color(0xFF6478D3), modifier = Modifier.weight(1f),
                     tag = "quick_theme_light"
-                ) { onAppearanceSelected(AppearanceMode.LIGHT) }
+                ) { origin ->
+                    // Mise à jour 078 — révélation circulaire depuis le bouton touché.
+                    reveal.beginReveal(origin) { onAppearanceSelected(AppearanceMode.LIGHT) }
+                }
                 QuickAppearanceOption(
                     label = stringResource(R.string.settings_quick_dark), selected = appearance == AppearanceMode.DARK,
                     background = Color(0xFF171923), foreground = Color(0xFFF1F2F8),
                     accent = Color(0xFF9B8CFF), modifier = Modifier.weight(1f),
                     tag = "quick_theme_dark"
-                ) { onAppearanceSelected(AppearanceMode.DARK) }
+                ) { origin ->
+                    reveal.beginReveal(origin) { onAppearanceSelected(AppearanceMode.DARK) }
+                }
                 QuickAppearanceOption(
                     label = stringResource(R.string.settings_quick_auto), selected = appearance == AppearanceMode.AUTO,
                     background = MaterialTheme.colorScheme.surfaceVariant,
@@ -787,7 +806,9 @@ private fun QuickAppearanceCard(
                     accent = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f), tag = "quick_theme_auto",
                     splitPreview = true
-                ) { onAppearanceSelected(AppearanceMode.AUTO) }
+                ) { origin ->
+                    reveal.beginReveal(origin) { onAppearanceSelected(AppearanceMode.AUTO) }
+                }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 QuickAppearanceOption(
@@ -823,10 +844,15 @@ private fun QuickAppearanceOption(
     modifier: Modifier = Modifier,
     tag: String,
     splitPreview: Boolean = false,
-    onClick: () -> Unit
+    onClick: (Offset) -> Unit
 ) {
+    var optionCenter by remember { mutableStateOf(Offset.Zero) }
     Column(
         modifier = modifier
+            .onGloballyPositioned { coordinates ->
+                optionCenter = coordinates.positionInRoot() +
+                    Offset(coordinates.size.width / 2f, coordinates.size.height / 2f)
+            }
             .clip(RoundedCornerShape(14.dp))
             .background(if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.09f) else Color.Transparent)
             .border(
@@ -834,7 +860,7 @@ private fun QuickAppearanceOption(
                 color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
                 shape = RoundedCornerShape(14.dp)
             )
-            .clickable(onClick = onClick)
+            .clickable { onClick(optionCenter) }
             .padding(7.dp)
             .testTag(tag),
         horizontalAlignment = Alignment.CenterHorizontally,

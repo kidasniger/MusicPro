@@ -77,6 +77,7 @@ import com.example.ui.audio.SearchFilter
 import com.example.ui.audio.SearchUtils
 import com.example.ui.components.EmptyAudioStateView
 import com.example.ui.components.EmptyStateVariant
+import com.example.ui.components.glass.sharedCover
 import com.example.ui.library.TrackRowItem
 import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
@@ -572,7 +573,13 @@ fun SearchScreen(
                     onPrimaryAction = { onQueryChange("") }
                 )
             } else {
+                val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+                com.example.ui.navigation.ScrollToTopEffect(
+                    com.example.ui.home.NavigationSection.SEARCH.name,
+                    listState
+                )
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 120.dp, top = 4.dp)
                 ) {
@@ -628,7 +635,8 @@ fun SearchScreen(
                                 title = album.name,
                                 subtitle = album.artist,
                                 fallbackIcon = Icons.Default.Album,
-                                onClick = { onOpenAlbum(album.name) }
+                                onClick = { onOpenAlbum(album.name) },
+                                sharedCoverKey = "album:${album.name}"
                             )
                         }
                     }
@@ -771,12 +779,45 @@ private fun BestResultCard(
 
 /** Mise à jour 053 — ligne compacte album / artiste / playlist des résultats. */
 @Composable
+private fun SummaryCover(
+    coverUri: String?,
+    title: String,
+    fallbackIcon: androidx.compose.ui.graphics.vector.ImageVector,
+    sharedCoverKey: String?
+) {
+    val base = Modifier
+        .size(44.dp)
+        .clip(RoundedCornerShape(10.dp))
+        .background(MaterialTheme.colorScheme.surfaceVariant)
+    Box(
+        modifier = if (sharedCoverKey != null) {
+            base.sharedCover(sharedCoverKey)
+        } else {
+            base
+        },
+        contentAlignment = Alignment.Center
+    ) {
+        if (!coverUri.isNullOrBlank()) {
+            AsyncImage(
+                model = coverUri,
+                contentDescription = title,
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                modifier = Modifier.size(44.dp)
+            )
+        } else {
+            Icon(fallbackIcon, null, tint = MusicProCyanNeon, modifier = Modifier.size(20.dp))
+        }
+    }
+}
+
+@Composable
 private fun SummaryRow(
     coverUri: String?,
     title: String,
     subtitle: String,
     fallbackIcon: androidx.compose.ui.graphics.vector.ImageVector,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    sharedCoverKey: String? = null
 ) {
     Surface(
         onClick = onClick,
@@ -792,23 +833,14 @@ private fun SummaryRow(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentAlignment = Alignment.Center
-            ) {
-                if (!coverUri.isNullOrBlank()) {
-                    AsyncImage(
-                        model = coverUri,
-                        contentDescription = title,
-                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                        modifier = Modifier.size(44.dp)
-                    )
-                } else {
-                    Icon(fallbackIcon, null, tint = MusicProCyanNeon, modifier = Modifier.size(20.dp))
+            // Mise à jour 072 — la pochette des albums trouvés est un élément partagé
+            // avec l'en-tête de l'écran Album (repli : fondu de l'hôte).
+            if (sharedCoverKey != null) {
+                com.example.ui.components.glass.SharedCoverVisibility(visible = true) {
+                    SummaryCover(coverUri, title, fallbackIcon, sharedCoverKey)
                 }
+            } else {
+                SummaryCover(coverUri, title, fallbackIcon, null)
             }
             Spacer(modifier = Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {

@@ -1,14 +1,8 @@
 package com.example.ui.detail
 
 import android.content.Intent
-import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -31,9 +25,9 @@ import com.example.ui.artist.artistTracksOf
 import com.example.ui.audio.AudioViewModel
 import com.example.ui.components.TrackActionsSheet
 import com.example.ui.components.TrackShareCardDialog
+import com.example.ui.components.glass.SharedCoverVisibility
 import com.example.ui.playlist.AddToPlaylistChooserDialog
 import com.example.ui.theme.MusicProCyanNeon
-import com.example.ui.theme.MusicProTokens
 import androidx.compose.ui.graphics.toArgb
 
 /** Clés des écrans de détail ouverts depuis l'accueil (stockables dans un `rememberSaveable`). */
@@ -75,15 +69,6 @@ fun DetailHost(
     artistFavoritesViewModel: ArtistFavoritesViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    val reduceMotion = remember {
-        Settings.Global.getFloat(
-            context.applicationContext.contentResolver,
-            Settings.Global.ANIMATOR_DURATION_SCALE,
-            1f
-        ) == 0f
-    }
-    val enter = fadeIn(if (reduceMotion) snap() else tween(MusicProTokens.Duration.Normal))
-    val exit = fadeOut(if (reduceMotion) snap() else tween(MusicProTokens.Duration.Normal))
 
     // Écran ouvert depuis un autre détail ou via DetailRouter, et son parent.
     var overrideKey by rememberSaveable { mutableStateOf<String?>(null) }
@@ -139,10 +124,12 @@ fun DetailHost(
     if (albumName != null) lastAlbum.value = albumName
     val shownAlbum = albumName ?: lastAlbum.value
 
-    AnimatedVisibility(
+    // Mise à jour 072 — SharedCoverVisibility fournit la portée d'AnimatedVisibility à
+    // Modifier.sharedCover : la pochette de l'en-tête Album est un élément partagé avec
+    // la pochette de la ligne de liste à l'origine de l'ouverture. Sans correspondance,
+    // le repli reste le fondu de la feuille hôte.
+    SharedCoverVisibility(
         visible = albumName != null,
-        enter = enter,
-        exit = exit,
         modifier = modifier
     ) {
         if (shownAlbum != null) {
@@ -196,10 +183,8 @@ fun DetailHost(
     val shownArtist = artistName ?: lastArtist.value
     val favoriteArtists by artistFavoritesViewModel.favoriteArtists.collectAsStateWithLifecycle()
 
-    AnimatedVisibility(
+    SharedCoverVisibility(
         visible = artistName != null,
-        enter = enter,
-        exit = exit,
         modifier = modifier
     ) {
         if (shownArtist != null) {

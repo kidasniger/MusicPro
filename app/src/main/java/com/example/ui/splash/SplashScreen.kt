@@ -63,7 +63,7 @@ fun SplashScreen(
     onSplashFinished: () -> Unit,
     modifier: Modifier = Modifier,
     isReadyToNavigate: Boolean = true,
-    splashDurationMillis: Long = 650L
+    splashDurationMillis: Long = 600L
 ) {
     val currentOnSplashFinished by rememberUpdatedState(onSplashFinished)
     val currentIsReady by rememberUpdatedState(isReadyToNavigate)
@@ -96,6 +96,13 @@ fun SplashScreen(
 
     LaunchedEffect(splashDurationMillis) {
         val totalDuration = splashDurationMillis.coerceAtLeast(0L)
+        if (totalDuration == 0L) {
+            // Mise à jour 077 — redémarrage à chaud : le splash est entièrement sauté,
+            // la navigation part dès que l'état de démarrage est connu.
+            snapshotFlow { currentIsReady }.first { it }
+            currentOnSplashFinished()
+            return@LaunchedEffect
+        }
         val scaleDuration = (totalDuration * 0.55f).toLong().coerceAtLeast(1L)
         val alphaDuration = (totalDuration * 0.35f).toLong().coerceAtLeast(1L)
         val remainingDuration = (totalDuration - scaleDuration - alphaDuration).coerceAtLeast(0L)

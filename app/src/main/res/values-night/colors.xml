@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Mise à jour 077 — fond du splash en mode sombre. -->
+    <color name="splash_background">#FF130924</color>
+</resources>

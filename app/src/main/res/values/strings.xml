@@ -248,4 +248,11 @@
 <string translatable="false" name="reset_item_playback">Lecture auto, enchaînement et reprise</string>
 <string translatable="false" name="reset_item_karaoke">Karaoké (taille, couleur, décalage)</string>
 <string translatable="false" name="reset_item_groq">Clé API Groq enregistrée</string>
+    <!-- Mise à jour 080 — raccourcis d'application. -->
+    <string name="shortcut_shuffle">Lecture aléatoire</string>
+    <string name="shortcut_shuffle_long">Lancer une lecture aléatoire</string>
+    <string name="shortcut_last_played">Dernière lecture</string>
+    <string name="shortcut_last_played_long">Reprendre le dernier morceau écouté</string>
+    <string name="shortcut_search">Rechercher</string>
+    <string name="shortcut_search_long">Ouvrir la recherche</string>
 </resources>

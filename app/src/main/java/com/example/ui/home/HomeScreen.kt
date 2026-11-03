@@ -116,6 +116,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.example.ui.components.glass.rememberAnimationsEnabled
+import com.example.ui.navigation.ScrollToTopEffect
+import com.example.ui.navigation.TabScrollToTopBus
+import com.example.util.ShortcutActions
 import coil.compose.AsyncImage
 import com.example.R
 import com.example.data.local.AudioTrackEntity
@@ -204,15 +214,35 @@ fun HomeScreen(
     initialOpenNowPlaying: Boolean = false,
     initialOpenQueue: Boolean = false,
     initialOpenLyrics: Boolean = false,
+    initialShufflePlay: Boolean = false,
+    initialOpenSearch: Boolean = false,
     mediaUiRequestId: Long = 0L,
     audioViewModel: AudioViewModel = viewModel(),
     settingsViewModel: SettingsViewModel = viewModel(),
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    var currentSectionName by rememberSaveable { mutableStateOf(NavigationSection.HOME.name) }
-    val currentSection = NavigationSection.entries.firstOrNull { it.name == currentSectionName }
+    // Mise à jour 071 — navigation à onglets : un NavHost imbriqué dont chaque
+    // destination est un onglet. Avec `saveState`/`restoreState`, chaque onglet garde
+    // sa pile, son état de défilement et son état sauvegardé.
+    val tabNavController = rememberNavController()
+    val tabEntry by tabNavController.currentBackStackEntryAsState()
+    val currentSection = tabEntry?.destination?.route
+        ?.let { route -> NavigationSection.entries.firstOrNull { it.name == route } }
         ?: NavigationSection.HOME
+
+    // Un second tap sur l'onglet actif remonte en haut de la liste (défilement animé).
+    val selectTab: (NavigationSection, Boolean) -> Unit = { section, fromUserTap ->
+        if (section == currentSection) {
+            if (fromUserTap) TabScrollToTopBus.request(section.name)
+        } else {
+            tabNavController.navigate(section.name) {
+                popUpTo(tabNavController.graph.findStartDestination().id) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
     var isNowPlayingOpen by rememberSaveable { mutableStateOf(initialOpenNowPlaying) }
     var isLyricsOpen by rememberSaveable { mutableStateOf(false) }
     var isLrclibSearchOpen by rememberSaveable { mutableStateOf(false) }
@@ -451,58 +481,6 @@ fun HomeScreen(
         }
     }
 
-    // Gestion intelligente du retour arrière :
-    // 1. Fermer les dialogues / sous-écrans ouverts (Paroles, Recherche Lrclib, Plein écran Now Playing, Détail Playlist)
-    // 2. Si on est sur un autre onglet que l'Accueil, revenir à l'onglet Accueil
-    // 3. Si on est déjà sur l'onglet Accueil, demander deux retours pour quitter l'application
-    var lastBackPressTime by remember { mutableStateOf(0L) }
-
-    BackHandler {
-        when {
-            isLrclibSearchOpen -> {
-                isLrclibSearchOpen = false
-            }
-            isLyricsOpen -> {
-                isLyricsOpen = false
-            }
-            isNowPlayingOpen -> {
-                isNowPlayingOpen = false
-            }
-            isAddTracksToPlaylistOpen -> {
-                isAddTracksToPlaylistOpen = false
-            }
-            tracksForPlaylistChooser.isNotEmpty() -> {
-                tracksForPlaylistChooser = emptyList()
-            }
-            trackForActions != null -> {
-                trackForActions = null
-            }
-            isKaraokeSettingsOpen -> isKaraokeSettingsOpen = false
-            isEqualizerOpen -> isEqualizerOpen = false
-            isQueueOpen -> isQueueOpen = false
-            isFavoritesOpen -> isFavoritesOpen = false
-            openDetailKey != null -> openDetailKey = null
-            selectedPlaylist != null -> {
-                audioViewModel.selectPlaylist(null)
-            }
-            searchQuery.isNotBlank() -> {
-                audioViewModel.setSearchQuery("")
-            }
-            currentSection != NavigationSection.HOME -> {
-                currentSectionName = NavigationSection.HOME.name
-            }
-            else -> {
-                val currentTime = System.currentTimeMillis()
-                if (currentTime - lastBackPressTime < 2000) {
-                    (context as? Activity)?.finish()
-                } else {
-                    lastBackPressTime = currentTime
-                    Toast.makeText(context, "Appuyez encore une fois pour quitter", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-
     SharedCoverHost(modifier = modifier.fillMaxSize()) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -527,8 +505,18 @@ fun HomeScreen(
                                 bottom = overlayHeight
                             )
                     ) {
-                        when (currentSection) {
-                            NavigationSection.HOME -> {
+                        // Mise à jour 071 — NavHost imbriqué : un destination par onglet.
+                        val tabFadeMs = if (rememberAnimationsEnabled()) 220 else 0
+                        NavHost(
+                            navController = tabNavController,
+                            startDestination = NavigationSection.HOME.name,
+                            modifier = Modifier.fillMaxSize(),
+                            enterTransition = { fadeIn(tween(tabFadeMs)) },
+                            exitTransition = { fadeOut(tween(tabFadeMs)) },
+                            popEnterTransition = { fadeIn(tween(tabFadeMs)) },
+                            popExitTransition = { fadeOut(tween(tabFadeMs)) }
+                        ) {
+                            composable(NavigationSection.HOME.name) {
                                 HomeExplorerContent(
                                     tracks = tracks,
                                     recentTracks = recentTracks,
@@ -544,16 +532,16 @@ fun HomeScreen(
                                     onResumePlayback = { if (isPlaying) isNowPlayingOpen = true else audioViewModel.togglePlayPause() },
                                     onOpenSettings = onOpenSettings,
                                     onOpenOnboarding = onOpenOnboarding,
-                                    onNavigateToLibrary = { currentSectionName = NavigationSection.LIBRARY.name },
+                                    onNavigateToLibrary = { selectTab(NavigationSection.LIBRARY, false) },
                                     onNavigateToRecent = {
-                                        currentSectionName = NavigationSection.LIBRARY.name
                                         audioViewModel.selectTab(LibraryTab.ALL)
+                                        selectTab(NavigationSection.LIBRARY, false)
                                     },
-                                    onNavigateToSearch = { currentSectionName = NavigationSection.SEARCH.name },
-                                    onNavigateToNew = { currentSectionName = NavigationSection.NEW.name },
+                                    onNavigateToSearch = { selectTab(NavigationSection.SEARCH, false) },
+                                    onNavigateToNew = { selectTab(NavigationSection.NEW, false) },
                                     onNavigateToPlaylists = {
-                                        currentSectionName = NavigationSection.LIBRARY.name
                                         audioViewModel.selectTab(LibraryTab.PLAYLISTS)
+                                        selectTab(NavigationSection.LIBRARY, false)
                                     },
                                     onOpenFavorites = { isFavoritesOpen = true },
                                     onOpenAlbum = { openDetailKey = DetailTarget.albumKey(it) },
@@ -563,7 +551,7 @@ fun HomeScreen(
                                     onRefreshScan = { audioViewModel.refreshScan() }
                                 )
                             }
-                            NavigationSection.NEW -> {
+                            composable(NavigationSection.NEW.name) {
                                 // Mise à jour 021 : ajouts récents, jamais écoutés, albums récents.
                                 NewScreen(
                                     tracks = tracks,
@@ -574,7 +562,7 @@ fun HomeScreen(
                                     onOpenAlbum = { openDetailKey = DetailTarget.albumKey(it) }
                                 )
                             }
-                            NavigationSection.RADIO -> {
+                            composable(NavigationSection.RADIO.name) {
                                 // Mise à jour 022 : mixes automatiques générés localement.
                                 RadioScreen(
                                     tracks = tracks,
@@ -584,7 +572,7 @@ fun HomeScreen(
                                     onPlayMix = { mixTracks -> audioViewModel.playPlaylist(mixTracks) }
                                 )
                             }
-                            NavigationSection.LIBRARY -> {
+                            composable(NavigationSection.LIBRARY.name) {
                                 LibraryScreen(
                                     tracks = tracks,
                                     recentTracks = recentTracks,
@@ -619,13 +607,13 @@ fun HomeScreen(
                                     onRefreshScan = { audioViewModel.refreshScan() }
                                 )
                             }
-                            NavigationSection.STATS -> {
+                            composable(NavigationSection.STATS.name) {
                                 StatsScreen()
                             }
-                            NavigationSection.CHAT -> {
+                            composable(NavigationSection.CHAT.name) {
                                 ChatScreen()
                             }
-                            NavigationSection.SEARCH -> {
+                            composable(NavigationSection.SEARCH.name) {
                                 SearchScreen(
                                     query = searchQuery,
                                     filter = searchFilter,
@@ -650,8 +638,8 @@ fun HomeScreen(
                                     playlists = playlists,
                                     onPlaylistClick = { playlist ->
                                         audioViewModel.selectPlaylist(playlist.id)
-                                        currentSectionName = NavigationSection.LIBRARY.name
                                         audioViewModel.selectTab(LibraryTab.PLAYLISTS)
+                                        selectTab(NavigationSection.LIBRARY, false)
                                     }
                                 )
                             }
@@ -683,11 +671,84 @@ fun HomeScreen(
                         GlassNavBar(
                             items = navItems,
                             selectedKey = currentSection.name,
-                            onSelect = { currentSectionName = it }
+                            onSelect = { key ->
+                                // Mise à jour 071 — second tap = retour en haut animé.
+                                selectTab(
+                                    NavigationSection.entries.firstOrNull { it.name == key }
+                                        ?: NavigationSection.HOME,
+                                    true
+                                )
+                            }
                         )
                     }
                 }
             )
+        }
+
+        // Gestion intelligente du retour arrière (mise à jour 071) :
+        // 1. Fermer les dialogues / sous-écrans ouverts (Paroles, Recherche Lrclib, …)
+        // 2. Revenir à l'onglet Accueil (en conservant l'état de l'onglet quitté)
+        // 3. Sur l'Accueil, demander deux retours pour quitter l'application.
+        // Déclaré APRÈS le NavHost à onglets (priorité plus haute que son rappel interne)
+        // et AVANT les écrans plein écran qui déclarent leur propre handler.
+        var lastBackPressTime by remember { mutableStateOf(0L) }
+        BackHandler {
+            when {
+                isLrclibSearchOpen -> {
+                    isLrclibSearchOpen = false
+                }
+                isLyricsOpen -> {
+                    isLyricsOpen = false
+                }
+                isAddTracksToPlaylistOpen -> {
+                    isAddTracksToPlaylistOpen = false
+                }
+                tracksForPlaylistChooser.isNotEmpty() -> {
+                    tracksForPlaylistChooser = emptyList()
+                }
+                trackForActions != null -> {
+                    trackForActions = null
+                }
+                isKaraokeSettingsOpen -> isKaraokeSettingsOpen = false
+                isEqualizerOpen -> isEqualizerOpen = false
+                isQueueOpen -> isQueueOpen = false
+                isFavoritesOpen -> isFavoritesOpen = false
+                openDetailKey != null -> openDetailKey = null
+                selectedPlaylist != null -> {
+                    audioViewModel.selectPlaylist(null)
+                }
+                searchQuery.isNotBlank() -> {
+                    audioViewModel.setSearchQuery("")
+                }
+                currentSection != NavigationSection.HOME -> {
+                    tabNavController.popBackStack(
+                        NavigationSection.HOME.name,
+                        inclusive = false,
+                        saveState = true
+                    )
+                }
+                else -> {
+                    val currentTime = System.currentTimeMillis()
+                    if (currentTime - lastBackPressTime < 2000) {
+                        (context as? Activity)?.finish()
+                    } else {
+                        lastBackPressTime = currentTime
+                        Toast.makeText(context, "Appuyez encore une fois pour quitter", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+
+        // Mise à jour 080 — raccourcis d'application : lecture aléatoire et recherche.
+        var shufflePlayHandled by rememberSaveable { mutableStateOf(false) }
+        LaunchedEffect(initialShufflePlay, tracks.size) {
+            if (initialShufflePlay && !shufflePlayHandled && tracks.isNotEmpty()) {
+                shufflePlayHandled = true
+                audioViewModel.playPlaylist(tracks, shuffle = true)
+            }
+        }
+        LaunchedEffect(initialOpenSearch) {
+            if (initialOpenSearch) selectTab(NavigationSection.SEARCH, false)
         }
 
         // Modal plein écran Now Playing avec transition partagée de la pochette
@@ -731,7 +792,7 @@ fun HomeScreen(
                 },
                 onOpenRadio = {
                     isNowPlayingOpen = false
-                    currentSectionName = NavigationSection.RADIO.name
+                    selectTab(NavigationSection.RADIO, false)
                 },
                 onOpenAlbum = { album ->
                     isNowPlayingOpen = false
@@ -1045,7 +1106,7 @@ fun HomeScreen(
             onSearch = { query ->
                 openDetailKey = null
                 audioViewModel.setSearchQuery(query)
-                currentSectionName = NavigationSection.SEARCH.name
+                selectTab(NavigationSection.SEARCH, false)
             },
             onClose = { openDetailKey = null }
         )
@@ -1154,7 +1215,11 @@ private fun HomeExplorerContent(
         if (recentTracks.isNotEmpty()) recentTracks else tracks
     }
 
+    // Mise à jour 071 — second tap sur l'onglet Accueil : retour en haut animé.
+    val homeListState = androidx.compose.foundation.lazy.rememberLazyListState()
+    ScrollToTopEffect(NavigationSection.HOME.name, homeListState)
     LazyColumn(
+        state = homeListState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 24.dp)
     ) {
