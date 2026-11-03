@@ -36,6 +36,8 @@ MusicPro est un lecteur musical Android moderne conçu pour écouter, organiser 
 
 MusicPro propose également un contrôle précis de la lecture avec une progression interactive sur les écrans Lecture et Paroles. Les paroles suivent la position de lecture afin de faciliter la navigation dans les morceaux et l'écoute avec affichage synchronisé.
 
+L'interface a été enrichie avec une navigation persistante, des transitions animées, une présentation adaptative aux différentes tailles d'écran et des réglages d'accessibilité renforcés. L'application reste centrée sur la bibliothèque musicale locale.
+
 # Description courte
 
 Lecteur musical Android pour organiser sa bibliothèque, créer des playlists, retrouver ses morceaux, afficher des paroles synchronisées et contrôler précisément la lecture.
@@ -44,19 +46,29 @@ Lecteur musical Android pour organiser sa bibliothèque, créer des playlists, r
 
 - Détection et organisation des morceaux audio présents sur l'appareil
 - Recherche par titre, artiste, album ou playlist
+- Historique de recherche, suggestions et filtres de bibliothèque
 - Playlists et favoris personnalisés
 - Lecture, pause, précédent, suivant, répétition et lecture aléatoire
 - File de lecture et lecture en arrière-plan
 - Notification multimédia avec commandes de lecture
-- Widget de contrôle depuis l'écran d'accueil
+- Widget de contrôle depuis l'écran d'accueil et raccourcis d'application
 - Barre de progression fine et interactive avec recherche dans le morceau
 - Avance et retour rapides de 10 secondes
 - Paroles synchronisées avec la position de lecture
 - Mode karaoké
 - Recherche et génération assistée de paroles synchronisées
 - Import et enregistrement des paroles associées aux morceaux
-- Égaliseur audio
+- Égaliseur audio avec préréglages
+- Minuterie de sommeil et sélection de la sortie audio
+- Présentation du lecteur personnalisable (Pochette, Vinyle, Minimal)
 - Modes d'apparence clair, sombre et automatique
+- Navigation par onglets avec conservation de la position
+- Transitions partagées entre les listes, albums, artistes et lecteur
+- Affichage adaptatif pour téléphones, tablettes et paysage
+- Réglages d'accessibilité : cibles tactiles, annonces TalkBack, contraste et réduction de la transparence
+- Chargement optimisé des pochettes et images
+- États hors connexion et messages d'erreur simplifiés
+- Copie d'un diagnostic anonyme depuis les réglages
 - Nettoyage des morceaux dont les fichiers ne sont plus accessibles
 - Vérification et installation des mises à jour disponibles
 
@@ -128,15 +140,40 @@ Lecteur musical Android pour organiser sa bibliothèque, créer des playlists, r
 
 # Nouveautés
 
-- Barre de progression fine et interactive sur les écrans Lecture et Paroles
-- Navigation dans le morceau par appui ou glissement sur la progression
-- Synchronisation de la position de lecture avec les paroles
-- Amélioration de la lisibilité des paroles non actives
-- Nettoyage automatique des morceaux devenus inaccessibles
-- Simplification des libellés et des informations visibles dans l'interface
+- Navigation par onglets persistants et retour en haut au second appui
+- Transitions partagées entre les pochettes, listes, albums et lecteur
+- Retour prédictif Android 14 et feuilles du bas à deux ancrages
+- Micro-interactions, égaliseur animé et changement de thème animé
+- Accueil organisé en sections, recherche améliorée et filtres mémorisés
+- En-têtes d'album et d'artiste enrichis, gestion des playlists améliorée
+- Génération de playlists assistée par IA à partir de la bibliothèque locale
+- Partage de cartes de morceaux
+- Cibles tactiles de 48 dp et annonces TalkBack améliorées
+- Contraste WCAG vérifié sur les thèmes et transparence ajustable
+- Mise en page adaptative pour tablettes et orientation paysage
+- Optimisation du chargement des images et des pochettes
+- Gestion hors connexion améliorée et diagnostic anonyme
+- 180 captures visuelles automatisées sur 10 écrans, 6 thèmes et 3 tailles
 - Suppression des emojis de l'interface
 
 # Changelog
+
+## État du dépôt — 3 novembre 2026
+
+Les derniers commits consultés documentent les lots de mises à jour 041 à 090. Le lot 081–090 apporte notamment :
+
+- Vérification automatique des cibles tactiles à 48 dp dans l'arbre de sémantique
+- Annonces TalkBack regroupées pour les lignes de morceaux
+- Vérification du contraste WCAG : 4,5:1 pour le texte courant et 3:1 pour les grands textes
+- Ajustement automatique de l'opacité du fond en verre lorsque le contraste est insuffisant
+- Réglages « Texte plus lisible » et « Réduire la transparence », avec prise en compte du réglage système
+- Adaptation WindowSizeClass : rail latéral sur tablette, détails album/artiste en deux volets et lecteur en deux colonnes en paysage
+- Optimisation du flou et du chargement Coil (cache mémoire/disque, tailles de miniatures et préchargement)
+- Bandeau hors connexion avec action Réessayer et messages simplifiés pour l'assistant IA et les paroles en ligne
+- Action « Copier le diagnostic » anonyme dans Réglages › À propos
+- 180 captures Roborazzi (10 écrans × 6 thèmes × 3 tailles), avec seuil de différence de 0,5 %
+
+Validation rapportée dans le commit du lot 081–090 : 53 classes / 393 tests verts, lint sans erreur et chaînes FR/EN/AR/HA/DJE alignées.
 
 ## 1.0-b207
 
@@ -158,7 +195,7 @@ MusicPro - Lecteur musical Android
 
 ## Description
 
-MusicPro est un lecteur musical Android moderne pour organiser une bibliothèque audio, rechercher des morceaux, créer des playlists, afficher des paroles synchronisées et contrôler précisément la lecture.
+MusicPro est un lecteur musical Android moderne pour organiser une bibliothèque audio, rechercher des morceaux, créer des playlists, afficher des paroles synchronisées et contrôler précisément la lecture, avec une interface adaptative et des options d'accessibilité.
 
 ## Keywords
 
@@ -174,6 +211,8 @@ MusicPro est un lecteur musical Android moderne pour organiser une bibliothèque
 - égaliseur
 - lecture en arrière-plan
 - widget musique
+- accessibilité Android
+- lecteur musical hors ligne
 
 ## Open Graph Image
 
@@ -187,10 +226,12 @@ MusicPro est un lecteur musical Android moderne pour organiser une bibliothèque
 
 Identifiant d'application Android : com.aistudio.musicpro.qkzmvp
 
-Dernière release Android vérifiée : v1.0-b207
+Dernière release Android vérifiée dans ce fichier : v1.0-b207
 
-APK de production : MusicPro-v1.0-b207.apk
+APK de production référencé : MusicPro-v1.0-b207.apk
 
 SHA-256 de l'APK v1.0-b207 :
 
 cf9aebf05700b8f9eacfaa0ba1a54f48c746b19cf3319a1eb57cb21ac68b2968
+
+Note : les commits récents consultés décrivent des évolutions du dépôt postérieures à la version APK référencée. La version de release et le lien de téléchargement sont conservés tant qu'une nouvelle release Android n'a pas été vérifiée.
