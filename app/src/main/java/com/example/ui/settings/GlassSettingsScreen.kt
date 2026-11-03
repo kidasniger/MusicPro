@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -31,6 +32,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -44,6 +47,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -78,6 +82,8 @@ fun GlassSettingsScreen(
     val tintHue by settingsViewModel.glassTintHue.collectAsStateWithLifecycle()
     val filmOpacity by settingsViewModel.glassFilmOpacity.collectAsStateWithLifecycle()
     val activeTabOpacity by settingsViewModel.glassActiveTabOpacity.collectAsStateWithLifecycle()
+    val readableText by settingsViewModel.glassReadableText.collectAsStateWithLifecycle()
+    val followReduceTransparency by settingsViewModel.glassFollowReduceTransparency.collectAsStateWithLifecycle()
     val preview by settingsViewModel.glassPreview.collectAsStateWithLifecycle()
 
     Column(
@@ -123,6 +129,15 @@ fun GlassSettingsScreen(
                 onActiveTabOpacityChange = { settingsViewModel.setGlassActiveTabOpacity(it) }
             )
 
+            // Mise à jour 084 — lisibilité : filet de sécurité du verre et suivi du système.
+            GlassSectionLabel(text = stringResource(R.string.glass_section_readability))
+            GlassReadabilityCard(
+                readableText = readableText,
+                onReadableTextChange = { settingsViewModel.setGlassReadableText(it) },
+                followReduceTransparency = followReduceTransparency,
+                onFollowReduceTransparencyChange = { settingsViewModel.setGlassFollowReduceTransparency(it) }
+            )
+
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
@@ -147,9 +162,9 @@ fun GlassSettingsScreen(
 }
 
 /**
- * Remet les six réglages du verre à leurs valeurs par défaut (Équilibré, couleur 70 %, givre 6 dp,
- * aucune teinte, film 50 %, onglet actif 26 %). Chaque setter met l'aperçu à jour tout de suite
- * puis écrit dans le DataStore.
+ * Remet les réglages du verre à leurs valeurs par défaut (Équilibré, couleur 70 %, givre 6 dp,
+ * aucune teinte, film 50 %, onglet actif 26 %, texte plus lisible désactivé, réduction de
+ * transparence suivant le système). Chaque setter écrit dans le DataStore.
  */
 private fun resetGlassSettings(viewModel: SettingsViewModel) {
     viewModel.setGlassMaterial(GlassMaterial.BALANCED)
@@ -158,6 +173,80 @@ private fun resetGlassSettings(viewModel: SettingsViewModel) {
     viewModel.setGlassTintHue(null)
     viewModel.setGlassFilmOpacity(DefaultGlassFilmOpacity)
     viewModel.setGlassActiveTabOpacity(DefaultGlassActiveTabOpacity)
+    viewModel.setGlassReadableText(false)
+    viewModel.setGlassFollowReduceTransparency(true)
+}
+
+/**
+ * Mise à jour 084 — carte « Lisibilité » : deux interrupteurs.
+ *
+ *  - « Texte plus lisible » : force l'opacité du film du verre à 85 % ([GlassMaxReadableFilmAlpha])
+ *    pour un contraste maximal, même là où le filet de sécurité automatique suffirait.
+ *  - « Réduire la transparence » : suit le réglage d'accessibilité du système — quand le système
+ *    demande moins de transparence, le verre passe en aplat dense sans flou temps réel.
+ */
+@Composable
+private fun GlassReadabilityCard(
+    readableText: Boolean,
+    onReadableTextChange: (Boolean) -> Unit,
+    followReduceTransparency: Boolean,
+    onFollowReduceTransparencyChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = MusicProTokens.Elevation.Low
+    ) {
+        Column(modifier = Modifier.padding(MusicProTokens.Spacing.Lg)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.glass_readable_text),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(R.string.glass_readable_text_sub),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Switch(
+                    checked = readableText,
+                    onCheckedChange = onReadableTextChange,
+                    modifier = Modifier.testTag("glass_readable_text_switch")
+                )
+            }
+            Spacer(modifier = Modifier.height(MusicProTokens.Spacing.Md))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.glass_reduce_transparency),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(R.string.glass_reduce_transparency_sub),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Switch(
+                    checked = followReduceTransparency,
+                    onCheckedChange = onFollowReduceTransparencyChange,
+                    modifier = Modifier.testTag("glass_reduce_transparency_switch")
+                )
+            }
+        }
+    }
 }
 
 /** Titre « Glass » avec bouton retour rond (zone tactile 48 dp). */

@@ -51,11 +51,18 @@ val LocalGlassTintHue = staticCompositionLocalOf<Float?> { null }
  *  - [filmOpacity] : curseur « Film », 0 à 100 %, 50 % par défaut (film de la recette inchangé).
  *  - [activeTabOpacity] : curseur « Onglet actif », 0 à 100 %, 26 % par défaut (capsule de l'onglet
  *    sélectionné).
+ *  - [readableText] : mise à jour 084 — interrupteur « Texte plus lisible » : force un film quasi
+ *    opaque ([GlassMaxReadableFilmAlpha]) pour un contraste maximal sur le verre.
+ *  - [followReduceTransparency] : mise à jour 084 — interrupteur « Réduire la transparence » :
+ *    quand il est actif, l'application suit le réglage d'accessibilité du système (verre plus
+ *    opaque, sans flou temps réel).
  */
 @Immutable
 data class GlassStyle(
     val filmOpacity: Int = DefaultGlassFilmOpacity,
-    val activeTabOpacity: Int = DefaultGlassActiveTabOpacity
+    val activeTabOpacity: Int = DefaultGlassActiveTabOpacity,
+    val readableText: Boolean = false,
+    val followReduceTransparency: Boolean = true
 )
 
 /** Style du verre fourni une fois pour toute l'application ; valeurs par défaut sans fournisseur. */

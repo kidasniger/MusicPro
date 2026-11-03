@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +32,7 @@ import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -40,6 +42,8 @@ import com.example.data.preferences.glassBlurActive
 import com.example.data.preferences.glassSaturation
 import com.example.data.preferences.glassScaledFilmAlpha
 import com.example.data.preferences.glassTintAlpha
+import com.example.ui.theme.GlassMaxReadableFilmAlpha
+import com.example.ui.theme.readableGlassFilmAlpha
 import kotlin.math.roundToInt
 
 /**
@@ -64,6 +68,18 @@ import kotlin.math.roundToInt
  * ([LocalGlassStyle], voir [glassScaledFilmAlpha]) : 50 % (défaut) la laisse inchangée, 0 % la
  * supprime, 100 % la double (bornée à 1).
  *
+ * Mise à jour 084 — lisibilité : l'opacité finale remonte automatiquement par pas de 5 % (jusqu'à
+ * [GlassMaxReadableFilmAlpha]) si le pire cas derrière le verre (blanc ou noir pur) tombait sous
+ * 4,5:1 de contraste avec le contenu. L'interrupteur « Texte plus lisible » ([GlassStyle.readableText])
+ * force directement un film quasi opaque, et « Réduire la transparence » suit le réglage système :
+ * verre en aplat dense, sans flou temps réel.
+ *
+ * Mise à jour 086 — performance : le flou est un calque partagé, limité par un budget d'écran
+ * ([LocalGlassBlurBudget]) — jamais un flou par ligne. [blurPriority] décide qui garde le flou
+ * quand le budget est plein (la barre flottante prime : [GlassBlurPriorityFloatingBar]). De plus,
+ * la version floutée du fond n'est ré-enregistrée que si le fond ([GlassBackdropState.generation]),
+ * la position ou la taille ont changé : quand rien ne bouge, la surface réutilise son calque.
+ *
  * Teinte : si une teinte est choisie ([LocalGlassTintHue], `null` = Aucune), un voile de cette
  * couleur est posé juste après le film, avec une opacité de film x 0,5 (voir [glassTintAlpha]),
  * le film étant celui obtenu après réglage du curseur. Il s'applique à tous les niveaux, y compris
@@ -77,6 +93,7 @@ fun GlassSurface(
     modifier: Modifier = Modifier,
     shape: Shape = CircleShape,
     material: GlassSpec = GlassMaterials.regular(),
+    blurPriority: Int = GlassBlurPriorityDefault,
     content: @Composable BoxScope.() -> Unit
 ) {
     val backdrop = LocalGlassBackdrop.current
@@ -87,10 +104,37 @@ fun GlassSurface(
     val style = LocalGlassStyle.current
     val blurLayer = rememberGraphicsLayer()
     var origin by remember { mutableStateOf(Offset.Zero) }
+    // Mise à jour 086 — empreinte du dernier enregistrement du calque flouté :
+    // [0] = génération du fond, [1] = position relative + taille.
+    val recordStamp = remember { longArrayOf(-1L, 0L) }
 
-    val blurOn = !LocalReduceAnimations.current && backdrop != null &&
+    // Mise à jour 084 — « Réduire la transparence » suit le réglage d'accessibilité du système.
+    val context = LocalContext.current
+    val reduceTransparency = style.followReduceTransparency &&
+        remember(context) { isSystemReduceTransparencyEnabled(context) }
+
+    // Envie de flou avant arbitration du budget (mise à jour 086).
+    val wantsBlur = !LocalReduceAnimations.current && !reduceTransparency && backdrop != null &&
         glassBlurActive(level, glassBlurSupported, frostDp) &&
         material.blurRadius > 0.dp
+
+    // Mise à jour 086 — budget de flou partagé : un seul calque flouté par écran au maximum.
+    // La demande passe par un SideEffect après chaque recomposition : `request` est idempotent
+    // (aucune mutation si l'état ne change pas), donc aucune boucle de recomposition. La lecture
+    // de `version` en composition réveille la surface quand un slot se libère.
+    val blurBudget = LocalGlassBlurBudget.current
+    val blurClaimId = remember(blurBudget) { blurBudget.newClaimId() }
+    if (wantsBlur) {
+        // Lecture observée : notifie cette surface des attributions/vols/libérations.
+        blurBudget.version
+        SideEffect { blurBudget.request(blurClaimId, blurPriority) }
+    }
+    DisposableEffect(blurBudget, blurClaimId) {
+        onDispose { blurBudget.release(blurClaimId) }
+    }
+    val blurGranted = wantsBlur && blurBudget.isGranted(blurClaimId)
+
+    val blurOn = wantsBlur && blurGranted
     val quality = blurOn && level == GlassMaterial.QUALITY
 
     val radiusPx = with(LocalDensity.current) { frostDp.dp.toPx() }
@@ -114,7 +158,15 @@ fun GlassSurface(
         level == GlassMaterial.BALANCED -> maxOf(material.filmAlpha, GlassBalancedMinFilmAlpha)
         else -> material.filmAlpha
     }
-    val filmAlpha = glassScaledFilmAlpha(baseFilmAlpha, style.filmOpacity)
+    val scaledFilmAlpha = glassScaledFilmAlpha(baseFilmAlpha, style.filmOpacity)
+    // Mise à jour 084 — filet de sécurité lisibilité : le pire cas derrière le verre (blanc ou
+    // noir pur) doit rester contrasté à 4,5:1 ; l'opacité remonte par pas de 5 % jusqu'à 85 %.
+    // « Texte plus lisible » force directement le film quasi opaque.
+    val filmAlpha = if (style.readableText) {
+        maxOf(scaledFilmAlpha, GlassMaxReadableFilmAlpha)
+    } else {
+        readableGlassFilmAlpha(material.filmColor, scaledFilmAlpha, material.contentColor)
+    }
 
     val highlightBrush = remember(material.highlightTopAlpha, material.highlightBottomAlpha) {
         Brush.verticalGradient(
@@ -164,16 +216,26 @@ fun GlassSurface(
             )
             .clip(shape)
             .drawWithContent {
-                // (1) copie du fond, floutée et resaturée par les effets du calque
+                // (1) copie du fond, floutée et resaturée par les effets du calque.
+                // Mise à jour 086 — on ne ré-enregistre que si le fond a changé (génération),
+                // si la position relative ou si la taille ont changé : quand rien ne bouge,
+                // le calque déjà flouté est réutilisé tel quel.
                 if (blurOn && backdrop != null) {
                     val dx = backdrop.origin.x - origin.x
                     val dy = backdrop.origin.y - origin.y
-                    blurLayer.record(
-                        density = this,
-                        layoutDirection = layoutDirection,
-                        size = IntSize(size.width.roundToInt(), size.height.roundToInt())
-                    ) {
-                        translate(left = dx, top = dy) { drawLayer(backdrop.layer) }
+                    val stamp = (dx.toRawBits().toLong() shl 32) xor dy.toRawBits().toLong() xor
+                        (size.width.roundToInt().toLong() * 31) xor
+                        (size.height.roundToInt().toLong() * 61)
+                    if (backdrop.generation != recordStamp[0] || stamp != recordStamp[1]) {
+                        blurLayer.record(
+                            density = this,
+                            layoutDirection = layoutDirection,
+                            size = IntSize(size.width.roundToInt(), size.height.roundToInt())
+                        ) {
+                            translate(left = dx, top = dy) { drawLayer(backdrop.layer) }
+                        }
+                        recordStamp[0] = backdrop.generation
+                        recordStamp[1] = stamp
                     }
                     drawLayer(blurLayer)
                 }

@@ -3,6 +3,8 @@ package com.example
 import android.os.Bundle
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -31,6 +33,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.preferences.AccentChoice
 import com.example.permissions.PermissionViewModel
 import com.example.playback.MusicPlaybackService
+import com.example.ui.adaptive.LocalWindowWidthClass
 import com.example.ui.components.AppUpdateDialog
 import com.example.ui.components.glass.GlassStyle
 import com.example.ui.components.glass.LocalGlassColorStrength
@@ -63,6 +66,7 @@ class MainActivity : AppCompatActivity() {
   private val onboardingViewModel: OnboardingViewModel by viewModels()
   private val settingsViewModel: SettingsViewModel by viewModels()
 
+  @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
   override fun onCreate(savedInstanceState: Bundle?) {
     // Mise à jour 077 — API SplashScreen d'Android 12 : un seul écran de démarrage,
     // aucun double écran blanc, couleurs du thème appliquées dès la fenêtre froide.
@@ -89,8 +93,17 @@ class MainActivity : AppCompatActivity() {
       val glassTintHue by settingsViewModel.glassTintHue.collectAsStateWithLifecycle()
       val glassFilmOpacity by settingsViewModel.glassFilmOpacity.collectAsStateWithLifecycle()
       val glassActiveTabOpacity by settingsViewModel.glassActiveTabOpacity.collectAsStateWithLifecycle()
-      val glassStyle = remember(glassFilmOpacity, glassActiveTabOpacity) {
-        GlassStyle(filmOpacity = glassFilmOpacity, activeTabOpacity = glassActiveTabOpacity)
+      val glassReadableText by settingsViewModel.glassReadableText.collectAsStateWithLifecycle()
+      val glassFollowReduceTransparency by settingsViewModel.glassFollowReduceTransparency.collectAsStateWithLifecycle()
+      val glassStyle = remember(
+        glassFilmOpacity, glassActiveTabOpacity, glassReadableText, glassFollowReduceTransparency
+      ) {
+        GlassStyle(
+          filmOpacity = glassFilmOpacity,
+          activeTabOpacity = glassActiveTabOpacity,
+          readableText = glassReadableText,
+          followReduceTransparency = glassFollowReduceTransparency
+        )
       }
 
       // Apparence réellement affichée (Auto suit le système, « Sombre le soir » suit l'heure).
@@ -167,8 +180,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Réglages « Effet verre », « Givre », « Couleur du verre », « Teinte du verre »,
-        // « Film » et « Onglet actif » : appliqués à toute l'application.
+        // « Film », « Onglet actif », « Texte plus lisible » et « Réduire la transparence » :
+        // appliqués à toute l'application. La classe de largeur (mise à jour 085) pilote la
+        // mise en page adaptative (rail latéral, deux volets).
+        val windowSizeClass = calculateWindowSizeClass(this@MainActivity)
         CompositionLocalProvider(
+          LocalWindowWidthClass provides windowSizeClass.widthSizeClass,
           LocalGlassMaterial provides glassMaterial,
           LocalGlassColorStrength provides glassColorStrength,
           LocalGlassFrostDp provides glassFrostDp,

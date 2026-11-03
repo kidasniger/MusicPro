@@ -300,4 +300,12 @@
     <string name="shortcut_last_played_long">استئناف آخر مقطوعة مسموعة</string>
     <string name="shortcut_search">بحث</string>
     <string name="shortcut_search_long">فتح البحث</string>
+
+    <!-- Mises à jour 088/089 — hors connexion et diagnostic (textes français pour toutes les langues). -->
+    <string translatable="false" name="offline_banner">Hors connexion</string>
+    <string translatable="false" name="action_retry">Réessayer</string>
+    <string translatable="false" name="chat_error_friendly">L’assistant n’a pas pu répondre. Vérifiez votre connexion Internet, puis réessayez.</string>
+    <string translatable="false" name="chat_error_offline">Vous êtes hors connexion. Reconnectez-vous pour discuter avec l’assistant.</string>
+    <string translatable="false" name="diag_copy_title">Copier le diagnostic</string>
+    <string translatable="false" name="diag_copied">Diagnostic copié</string>
 </resources>

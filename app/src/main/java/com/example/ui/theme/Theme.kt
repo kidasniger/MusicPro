@@ -60,7 +60,8 @@ val MusicProDarkColorScheme = darkColorScheme(
     inverseOnSurface = MusicProBackground,
 
     error = MusicProFavorite,
-    onError = Color.White,
+    // Mise à jour 083 — onError doit atteindre 4,5:1 sur l'erreur ; le blanc plafonnait à 3,2:1.
+    onError = MusicProBackground,
     errorContainer = MusicProFavoriteContainer,
     onErrorContainer = Color.White,
 

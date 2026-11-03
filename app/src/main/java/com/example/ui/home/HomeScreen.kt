@@ -79,6 +79,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -133,6 +135,9 @@ import com.example.data.local.PlaylistSummary
 import com.example.data.preferences.PlayerPresentation
 import com.example.data.preferences.LibrarySortMode
 import com.example.permissions.PermissionUtils
+import com.example.ui.adaptive.LocalWindowWidthClass
+import com.example.ui.adaptive.widthSupportsSideRail
+import com.example.ui.artwork.preloadArtwork
 import com.example.ui.audio.AudioViewModel
 import com.example.ui.audio.LibraryTab
 import com.example.ui.components.AppUpdateDialog
@@ -324,6 +329,14 @@ fun HomeScreen(
     val searchHistory by audioViewModel.searchHistory.collectAsStateWithLifecycle()
     val queue by audioViewModel.queue.collectAsStateWithLifecycle()
     val queueIndex by audioViewModel.queueIndex.collectAsStateWithLifecycle()
+
+    // Mise à jour 087 — précharge la pochette du morceau suivant (cache mémoire + disque)
+    // pour qu'elle s'affiche instantanément au passage au titre suivant.
+    val nextQueueTrack = queue.getOrNull(queueIndex + 1)
+    val homeContext = LocalContext.current
+    LaunchedEffect(nextQueueTrack?.id) {
+        homeContext.preloadArtwork(nextQueueTrack?.albumArtUri)
+    }
     val eqEnabled by audioViewModel.eqEnabled.collectAsStateWithLifecycle()
     val eqPreset by audioViewModel.eqPreset.collectAsStateWithLifecycle()
     val eqLevels by audioViewModel.eqLevels.collectAsStateWithLifecycle()
@@ -492,8 +505,11 @@ fun HomeScreen(
             val overlayHeight = with(LocalDensity.current) { overlayHeightPx.toDp() }
             val layoutDirection = LocalLayoutDirection.current
 
+            // Mise à jour 085 — sur tablette/pliable, le même contenu est disposé à droite d'un
+            // rail latéral (au lieu de la barre basse) ; on extrait donc l'hôte en slot réutilisable.
+            val glassAppContent: @Composable (Modifier) -> Unit = { hostModifier ->
             GlassBackdropHost(
-                modifier = Modifier.fillMaxSize(),
+                modifier = hostModifier,
                 background = {
                     Box(
                         modifier = Modifier
@@ -667,8 +683,9 @@ fun HomeScreen(
                             )
                         }
 
-                        // Barre de navigation flottante en pilule de verre
-                        GlassNavBar(
+                        // Barre de navigation flottante en pilule de verre — remplacée par le
+                        // rail latéral sur les grandes largeurs (mise à jour 085).
+                        if (!widthSupportsSideRail(LocalWindowWidthClass.current)) GlassNavBar(
                             items = navItems,
                             selectedKey = currentSection.name,
                             onSelect = { key ->
@@ -683,6 +700,46 @@ fun HomeScreen(
                     }
                 }
             )
+            }
+
+            if (widthSupportsSideRail(LocalWindowWidthClass.current)) {
+                // Mise à jour 085 — rail latéral (tablette, pliable déplié).
+                Row(modifier = Modifier.fillMaxSize()) {
+                    NavigationRail(
+                        containerColor = Color.Transparent,
+                        modifier = Modifier.testTag("nav_rail")
+                    ) {
+                        navItems.forEach { item ->
+                            NavigationRailItem(
+                                selected = item.key == currentSection.name,
+                                onClick = {
+                                    selectTab(
+                                        NavigationSection.entries.firstOrNull { it.name == item.key }
+                                            ?: NavigationSection.HOME,
+                                        true
+                                    )
+                                },
+                                icon = {
+                                    Icon(
+                                        imageVector = if (item.key == currentSection.name) {
+                                            item.selectedIcon
+                                        } else {
+                                            item.icon
+                                        },
+                                        contentDescription = stringResource(item.labelRes)
+                                    )
+                                },
+                                label = { Text(stringResource(item.labelRes)) }
+                            )
+                        }
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        glassAppContent(Modifier.fillMaxSize())
+                    }
+                }
+            } else {
+                glassAppContent(Modifier.fillMaxSize())
+            }
         }
 
         // Gestion intelligente du retour arrière (mise à jour 071) :

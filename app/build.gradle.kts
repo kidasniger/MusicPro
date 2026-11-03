@@ -63,6 +63,21 @@ android {
       isIncludeAndroidResources = true
       isReturnDefaultValues = true
     }
+    // Mise à jour 090 — les captures Roborazzi (tests visuels) ne s'exécutent qu'en mode
+    // explicite pour ne pas ralentir les tests standards (CI) :
+    //   record : ./gradlew :app:testDebugUnitTest -Pmusicpro.screenshots=record
+    //   vérification (échec si différence > 0,5 %) : ./gradlew verifyRoborazziDebug -Pmusicpro.screenshots=verify
+    unitTests.all {
+      it.systemProperty(
+        "musicpro.screenshots",
+        project.findProperty("musicpro.screenshots")?.toString() ?: ""
+      )
+      // Roborazzi n'écrit/compare que si son propre interrupteur est armé.
+      when (project.findProperty("musicpro.screenshots")?.toString()) {
+        "record" -> it.systemProperty("roborazzi.test.record", "true")
+        "verify" -> it.systemProperty("roborazzi.test.verify", "true")
+      }
+    }
   }
   dependenciesInfo {
     includeInApk = false
@@ -81,6 +96,8 @@ dependencies {
   implementation(libs.androidx.compose.material.icons.core)
   implementation(libs.androidx.compose.material.icons.extended)
   implementation(libs.androidx.compose.material3)
+  // Mise à jour 085 — classes de taille de fenêtre pour la mise en page adaptative.
+  implementation(libs.androidx.compose.material3.window.size)
   implementation(libs.androidx.compose.ui)
   implementation(libs.androidx.compose.ui.graphics)
   implementation(libs.androidx.compose.ui.tooling.preview)
@@ -135,3 +152,4 @@ dependencies {
   "ksp"(libs.androidx.room.compiler)
   "ksp"(libs.moshi.kotlin.codegen)
 }
+

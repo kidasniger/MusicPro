@@ -83,11 +83,15 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.local.AudioTrackEntity
 import com.example.R
+import com.example.ui.components.OfflineBanner
+import com.example.ui.components.isOnline
+import com.example.ui.components.rememberIsOnline
 import com.example.lyrics.remote.LrclibSearchResult
 import com.example.ui.audio.LrclibSearchUiState
 import com.example.ui.theme.MusicProBackground
@@ -120,6 +124,9 @@ fun LrclibSearchScreen(
 ) {
     var titleQuery by remember(track) { mutableStateOf(track?.title ?: "") }
     var artistQuery by remember(track) { mutableStateOf(track?.artist ?: "") }
+    val context = LocalContext.current
+    // Mise à jour 088 — connexion observable pour le bandeau « Hors connexion ».
+    val connectivity = rememberIsOnline()
     val trackDurationSec = track?.duration?.takeIf { it > 0 }?.let { (it / 1000).toInt() }
 
     LaunchedEffect(aiQuerySuggestion) {
@@ -151,6 +158,12 @@ fun LrclibSearchScreen(
                 .statusBarsPadding()
                 .navigationBarsPadding()
         ) {
+            // Mise à jour 088 — la recherche de paroles en ligne exige Internet : bandeau discret
+            // quand la connexion manque, avec bouton « Réessayer ».
+            OfflineBanner(
+                isOnline = connectivity.value,
+                onRetry = { connectivity.value = context.isOnline() }
+            )
             // 1. Barre supérieure
             LrclibTopBar(
                 currentTrackTitle = track?.title ?: stringResource(R.string.lyrics_search_title),

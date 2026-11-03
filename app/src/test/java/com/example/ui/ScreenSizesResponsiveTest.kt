@@ -175,4 +175,32 @@ class ScreenSizesResponsiveTest {
         composeTestRule.onNodeWithTag("theme_settings_card").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithTag("theme_dark_button").performScrollTo().assertIsDisplayed()
     }
+
+    /**
+     * Test 6 (mise à jour 085) : tablette 820 dp (portrait) — mise en page adaptative :
+     * l'écran Réglages reste complet et navigable sur grand écran (rail latéral et deux volets
+     * sont pilotés par LocalWindowWidthClass, seuils testés dans WindowSizeClassTest).
+     */
+    @Test
+    @Config(sdk = [36], qualifiers = "w820dp-h1180dp-normal-long-notround-port-xhdpi")
+    fun testTabletPortraitLayout() {
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        val viewModel = SettingsViewModel(app)
+
+        composeTestRule.setContent {
+            MusicProTheme(themeMode = AppThemeMode.DARK) {
+                SettingsScreen(
+                    onBack = {},
+                    onNavigateToPermissions = {},
+                    settingsViewModel = viewModel
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag("settings_back_button").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("quick_appearance_card").assertIsDisplayed()
+        composeTestRule.onNodeWithTag("theme_settings_card").assertIsDisplayed()
+        composeTestRule.onNodeWithText(ApplicationProvider.getApplicationContext<Application>().getString(com.example.R.string.settings_group_about)).performScrollTo().performClick()
+        composeTestRule.onNodeWithTag("about_settings_card").performScrollTo().assertIsDisplayed()
+    }
 }

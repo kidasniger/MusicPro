@@ -30,8 +30,8 @@ val MinimalLightText = Color(0xFF1F1E1B)
 /** Texte secondaire. */
 val MinimalLightTextSecondary = Color(0xFF6B665C)
 
-/** Accent terracotta. */
-val MinimalLightAccent = Color(0xFFC96442)
+/** Accent terracotta. Contraste vérifié (mise à jour 083) : 5,2:1 avec le blanc, 4,6:1 sur le fond crème. */
+val MinimalLightAccent = Color(0xFFB14E2E)
 
 /** Contour fin des cartes et séparateurs. */
 val MinimalLightOutline = Color(0xFFE2DACB)

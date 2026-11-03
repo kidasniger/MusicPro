@@ -3,6 +3,12 @@ package com.example.ui.detail
 import android.content.Intent
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -13,10 +19,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.R
 import com.example.data.local.AudioTrackEntity
+import com.example.ui.adaptive.LocalWindowWidthClass
+import com.example.ui.adaptive.widthSupportsTwoPane
 import com.example.ui.album.AlbumScreen
 import com.example.ui.album.albumTracksOf
 import com.example.ui.artist.ArtistFavoritesViewModel
@@ -132,6 +141,7 @@ fun DetailHost(
         visible = albumName != null,
         modifier = modifier
     ) {
+        TwoPaneDetailPane {
         if (shownAlbum != null) {
             val albumTracks = remember(tracks, shownAlbum) { albumTracksOf(tracks, shownAlbum) }
             AlbumScreen(
@@ -175,6 +185,7 @@ fun DetailHost(
                 }
             )
         }
+        }
     }
 
     val artistName = DetailTarget.artistName(effectiveKey)
@@ -187,6 +198,7 @@ fun DetailHost(
         visible = artistName != null,
         modifier = modifier
     ) {
+        TwoPaneDetailPane {
         if (shownArtist != null) {
             val artistTracks = remember(tracks, shownArtist) { artistTracksOf(tracks, shownArtist) }
             ArtistScreen(
@@ -205,6 +217,7 @@ fun DetailHost(
                 onOpenArtist = { openDetail(DetailTarget.artistKey(it)) },
                 playCounts = playCounts
             )
+        }
         }
     }
 
@@ -259,5 +272,31 @@ fun DetailHost(
             accentArgb = MusicProCyanNeon.toArgb(),
             onDismiss = { trackForShareCard = null }
         )
+    }
+}
+
+/**
+ * Mise à jour 085 — deux volets sur les grandes largeurs (tablette, pliable déplié) : le détail
+ * occupe le volet droit dans une surface de thème, tandis que la zone gauche reste vide et
+ * transparente — la liste de l'accueil reste visible et cliquable dessous (un Box sans
+ * gestion de pointeurs ne consomme pas les appuis).
+ */
+@Composable
+private fun TwoPaneDetailPane(content: @Composable () -> Unit) {
+    if (widthSupportsTwoPane(LocalWindowWidthClass.current)) {
+        Row(modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier.weight(0.42f))
+            Surface(
+                modifier = Modifier
+                    .weight(0.58f)
+                    .fillMaxHeight(),
+                color = MaterialTheme.colorScheme.background,
+                tonalElevation = 3.dp
+            ) {
+                content()
+            }
+        }
+    } else {
+        content()
     }
 }

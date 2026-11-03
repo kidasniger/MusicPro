@@ -216,7 +216,9 @@ private fun MiniPlayerPill(
             .fillMaxWidth()
             .height(56.dp),
         shape = RoundedCornerShape(28.dp),
-        material = GlassMaterials.thick()
+        material = GlassMaterials.thick(),
+        // Mise à jour 086 — la barre flottante prime sur tout autre surface pour le flou partagé.
+        blurPriority = GlassBlurPriorityFloatingBar
     ) {
         Row(
             modifier = Modifier

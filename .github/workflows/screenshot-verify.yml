@@ -1,0 +1,63 @@
+name: Screenshots (verify)
+
+# Mise à jour 090 — vérification visuelle Roborazzi : échoue si une capture diffère de plus
+# de 0,5 % des références commises (src/test/screenshots/090). Lancée manuellement ou chaque
+# semaine ; volontairement hors des portes de release (testDebugUnitTest + lintDebug).
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 4 * * 1"
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Cache Robolectric android-all
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/robolectric
+          key: robolectric-android-all-${{ runner.os }}-v1
+
+      - name: Pré-télécharger les jars Robolectric (relances + miroir)
+        run: |
+          M2="$HOME/.m2/repository/org/robolectric/android-all-instrumented"
+          fetch() {
+            rel="$1"; out="$M2/$rel"
+            if [ -s "$out" ]; then echo "deja present: $rel"; return 0; fi
+            mkdir -p "$(dirname "$out")"
+            for base in "https://repo1.maven.org/maven2" "https://maven.aliyun.com/repository/public"; do
+              if curl -fsSL --retry 4 --retry-all-errors --retry-delay 5 --connect-timeout 20 -o "$out.part" "$base/org/robolectric/android-all-instrumented/$rel"; then
+                mv "$out.part" "$out"; echo "telecharge: $rel"; return 0
+              fi
+            done
+            echo "ECHEC du pre-telechargement: $rel"; return 1
+          }
+          fetch "14-robolectric-10818077-i7/android-all-instrumented-14-robolectric-10818077-i7.pom"
+          fetch "14-robolectric-10818077-i7/android-all-instrumented-14-robolectric-10818077-i7.jar"
+          fetch "16-robolectric-13921718-i7/android-all-instrumented-16-robolectric-13921718-i7.pom"
+          fetch "16-robolectric-13921718-i7/android-all-instrumented-16-robolectric-13921718-i7.jar"
+
+      - name: Verify screenshots (diff > 0,5 % = échec)
+        env:
+          GRADLE_OPTS: "-Djava.awt.headless=true -Xmx4g"
+        run: |
+          chmod +x ./gradlew
+          ./gradlew verifyRoborazziDebug -Pmusicpro.screenshots=verify --no-daemon -Djava.awt.headless=true
+
+      - name: Upload diff report (si échec)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot-diffs
+          path: app/build/reports/roborazzi/
+          retention-days: 14

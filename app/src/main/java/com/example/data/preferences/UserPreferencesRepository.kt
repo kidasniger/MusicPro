@@ -78,6 +78,10 @@ class UserPreferencesRepository(
         val KEY_GLASS_FILM_OPACITY = intPreferencesKey("glass_film_opacity")
         /** Opacité de la capsule de l'onglet actif, en % (0-100). Absente : 26 %. */
         val KEY_GLASS_ACTIVE_TAB_OPACITY = intPreferencesKey("glass_active_tab_opacity")
+        /** Mise à jour 084 — « Texte plus lisible » : film du verre forcé quasi opaque. Absente : faux. */
+        val KEY_GLASS_READABLE_TEXT = booleanPreferencesKey("glass_readable_text")
+        /** Mise à jour 084 — « Réduire la transparence » suit le réglage système. Absente : vrai. */
+        val KEY_GLASS_FOLLOW_REDUCE_TRANSPARENCY = booleanPreferencesKey("glass_follow_reduce_transparency")
         /** Ancienne clé (mise à jour 004, valeurs BEAUTIFUL / FAST) : migrée à la lecture. */
         val KEY_GLASS_QUALITY_LEGACY = stringPreferencesKey("glass_quality")
         val KEY_FAVORITE_TRACK_IDS = stringSetPreferencesKey("favorite_track_ids")
@@ -199,6 +203,26 @@ class UserPreferencesRepository(
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
         .map { preferences -> resolveGlassActiveTabOpacity(preferences[KEY_GLASS_ACTIVE_TAB_OPACITY]) }
+
+    /**
+     * Mise à jour 084 — « Texte plus lisible » : force l'opacité du film du verre à 85 % pour un
+     * contraste maximal. Désactivé par défaut (le filet de sécurité automatique suffit).
+     */
+    val glassReadableText: Flow<Boolean> = dataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { preferences -> preferences[KEY_GLASS_READABLE_TEXT] ?: false }
+
+    /**
+     * Mise à jour 084 — « Réduire la transparence » suit le réglage d'accessibilité du système
+     * (verre plus opaque, sans flou temps réel). Activé par défaut : le système décide.
+     */
+    val glassFollowReduceTransparency: Flow<Boolean> = dataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { preferences -> preferences[KEY_GLASS_FOLLOW_REDUCE_TRANSPARENCY] ?: true }
 
     // --- Apparence et style (mises à jour 013, 017, 018) ------------------------------------------
 
@@ -325,6 +349,20 @@ class UserPreferencesRepository(
     suspend fun setGlassActiveTabOpacity(percent: Int) {
         dataStore.edit { preferences ->
             preferences[KEY_GLASS_ACTIVE_TAB_OPACITY] = clampGlassOpacity(percent)
+        }
+    }
+
+    /** Mise à jour 084 — force le film du verre à 85 % (« Texte plus lisible »). */
+    suspend fun setGlassReadableText(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[KEY_GLASS_READABLE_TEXT] = enabled
+        }
+    }
+
+    /** Mise à jour 084 — active/désactive le suivi du réglage système « Réduire la transparence ». */
+    suspend fun setGlassFollowReduceTransparency(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[KEY_GLASS_FOLLOW_REDUCE_TRANSPARENCY] = enabled
         }
     }
 

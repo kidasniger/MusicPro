@@ -141,6 +141,15 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val glassActiveTabOpacity: StateFlow<Int> = preferencesRepository.glassActiveTabOpacity
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DefaultGlassActiveTabOpacity)
 
+    /** Mise à jour 084 — « Texte plus lisible » : film du verre forcé quasi opaque. */
+    val glassReadableText: StateFlow<Boolean> = preferencesRepository.glassReadableText
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    /** Mise à jour 084 — « Réduire la transparence » suit le réglage système (par défaut). */
+    val glassFollowReduceTransparency: StateFlow<Boolean> =
+        preferencesRepository.glassFollowReduceTransparency
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
     val textSizePreference: StateFlow<TextSizePreference> = preferencesRepository.textSizePreference
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TextSizePreference.NORMAL)
 
@@ -329,6 +338,16 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             preview = { it.copy(activeTabOpacity = percent) },
             persist = { preferencesRepository.setGlassActiveTabOpacity(percent) }
         )
+    }
+
+    /** Mise à jour 084 — interrupteur « Texte plus lisible » du verre. */
+    fun setGlassReadableText(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setGlassReadableText(enabled) }
+    }
+
+    /** Mise à jour 084 — interrupteur « Réduire la transparence » du verre. */
+    fun setGlassFollowReduceTransparency(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setGlassFollowReduceTransparency(enabled) }
     }
 
     fun setReduceAnimations(enabled: Boolean) {

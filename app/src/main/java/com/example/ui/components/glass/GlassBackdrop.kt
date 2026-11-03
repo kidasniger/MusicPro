@@ -26,6 +26,14 @@ import kotlin.math.roundToInt
 @Stable
 class GlassBackdropState internal constructor(internal val layer: GraphicsLayer) {
     internal var origin by mutableStateOf(Offset.Zero)
+
+    /**
+     * Mise à jour 086 — compteur (champ simple, hors snapshot) incrémenté à chaque fois que le
+     * fond se redessine. Les [GlassSurface] le comparent à leur dernier enregistrement : si le
+     * fond n'a pas changé, elles réutilisent leur calque flouté sans le re-enregistrer, ce qui
+     * évite de re-flouter à chaque frame quand « rien ne bouge ».
+     */
+    internal var generation: Long = 0
 }
 
 /** Fourni par [GlassBackdropHost] ; `null` => les GlassSurface passent en repli sans flou. */
@@ -58,6 +66,9 @@ fun Modifier.glassBackdropSource(state: GlassBackdropState, enabled: Boolean = t
                 ) {
                     this@drawWithContent.drawContent()
                 }
+                // Mise à jour 086 — le contenu du calque vient de changer : on prévient les
+                // surfaces pour qu'elles ré-enregistrent leur version floutée.
+                state.generation++
                 drawLayer(state.layer)
             }
     }
@@ -91,7 +102,11 @@ fun GlassBackdropHost(
                 .glassBackdropSource(state, enabled = recordBackdrop),
             content = background
         )
-        CompositionLocalProvider(LocalGlassBackdrop provides (if (recordBackdrop) state else null)) {
+        CompositionLocalProvider(
+            LocalGlassBackdrop provides (if (recordBackdrop) state else null),
+            // Mise à jour 086 — un budget de flou par écran : au plus une surface floutée à la fois.
+            LocalGlassBlurBudget provides remember { GlassBlurBudget(maxBlurSurfaces = 1) }
+        ) {
             boxScope.foreground()
         }
     }

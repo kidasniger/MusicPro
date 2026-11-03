@@ -5,6 +5,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -52,6 +53,7 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -106,6 +108,11 @@ import com.example.data.preferences.AppThemeMode
 import com.example.data.preferences.PlayerPresentation
 import com.example.data.security.GroqApiKeyStore
 import com.example.groq.GroqTranscriptionManager
+import com.example.ui.components.glass.LocalGlassMaterial
+import com.example.ui.components.glass.LocalGlassStyle
+import com.example.ui.components.glass.LocalReduceAnimations
+import com.example.ui.theme.LocalAppStyle
+import com.example.ui.theme.LocalIsDarkTheme
 import com.example.ui.theme.MusicProCyanLight
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProError
@@ -1193,6 +1200,55 @@ fun AboutCard(currentVersion: String = "1.0") {
             TechBadgeRow(title = stringResource(R.string.settings_home_screen), value = stringResource(R.string.settings_quick_controls))
             TechBadgeRow(title = stringResource(R.string.settings_library), value = stringResource(R.string.settings_data_retained))
             TechBadgeRow(title = stringResource(R.string.settings_system_permissions), value = stringResource(R.string.settings_sensitive_data_protected))
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Mise à jour 089 — journal de bord anonyme : version, modèle, API, style, verre.
+            // Aucune donnée personnelle ni clé API ; à coller dans un signalement de bug.
+            val diagContext = LocalContext.current
+            val diagText = com.example.util.Diagnostics.build(
+                context = diagContext,
+                styleName = LocalAppStyle.current.name.lowercase()
+                    .replaceFirstChar { it.uppercase() },
+                isDark = LocalIsDarkTheme.current,
+                glassMaterial = LocalGlassMaterial.current.name,
+                readableText = LocalGlassStyle.current.readableText,
+                reduceAnimations = LocalReduceAnimations.current
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable {
+                        val clipboard = diagContext.getSystemService(Context.CLIPBOARD_SERVICE)
+                            as? ClipboardManager
+                        clipboard?.setPrimaryClip(
+                            ClipData.newPlainText("MusicPro diagnostic", diagText)
+                        )
+                        Toast.makeText(
+                            diagContext,
+                            diagContext.getString(R.string.diag_copied),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    .testTag("copy_diagnostic_button")
+                    .padding(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ContentCopy,
+                    contentDescription = null,
+                    tint = MusicProCyanNeon,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.diag_copy_title),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 

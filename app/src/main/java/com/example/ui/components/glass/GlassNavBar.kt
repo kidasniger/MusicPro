@@ -155,7 +155,9 @@ fun GlassNavBar(
             .fillMaxWidth()
             .height(64.dp),
         shape = RoundedCornerShape(32.dp),
-        material = GlassMaterials.regular()
+        material = GlassMaterials.regular(),
+        // Mise à jour 086 — la barre d'onglets cède le flou à la barre flottante si besoin.
+        blurPriority = GlassBlurPriorityNavBar
     ) {
         val selectedContent = glassActiveTabContentColor(activeCapsule, LocalContentColor.current)
         Row(

@@ -93,9 +93,12 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -104,6 +107,7 @@ import coil.compose.AsyncImage
 import com.example.R
 import com.example.ui.components.EqualizerIndicator
 import com.example.ui.components.pressFeedback
+import com.example.ui.artwork.artworkGridRequest
 import com.example.ui.components.glass.SharedCoverVisibility
 import com.example.ui.components.glass.sharedCover
 import com.example.ui.home.NavigationSection
@@ -773,11 +777,20 @@ fun TrackRowItem(
     val compactRow = targetRowHeight < 60.dp
     // Mise à jour 075 — échelle 0,97 au toucher, voile 8 % au lieu du ripple.
     val interactionSource = remember { MutableInteractionSource() }
+    // Mise à jour 082 — TalkBack : la ligne entière est lue d'un bloc (titre, artiste, durée) et
+    // l'état « En cours de lecture » est annoncé quand c'est le morceau actif
+    // (clé réutilisée de la file d'attente, texte identique).
+    val nowPlayingLabel = stringResource(R.string.queue_screen_now_playing)
+    // Mise à jour 087 — miniatures de grille limitées à 300 px pour la fluidité.
+    val rowContext = LocalContext.current
     Row(
         modifier = modifier
             .pressFeedback(interactionSource)
             .fillMaxWidth()
             .heightIn(min = targetRowHeight)
+            .semantics(mergeDescendants = true) {
+                if (isPlaying) stateDescription = nowPlayingLabel
+            }
             .combinedClickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -872,7 +885,7 @@ fun TrackRowItem(
         ) {
             if (!track.albumArtUri.isNullOrBlank() && !imageLoadError) {
                 AsyncImage(
-                    model = track.albumArtUri,
+                    model = rowContext.artworkGridRequest(track.albumArtUri),
                     contentDescription = track.album,
                     contentScale = ContentScale.Crop,
                     onError = { imageLoadError = true },

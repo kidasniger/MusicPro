@@ -51,6 +51,9 @@ import com.example.R
 import com.example.data.security.GroqApiKeyStore
 import com.example.groq.GroqChatMessage
 import com.example.groq.GroqChatRepository
+import com.example.ui.components.OfflineBanner
+import com.example.ui.components.isOnline
+import com.example.ui.components.rememberIsOnline
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -66,6 +69,10 @@ fun ChatScreen() {
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     var streamJob by remember { mutableStateOf<Job?>(null) }
+
+    // Mise à jour 088 — état de connexion observable : bandeau « Hors connexion » et erreurs
+    // en langage simple. Déclaré avant sendMessage qui s'en sert en cas d'échec réseau.
+    val connectivity = rememberIsOnline()
 
     val suggestions = listOf(
         stringResource(R.string.chat_suggestion_playlist),
@@ -106,8 +113,14 @@ fun ChatScreen() {
                     )
                 }
             } catch (error: Exception) {
+                // Mise à jour 088 — erreur en langage simple, sans détail technique.
+                val friendly = if (connectivity.value) {
+                    context.getString(R.string.chat_error_friendly)
+                } else {
+                    context.getString(R.string.chat_error_offline)
+                }
                 messages[assistantIndex] = messages[assistantIndex].copy(
-                    content = error.message ?: context.getString(R.string.chat_error)
+                    content = friendly
                 )
             } finally {
                 streaming = false
@@ -126,6 +139,10 @@ fun ChatScreen() {
             .navigationBarsPadding()
             .padding(horizontal = 18.dp)
     ) {
+        // Mise à jour 088 — bandeau « Hors connexion » : l'assistant IA est la seule fonction de
+        // cet écran qui exige Internet ; le message d'erreur reste en langage courant.
+        OfflineBanner(isOnline = connectivity.value, onRetry = { connectivity.value = context.isOnline() })
+
         if (messages.isEmpty()) {
             Column(
                 modifier = Modifier

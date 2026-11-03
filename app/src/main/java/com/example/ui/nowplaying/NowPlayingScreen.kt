@@ -34,9 +34,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -368,16 +370,10 @@ fun NowPlayingScreen(
             val availableHeight = maxHeight
             val isCompactScreen = screenHeight < 620.dp
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .then(
-                        if (isCompactScreen) Modifier.verticalScroll(rememberScrollState())
-                        else Modifier
-                    )
-                    .navigationBarsPadding(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+            // Mise à jour 085 — le lecteur passe en deux colonnes (pochette | contrôles) en
+            // paysage : les deux sections sont extraites dans des slots composables et disposées
+            // selon l'orientation (en colonne unique en portrait, exactement comme avant).
+            val coverSection: @Composable ColumnScope.() -> Unit = {
                 // 1. Pochette immersive pleine largeur (041) — cachée en présentation minimaliste.
                 val coverHeight = when {
                     screenHeight < 600.dp -> availableHeight * 0.32f
@@ -469,7 +465,9 @@ fun NowPlayingScreen(
                         sleepActive = sleepRemainingMs > 0L || sleepEndOfTrack
                     )
                 }
+                }
 
+                val controlsSection: @Composable ColumnScope.() -> Unit = {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -604,7 +602,50 @@ fun NowPlayingScreen(
 
                     Spacer(modifier = Modifier.height(10.dp))
                 }
-            }
+                }
+
+                val isLandscapePlayer = maxHeight < 600.dp && maxWidth >= 600.dp
+                if (isLandscapePlayer) {
+                    // Paysage : pochette à gauche, contrôles défilables à droite.
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .navigationBarsPadding()
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .weight(0.45f)
+                                .fillMaxHeight(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            coverSection()
+                        }
+                        Column(
+                            modifier = Modifier
+                                .weight(0.55f)
+                                .fillMaxHeight()
+                                .verticalScroll(rememberScrollState())
+                                .padding(vertical = 12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            controlsSection()
+                        }
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .then(
+                                if (isCompactScreen) Modifier.verticalScroll(rememberScrollState())
+                                else Modifier
+                            )
+                            .navigationBarsPadding(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        coverSection()
+                        controlsSection()
+                    }
+                }
         }
     }
 
