@@ -77,4 +77,20 @@
     <string name="selection_play_next">Ka hun den</string>
     <string name="selection_delete">Kaa</string>
     <string name="selection_exit">Suubu kaa</string>
+    <!-- 061-065 albom, 068 playlist, 069 AI, 070 kaarti se -->
+    <string name="album_pause">Deo žibir</string>
+    <string name="album_track_actions">Cawyan teejey</string>
+    <string name="playlist_track_removed">« %1$s » bila playlist ga</string>
+    <string name="ai_generate_button">AI nda teeri</string>
+    <string name="ai_ambiance_label">Cawyan boŋ ma…</string>
+    <string name="ai_generate">Teeri</string>
+    <string name="ai_generating">Ga teeray ra…</string>
+    <string name="ai_preview_title">Cawyan war bibliteek ga duwantey</string>
+    <string name="ai_create">Playlist teeri</string>
+    <string name="ai_need_key">War API addasi kayna paraameetey ra ka nungu goy.</string>
+    <string name="ai_error">Teeray ši duwandi. Koyne ceeci.</string>
+    <string name="share_card_title">Cawyan kaarti se</string>
+    <string name="share_card_hint">Zaɓa kundi da wal\'a banda kaŋ a ga hima.</string>
+    <string name="share_card_with_cover">Nda kundi</string>
+    <string name="share_card_no_cover">Bila kundi</string>
 </resources>

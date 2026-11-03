@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.local.AudioTrackEntity
+import com.example.data.local.MusicProDatabase
 import com.example.data.local.PlaylistSummary
 import com.example.data.repository.AudioRepository
 import com.example.data.repository.PlaylistRepository
@@ -37,6 +38,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -204,6 +206,15 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
 
     val favorites: StateFlow<Set<Long>> = preferencesRepository.favoriteTrackIds
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    /**
+     * Mise à jour 066 — nombre d'écoutes cumulées par morceau (une ligne d'historique
+     * par jour écouté), pour classer les « Top morceaux » des pages artiste.
+     */
+    val playCountsByTrackId: StateFlow<Map<Long, Int>> =
+        MusicProDatabase.getInstance(getApplication()).listeningStatsDao().observeAll()
+            .map { stats -> stats.groupingBy { it.trackId }.eachCount() }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
 
     private val _searchHistory = MutableStateFlow<List<String>>(emptyList())
     val searchHistory: StateFlow<List<String>> = _searchHistory.asStateFlow()

@@ -176,3 +176,6 @@ val MusicProCardGradient = Brush.linearGradient(
 val MusicProActiveLyricGradient = Brush.horizontalGradient(
     colors = listOf(Color(0x408A2BE2), Color(0x2622D3EE))
 )
+
+/** Mise à jour 063 — terracotta de la pilule « Lecture » en mode clair (texte blanc lisible). */
+val MusicProTerracotta = Color(0xFFB65C3F)

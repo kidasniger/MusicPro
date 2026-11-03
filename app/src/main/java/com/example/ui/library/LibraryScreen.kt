@@ -161,6 +161,7 @@ fun LibraryScreen(
     onPlaylistClick: (PlaylistSummary) -> Unit = {},
     onPlayPlaylistDirectly: (PlaylistSummary) -> Unit = {},
     onCreatePlaylist: (String, String) -> Unit = { _, _ -> },
+    onCreatePlaylistWithTracks: (String, String, List<Long>) -> Unit = { _, _, _ -> },
     onRenamePlaylist: (Long, String, String) -> Unit = { _, _, _ -> },
     onDeletePlaylist: (Long) -> Unit = {},
     onSelectTab: (LibraryTab) -> Unit,
@@ -417,6 +418,9 @@ fun LibraryScreen(
                         onPlaylistClick = onPlaylistClick,
                         onPlayPlaylistDirectly = onPlayPlaylistDirectly,
                         onCreatePlaylist = onCreatePlaylist,
+                        // Mise à jour 069 — bibliothèque locale transmise pour la génération IA.
+                        onCreatePlaylistWithTracks = onCreatePlaylistWithTracks,
+                        libraryTracks = tracks,
                         onRenamePlaylist = onRenamePlaylist,
                         onDeletePlaylist = onDeletePlaylist
                     )

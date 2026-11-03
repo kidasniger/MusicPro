@@ -46,6 +46,16 @@ interface GroqApiService {
         @Body request: GroqChatCompletionRequest
     ): Response<GroqChatCompletionResponse>
 
+    /**
+     * Mise à jour 069 — complétion de chat générique (assistant de création
+     * de playlist à partir de la bibliothèque locale uniquement).
+     */
+    @POST("openai/v1/chat/completions")
+    suspend fun chatCompletion(
+        @Header("Authorization") authorization: String,
+        @Body request: GroqChatCompletionRequest
+    ): Response<GroqChatCompletionResponse>
+
     
     /**
      * Recherche sur le Web via l'outil navigateur intégré de Groq pour identifier

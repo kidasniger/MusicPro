@@ -77,4 +77,20 @@
     <string name="selection_play_next">تشغيل تاليًا</string>
     <string name="selection_delete">حذف</string>
     <string name="selection_exit">إنهاء التحديد</string>
+    <!-- 061-065 ألبوم، 068 قائمة، 069 ذكاء اصطناعي، 070 بطاقة المشاركة -->
+    <string name="album_pause">إيقاف مؤقت</string>
+    <string name="album_track_actions">إجراءات المقطع</string>
+    <string name="playlist_track_removed">تمت إزالة «%1$s» من قائمة التشغيل</string>
+    <string name="ai_generate_button">إنشاء بالذكاء الاصطناعي</string>
+    <string name="ai_ambiance_label">صف الأجواء…</string>
+    <string name="ai_generate">إنشاء</string>
+    <string name="ai_generating">جارٍ الإنشاء…</string>
+    <string name="ai_preview_title">مقاطع مختارة من مكتبتك</string>
+    <string name="ai_create">إنشاء قائمة التشغيل</string>
+    <string name="ai_need_key">أضف مفتاح API للذكاء الاصطناعي في الإعدادات لاستخدام هذه الميزة.</string>
+    <string name="ai_error">تعذّر الإنشاء. حاول مجددًا.</string>
+    <string name="share_card_title">مشاركة بطاقة المقطع</string>
+    <string name="share_card_hint">اختر تضمين الغلاف أو تركه جانبًا احترامًا للحقوق.</string>
+    <string name="share_card_with_cover">مع الغلاف</string>
+    <string name="share_card_no_cover">بدون غلاف</string>
 </resources>

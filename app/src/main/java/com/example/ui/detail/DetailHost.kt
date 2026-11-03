@@ -29,7 +29,12 @@ import com.example.ui.artist.ArtistFavoritesViewModel
 import com.example.ui.artist.ArtistScreen
 import com.example.ui.artist.artistTracksOf
 import com.example.ui.audio.AudioViewModel
+import com.example.ui.components.TrackActionsSheet
+import com.example.ui.components.TrackShareCardDialog
+import com.example.ui.playlist.AddToPlaylistChooserDialog
+import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProTokens
+import androidx.compose.ui.graphics.toArgb
 
 /** Clés des écrans de détail ouverts depuis l'accueil (stockables dans un `rememberSaveable`). */
 object DetailTarget {
@@ -103,6 +108,15 @@ fun DetailHost(
         }
     }
 
+    // Mises à jour 059/065/066/070 — feuille d'actions, choix de playlist et carte de partage
+    // hébergées localement pour les écrans de détail.
+    val favorites by audioViewModel.favorites.collectAsStateWithLifecycle()
+    val playCounts by audioViewModel.playCountsByTrackId.collectAsStateWithLifecycle()
+    val playlists by audioViewModel.playlists.collectAsStateWithLifecycle()
+    var trackForActions by remember { mutableStateOf<AudioTrackEntity?>(null) }
+    var tracksForPlaylistChooser by remember { mutableStateOf<List<AudioTrackEntity>>(emptyList()) }
+    var trackForShareCard by remember { mutableStateOf<AudioTrackEntity?>(null) }
+
     val openDetail: (String) -> Unit = { key ->
         parentKey = effectiveKey
         overrideKey = key
@@ -140,7 +154,9 @@ fun DetailHost(
                 isPlaying = isPlaying,
                 onBack = closeDetail,
                 onPlay = { shuffle -> onPlay(albumTracks, shuffle) },
+                onTogglePlayback = { audioViewModel.togglePlayPause() },
                 onTrackClick = { track -> onTrackClick(track, albumTracks) },
+                onOpenTrackActions = { track -> trackForActions = track },
                 onDownload = {
                     Toast.makeText(context, R.string.album_download_local, Toast.LENGTH_SHORT).show()
                 },
@@ -201,8 +217,62 @@ fun DetailHost(
                 onTrackClick = { track -> onTrackClick(track, artistTracks) },
                 onAddToQueue = { track, playNext -> audioViewModel.addToQueue(track, playNext) },
                 onOpenAlbum = { openDetail(DetailTarget.albumKey(it)) },
-                onOpenArtist = { openDetail(DetailTarget.artistKey(it)) }
+                onOpenArtist = { openDetail(DetailTarget.artistKey(it)) },
+                playCounts = playCounts
             )
         }
+    }
+
+    // Feuille d'actions d'un morceau (mise à jour 065 — menu ⋯ des lignes d'album).
+    trackForActions?.let { actionTrack ->
+        TrackActionsSheet(
+            track = actionTrack,
+            isFavorite = favorites.contains(actionTrack.id),
+            onDismiss = { trackForActions = null },
+            onPlayNext = { audioViewModel.addToQueue(actionTrack, playNext = true) },
+            onAddToQueue = { audioViewModel.addToQueue(actionTrack) },
+            onAddToPlaylist = { tracksForPlaylistChooser = listOf(actionTrack) },
+            onToggleFavorite = { audioViewModel.toggleFavorite(actionTrack.id) },
+            onGoToAlbum = {
+                trackForActions = null
+                openDetail(DetailTarget.albumKey(actionTrack.album))
+            },
+            onGoToArtist = {
+                trackForActions = null
+                openDetail(DetailTarget.artistKey(actionTrack.artist))
+            },
+            onOpenLyrics = { trackForActions = null },
+            onShare = {
+                trackForActions = null
+                trackForShareCard = actionTrack
+            },
+            onDelete = { trackForActions = null }
+        )
+    }
+
+    // Choix de la playlist cible (mise à jour 059).
+    if (tracksForPlaylistChooser.isNotEmpty()) {
+        AddToPlaylistChooserDialog(
+            tracks = tracksForPlaylistChooser,
+            playlists = playlists,
+            onDismiss = { tracksForPlaylistChooser = emptyList() },
+            onSelectPlaylist = { playlistId ->
+                audioViewModel.addTracksToPlaylist(playlistId, tracksForPlaylistChooser.map { it.id })
+                tracksForPlaylistChooser = emptyList()
+            },
+            onCreateAndAdd = { name, description ->
+                audioViewModel.createPlaylist(name, description, tracksForPlaylistChooser.map { it.id })
+                tracksForPlaylistChooser = emptyList()
+            }
+        )
+    }
+
+    // Mise à jour 070 — carte de morceau à partager (avec ou sans pochette).
+    trackForShareCard?.let { track ->
+        TrackShareCardDialog(
+            track = track,
+            accentArgb = MusicProCyanNeon.toArgb(),
+            onDismiss = { trackForShareCard = null }
+        )
     }
 }

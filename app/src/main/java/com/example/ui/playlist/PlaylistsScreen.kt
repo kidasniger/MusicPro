@@ -55,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.data.local.AudioTrackEntity
 import com.example.data.local.PlaylistSummary
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProError
@@ -71,6 +72,8 @@ fun PlaylistsScreen(
     onPlaylistClick: (PlaylistSummary) -> Unit,
     onPlayPlaylistDirectly: (PlaylistSummary) -> Unit,
     onCreatePlaylist: (name: String, description: String) -> Unit,
+    onCreatePlaylistWithTracks: (name: String, description: String, trackIds: List<Long>) -> Unit = { _, _, _ -> },
+    libraryTracks: List<AudioTrackEntity> = emptyList(),
     onRenamePlaylist: (playlistId: Long, newName: String, newDesc: String) -> Unit,
     onDeletePlaylist: (playlistId: Long) -> Unit,
     modifier: Modifier = Modifier
@@ -173,6 +176,12 @@ fun PlaylistsScreen(
             onDismiss = { showCreateDialog = false },
             onConfirm = { name, desc ->
                 onCreatePlaylist(name, desc)
+                showCreateDialog = false
+            },
+            libraryTracks = libraryTracks,
+            onConfirmWithTracks = { name, desc, ids ->
+                // Mise à jour 069 — playlist générée par l'IA à partir de la bibliothèque.
+                onCreatePlaylistWithTracks(name, desc, ids)
                 showCreateDialog = false
             }
         )

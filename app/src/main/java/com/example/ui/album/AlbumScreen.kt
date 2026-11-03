@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.Settings
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -34,7 +36,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Shuffle
@@ -48,6 +52,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -55,14 +60,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -72,14 +80,24 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.R
 import com.example.data.local.AudioTrackEntity
+import com.example.ui.components.EqualizerIndicator
 import com.example.ui.detail.DetailRouter
+import com.example.ui.theme.MusicProTerracotta
 import com.example.ui.theme.MusicProTokens
 import com.example.ui.theme.dominantAccentArgb
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+
+/** Mise à jour 063 — cercles Aléatoire / Télécharger de la rangée de lecture. */
+internal val AlbumActionCircleSize = 44.dp
+
+/** Mise à jour 065 — hauteur d'une ligne de morceau numéroté. */
+internal val AlbumTrackRowHeight = 56.dp
 
 /** Morceaux d'un album, dans l'ordre des fichiers (les noms commencent souvent par le numéro de piste). */
 internal fun albumTracksOf(tracks: List<AudioTrackEntity>, albumName: String): List<AudioTrackEntity> =
@@ -91,10 +109,21 @@ internal fun albumDurationMinutes(tracks: List<AudioTrackEntity>): Int {
     return (tracks.sumOf { it.duration } / 60_000.0).let { Math.round(it).toInt() }.coerceAtLeast(1)
 }
 
+/** Mise à jour 061 — couleur dominante assombrie de 35 % pour l'en-tête dégradé. */
+internal fun darkened(argb: Int): Int {
+    val a = (argb ushr 24) and 0xFF
+    val r = ((argb ushr 16) and 0xFF) * 65 / 100
+    val g = ((argb ushr 8) and 0xFF) * 65 / 100
+    val b = (argb and 0xFF) * 65 / 100
+    return (a shl 24) or (r shl 16) or (g shl 8) or b
+}
+
 /**
- * Écran Album (mise à jour 023) : grande pochette centrée avec fondu vers sa couleur dominante, titre,
- * artiste, type, boutons Aléatoire / Lecture (pilule blanche) / Télécharger, description repliable
- * (« PLUS ») et liste numérotée avec badge « E » pour les titres explicites.
+ * Écran Album (mises à jour 061-065) : en-tête dégradé de la couleur dominante de la
+ * pochette (assombrie, 45 % d'opacité) vers le fond, barre supérieure translucide au
+ * défilement (titre en fondu entre 120 et 200 dp), rangée Aléatoire / Lecture (pilule
+ * terracotta en mode clair, « Pause » pendant la lecture), description repliable sur
+ * 3 lignes et liste numérotée avec égaliseur animé, badge « E » et menu ⋯ par morceau.
  *
  * [explicitTrackIds] : la base ne stocke pas encore l'information « explicite » ; tant qu'elle est
  * absente, le badge n'est affiché pour aucun titre.
@@ -107,7 +136,9 @@ fun AlbumScreen(
     isPlaying: Boolean,
     onBack: () -> Unit,
     onPlay: (shuffle: Boolean) -> Unit,
+    onTogglePlayback: () -> Unit,
     onTrackClick: (AudioTrackEntity) -> Unit,
+    onOpenTrackActions: (AudioTrackEntity) -> Unit,
     onDownload: () -> Unit,
     onAddAlbumToPlaylist: () -> Unit,
     onSearch: () -> Unit,
@@ -117,6 +148,7 @@ fun AlbumScreen(
 ) {
     val scheme = MaterialTheme.colorScheme
     val context = LocalContext.current
+    val density = LocalDensity.current
     val coverUri = remember(tracks) { tracks.firstNotNullOfOrNull { it.albumArtUri?.takeIf(String::isNotBlank) } }
     val distinctArtists = remember(tracks) { tracks.map { it.artist }.filter { it.isNotBlank() }.distinct() }
     val variousArtists = distinctArtists.size > 1
@@ -135,6 +167,20 @@ fun AlbumScreen(
     var canExpand by remember { mutableStateOf(false) }
     var menuOpen by remember { mutableStateOf(false) }
     val coverSize = MusicProTokens.Size.Touch * 5
+    val isAlbumPlaying = isPlaying && currentPlayingTrack != null && tracks.any { it.id == currentPlayingTrack.id }
+    val isLightMode = scheme.background.luminance() > 0.5f
+
+    val listState = rememberLazyListState()
+    // Mise à jour 062 — progression du défilement : fondu du verre entre 120 dp et 200 dp.
+    val scrolledDp by remember(density) {
+        derivedStateOf {
+            when {
+                listState.firstVisibleItemIndex > 0 -> 1000f
+                else -> listState.firstVisibleItemScrollOffset / density.density
+            }
+        }
+    }
+    val barProgress = ((scrolledDp - 120f) / 80f).coerceIn(0f, 1f)
 
     Box(
         modifier = modifier
@@ -142,20 +188,24 @@ fun AlbumScreen(
             .background(scheme.background)
             .testTag("album_screen")
     ) {
-        // Fondu de la couleur dominante de la pochette vers le fond.
+        // Mise à jour 061 — dominante assombrie à 45 % d'opacité, palier plat jusqu'au
+        // titre puis dégradé vertical vers le fond du thème.
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(MusicProTokens.Size.Touch * 8)
+                .height(MusicProTokens.Size.Touch * 10)
                 .background(
                     Brush.verticalGradient(
-                        listOf(coverColor.copy(alpha = 0.40f), scheme.background)
+                        0f to coverColor.copy(alpha = 0.45f),
+                        0.85f to coverColor.copy(alpha = 0.45f),
+                        1f to scheme.background
                     )
                 )
         )
 
         Box(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
             LazyColumn(
+                state = listState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
                     top = MusicProTokens.Size.Touch + MusicProTokens.Spacing.Sm,
@@ -201,10 +251,15 @@ fun AlbumScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(MusicProTokens.Spacing.Xs)
                     ) {
+                        // Mise à jour 061 — titre blanc sur l'image (l'ombre garantit la
+                        // lisibilité sur une dominante claire) ; le titre du thème apparaît
+                        // dans la barre translucide quand l'en-tête défile hors de l'écran.
                         Text(
                             text = albumName,
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = scheme.onBackground,
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                shadow = Shadow(color = Color.Black.copy(alpha = 0.45f), blurRadius = 12f)
+                            ),
+                            color = Color.White,
                             textAlign = TextAlign.Center,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
@@ -213,7 +268,7 @@ fun AlbumScreen(
                         Text(
                             text = artist,
                             style = MaterialTheme.typography.titleMedium,
-                            color = scheme.onBackground,
+                            color = Color.White.copy(alpha = 0.92f),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             // Mise à jour 024 : le nom de l'artiste ouvre sa page.
@@ -230,12 +285,14 @@ fun AlbumScreen(
                         Text(
                             text = stringResource(R.string.album_type),
                             style = MaterialTheme.typography.labelLarge,
-                            color = scheme.onSurfaceVariant
+                            color = Color.White.copy(alpha = 0.8f)
                         )
                     }
                 }
 
                 item {
+                    // Mise à jour 063 — Aléatoire (cercle 44 dp), Lecture (pilule 56 dp,
+                    // terracotta en mode clair, « Pause » pendant la lecture), Télécharger.
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(MusicProTokens.Spacing.Md, Alignment.CenterHorizontally),
@@ -249,23 +306,26 @@ fun AlbumScreen(
                             tag = "album_shuffle"
                         )
                         Button(
-                            onClick = { onPlay(false) },
+                            onClick = { if (isAlbumPlaying) onTogglePlayback() else onPlay(false) },
                             enabled = count > 0,
                             shape = MusicProTokens.Radius.PillShape,
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.White,
-                                contentColor = Color.Black,
+                                containerColor = if (isLightMode) MusicProTerracotta else Color.White,
+                                contentColor = if (isLightMode) Color.White else Color.Black,
                                 disabledContainerColor = scheme.onSurface.copy(alpha = 0.12f),
                                 disabledContentColor = scheme.onSurface.copy(alpha = 0.38f)
                             ),
                             modifier = Modifier
-                                .heightIn(min = MusicProTokens.Size.Touch)
+                                .heightIn(min = 56.dp)
                                 .testTag("album_play")
                         ) {
-                            Icon(Icons.Default.PlayArrow, contentDescription = null)
+                            Icon(
+                                if (isAlbumPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                contentDescription = null
+                            )
                             Spacer(Modifier.width(MusicProTokens.Spacing.Xs))
                             Text(
-                                text = stringResource(R.string.album_play),
+                                text = stringResource(if (isAlbumPlaying) R.string.album_pause else R.string.album_play),
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -280,16 +340,19 @@ fun AlbumScreen(
                 }
 
                 item {
+                    // Mise à jour 064 — description repliable : 3 lignes, déploiement
+                    // animé en 200 ms, lien « PLUS / MOINS » en petites majuscules.
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = MusicProTokens.Spacing.Lg)
+                            .animateContentSize(animationSpec = tween(200))
                     ) {
                         Text(
                             text = description,
                             style = MaterialTheme.typography.bodyMedium,
                             color = scheme.onSurfaceVariant,
-                            maxLines = if (expanded) Int.MAX_VALUE else 2,
+                            maxLines = if (expanded) Int.MAX_VALUE else 3,
                             overflow = TextOverflow.Ellipsis,
                             onTextLayout = { if (!expanded) canExpand = it.hasVisualOverflow }
                         )
@@ -303,6 +366,8 @@ fun AlbumScreen(
                                 Text(
                                     text = stringResource(if (expanded) R.string.album_less else R.string.album_more),
                                     fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp,
+                                    letterSpacing = 1.5.sp,
                                     color = scheme.onBackground
                                 )
                             }
@@ -317,69 +382,90 @@ fun AlbumScreen(
                         isCurrent = currentPlayingTrack?.id == track.id,
                         isPlaying = isPlaying && currentPlayingTrack?.id == track.id,
                         isExplicit = track.id in explicitTrackIds,
-                        onClick = { onTrackClick(track) }
+                        onClick = { onTrackClick(track) },
+                        onOpenActions = { onOpenTrackActions(track) }
                     )
                 }
             }
 
-            // Barre d'actions : retour à gauche, +, recherche et ⋯ à droite.
-            Row(
+            // Mise à jour 062 — barre du haut : invisible au repos, verre translucide au
+            // défilement avec le titre de l'album en fondu (120 → 200 dp). Cibles 48 dp.
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = MusicProTokens.Spacing.Sm),
-                verticalAlignment = Alignment.CenterVertically
+                    .background(scheme.surface.copy(alpha = 0.86f * barProgress))
+                    .testTag("album_top_bar")
             ) {
-                IconButton(
-                    onClick = onBack,
-                    modifier = Modifier.size(MusicProTokens.Size.Touch).testTag("album_back")
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = MusicProTokens.Spacing.Sm),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.album_back),
-                        tint = scheme.onBackground
-                    )
-                }
-                Spacer(Modifier.weight(1f))
-                IconButton(
-                    onClick = onAddAlbumToPlaylist,
-                    enabled = count > 0,
-                    modifier = Modifier.size(MusicProTokens.Size.Touch).testTag("album_add")
-                ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = stringResource(R.string.album_add),
-                        tint = scheme.onBackground
-                    )
-                }
-                IconButton(
-                    onClick = onSearch,
-                    modifier = Modifier.size(MusicProTokens.Size.Touch).testTag("album_search")
-                ) {
-                    Icon(
-                        Icons.Default.Search,
-                        contentDescription = stringResource(R.string.album_search),
-                        tint = scheme.onBackground
-                    )
-                }
-                Box {
                     IconButton(
-                        onClick = { menuOpen = true },
-                        modifier = Modifier.size(MusicProTokens.Size.Touch).testTag("album_menu")
+                        onClick = onBack,
+                        modifier = Modifier.size(MusicProTokens.Size.Touch).testTag("album_back")
                     ) {
                         Icon(
-                            Icons.Default.MoreHoriz,
-                            contentDescription = stringResource(R.string.album_menu),
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.album_back),
                             tint = scheme.onBackground
                         )
                     }
-                    DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.album_share)) },
-                            onClick = {
-                                menuOpen = false
-                                onShare()
-                            }
+                    Text(
+                        text = albumName,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = scheme.onBackground,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = MusicProTokens.Spacing.Md)
+                            .alpha(barProgress)
+                            .testTag("album_top_bar_title")
+                    )
+                    IconButton(
+                        onClick = onAddAlbumToPlaylist,
+                        enabled = count > 0,
+                        modifier = Modifier.size(MusicProTokens.Size.Touch).testTag("album_add")
+                    ) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = stringResource(R.string.album_add),
+                            tint = scheme.onBackground
                         )
+                    }
+                    IconButton(
+                        onClick = onSearch,
+                        modifier = Modifier.size(MusicProTokens.Size.Touch).testTag("album_search")
+                    ) {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = stringResource(R.string.album_search),
+                            tint = scheme.onBackground
+                        )
+                    }
+                    Box {
+                        IconButton(
+                            onClick = { menuOpen = true },
+                            modifier = Modifier.size(MusicProTokens.Size.Touch).testTag("album_menu")
+                        ) {
+                            Icon(
+                                Icons.Default.MoreHoriz,
+                                contentDescription = stringResource(R.string.album_menu),
+                                tint = scheme.onBackground
+                            )
+                        }
+                        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.album_share)) },
+                                onClick = {
+                                    menuOpen = false
+                                    onShare()
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -400,7 +486,7 @@ private fun RoundActionButton(
         onClick = onClick,
         enabled = enabled,
         modifier = Modifier
-            .size(MusicProTokens.Size.Touch)
+            .size(AlbumActionCircleSize)
             .clip(CircleShape)
             .border(MusicProTokens.Size.Stroke, scheme.outline, CircleShape)
             .testTag(tag)
@@ -416,26 +502,30 @@ private fun AlbumTrackRow(
     isCurrent: Boolean,
     isPlaying: Boolean,
     isExplicit: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onOpenActions: () -> Unit
 ) {
     val scheme = MaterialTheme.colorScheme
+    val context = LocalContext.current
+    val reduceMotion = remember {
+        Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+    }
     val titleColor = if (isCurrent) scheme.primary else scheme.onBackground
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = MusicProTokens.Size.Touch)
+            .heightIn(min = AlbumTrackRowHeight)
             .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = MusicProTokens.Spacing.Lg, vertical = MusicProTokens.Spacing.Sm),
+            .padding(horizontal = MusicProTokens.Spacing.Lg, vertical = MusicProTokens.Spacing.Xs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(MusicProTokens.Spacing.Md)
     ) {
         Box(modifier = Modifier.width(MusicProTokens.Spacing.Xl), contentAlignment = Alignment.Center) {
             if (isPlaying) {
-                Icon(
-                    Icons.Default.PlayArrow,
-                    contentDescription = null,
-                    tint = scheme.primary,
-                    modifier = Modifier.size(MusicProTokens.Size.Icon)
+                // Mise à jour 065 — égaliseur animé pour le morceau en cours de lecture.
+                EqualizerIndicator(
+                    color = scheme.primary,
+                    animate = !reduceMotion
                 )
             } else {
                 Text(
@@ -445,33 +535,49 @@ private fun AlbumTrackRow(
                 )
             }
         }
-        Column(modifier = Modifier.weight(1f)) {
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(MusicProTokens.Spacing.Xs)
+        ) {
             Text(
                 text = track.title,
                 style = MaterialTheme.typography.bodyLarge,
                 color = titleColor,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false)
             )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(MusicProTokens.Spacing.Xs)
-            ) {
-                if (isExplicit) ExplicitBadge()
-                Text(
-                    text = track.artist,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = scheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            if (isExplicit) ExplicitBadge()
         }
         Text(
             text = track.formatDuration(),
             style = MaterialTheme.typography.labelMedium,
             color = scheme.onSurfaceVariant
         )
+        Box {
+            var rowMenuOpen by remember { mutableStateOf(false) }
+            IconButton(
+                onClick = { rowMenuOpen = true },
+                modifier = Modifier.size(MusicProTokens.Size.Touch).testTag("album_row_menu_${track.id}")
+            ) {
+                Icon(
+                    Icons.Default.MoreVert,
+                    contentDescription = stringResource(R.string.artist_row_menu, track.title),
+                    tint = scheme.onSurfaceVariant
+                )
+            }
+            DropdownMenu(expanded = rowMenuOpen, onDismissRequest = { rowMenuOpen = false }) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.album_track_actions)) },
+                    leadingIcon = { Icon(Icons.Default.MoreVert, contentDescription = null) },
+                    onClick = {
+                        rowMenuOpen = false
+                        onOpenActions()
+                    }
+                )
+            }
+        }
     }
 }
 
@@ -495,7 +601,7 @@ private fun ExplicitBadge() {
     }
 }
 
-/** Couleur dominante de la pochette (calcul hors du thread principal), avec fondu de 320 ms. */
+/** Couleur dominante de la pochette (calcul hors du thread principal), assombrie et fondue en 320 ms. */
 @Composable
 private fun rememberCoverColor(uri: String?): Color {
     val context = LocalContext.current.applicationContext
@@ -524,7 +630,7 @@ private fun extractCoverColor(context: android.content.Context, uriString: Strin
     return try {
         val pixels = IntArray(bitmap.width * bitmap.height)
         bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
-        dominantAccentArgb(pixels, isDark)
+        darkened(dominantAccentArgb(pixels, isDark) ?: return null)
     } finally {
         bitmap.recycle()
     }

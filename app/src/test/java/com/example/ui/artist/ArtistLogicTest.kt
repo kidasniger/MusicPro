@@ -15,7 +15,8 @@ class ArtistLogicTest {
         folder: String = "f",
         lastPlayed: Long = 0L,
         duration: Long = 60_000L,
-        art: String? = null
+        art: String? = null,
+        dateAdded: Long = 0L
     ) = AudioTrackEntity(
         id = id,
         title = title,
@@ -26,7 +27,8 @@ class ArtistLogicTest {
         albumArtUri = art,
         path = "/m/$id.mp3",
         folder = folder,
-        lastPlayed = lastPlayed
+        lastPlayed = lastPlayed,
+        dateAdded = dateAdded
     )
 
     @Test
@@ -54,6 +56,47 @@ class ArtistLogicTest {
             track(4, "X", title = "y", lastPlayed = 90)
         )
         assertEquals(listOf(4L, 3L, 2L), topTracksOf(tracks, limit = 3).map { it.id })
+    }
+
+    @Test
+    fun `mise à jour 066 — les plus joués dominent puis dernière écoute`() {
+        val tracks = listOf(
+            track(1, "X", title = "peu joué", lastPlayed = 100),
+            track(2, "X", title = "très joué", lastPlayed = 0),
+            track(3, "X", title = "moyen", lastPlayed = 50)
+        )
+        val counts = mapOf(2L to 12, 3L to 3, 1L to 1)
+        assertEquals(listOf(2L, 3L, 1L), topTracksOf(tracks, limit = 3, playCounts = counts).map { it.id })
+    }
+
+    @Test
+    fun `mise à jour 066 — sans historique l'ordre retombe sur la dernière écoute`() {
+        val tracks = listOf(track(1, "X", title = "b", lastPlayed = 5), track(2, "X", title = "a", lastPlayed = 9))
+        assertEquals(listOf(2L, 1L), topTracksOf(tracks, limit = 2).map { it.id })
+    }
+
+    @Test
+    fun `mise à jour 067 — apparitions seulement hors albums dominés par l'artiste`() {
+        val all = listOf(
+            // Album « Coop » : 2 titres de X, 3 de Y → apparition pour X, album de Y.
+            track(1, "X", album = "Coop"), track(2, "X", album = "Coop"),
+            track(3, "Y", album = "Coop"), track(4, "Y", album = "Coop"), track(5, "Y", album = "Coop"),
+            // Album « Solo X » : dominé par X → pas une apparition.
+            track(6, "X", album = "Solo X"), track(7, "X", album = "Solo X"),
+            // Album « Autre » : aucun titre de X → ignoré.
+            track(8, "Y", album = "Autre")
+        )
+        val appearances = appearancesOf(all, "X")
+        assertEquals(listOf("Coop"), appearances.map { it.name })
+        assertEquals(listOf(1L, 2L), appearances.first().tracks.map { it.id })
+    }
+
+    @Test
+    fun `mise à jour 067 — année déduite de la date d'ajout`() {
+        assertEquals(2024, releaseYearOf(1706745600L)) // 1er février 2024 UTC
+        assertEquals(null, releaseYearOf(0L))
+        val release = artistReleasesOf(listOf(track(1, "X", album = "A", dateAdded = 1706745600L)))
+        assertEquals(2024, release.first().year)
     }
 
     @Test

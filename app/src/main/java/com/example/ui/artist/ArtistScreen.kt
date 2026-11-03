@@ -101,7 +101,8 @@ fun ArtistScreen(
     onAddToQueue: (AudioTrackEntity, Boolean) -> Unit,
     onOpenAlbum: (String) -> Unit,
     onOpenArtist: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    playCounts: Map<Long, Int> = emptyMap()
 ) {
     val scheme = MaterialTheme.colorScheme
     val context = LocalContext.current
@@ -109,11 +110,17 @@ fun ArtistScreen(
     val releases = remember(artistTracks) { artistReleasesOf(artistTracks) }
     val discography = remember(releases) { discographyOf(releases) }
     val singles = remember(releases) { singlesOf(releases) }
-    val topTracks = remember(artistTracks) { topTracksOf(artistTracks, Int.MAX_VALUE) }
+    val appearances = remember(allTracks, artistName) { appearancesOf(allTracks, artistName) }
+    val topTracks = remember(artistTracks, playCounts) { topTracksOf(artistTracks, Int.MAX_VALUE, playCounts) }
     val similar = remember(allTracks, artistName) { similarArtistsOf(allTracks, artistName) }
     var showAll by remember { mutableStateOf(false) }
     var infoOpen by remember { mutableStateOf(false) }
-    val visibleTop = if (showAll) topTracks else topTracks.take(TopTracksLimit)
+    // Mise à jour 066 — 5 morceaux puis déploiement jusqu'à 10.
+    val visibleTop = if (showAll) {
+        topTracks.take(TopTracksExpandedLimit)
+    } else {
+        topTracks.take(TopTracksLimit)
+    }
     val hasTracks = artistTracks.isNotEmpty()
 
     Box(
@@ -219,7 +226,8 @@ fun ArtistScreen(
             }
 
             if (discography.isNotEmpty()) {
-                item { SectionTitle(stringResource(R.string.artist_discography)) }
+                // Mise à jour 067 — carrousels « Albums », « Singles et EP », « Apparitions ».
+                item { SectionTitle(stringResource(R.string.artist_albums_section)) }
                 item {
                     ReleaseCarousel(
                         releases = discography,
@@ -231,12 +239,24 @@ fun ArtistScreen(
             }
 
             if (singles.isNotEmpty()) {
-                item { SectionTitle(stringResource(R.string.artist_singles)) }
+                item { SectionTitle(stringResource(R.string.artist_singles_ep)) }
                 item {
                     ReleaseCarousel(
                         releases = singles,
                         metaRes = R.string.artist_release_single,
                         tagPrefix = "artist_single_",
+                        onClick = onOpenAlbum
+                    )
+                }
+            }
+
+            if (appearances.isNotEmpty()) {
+                item { SectionTitle(stringResource(R.string.artist_appearances)) }
+                item {
+                    ReleaseCarousel(
+                        releases = appearances,
+                        metaRes = R.string.artist_release_appearance,
+                        tagPrefix = "artist_appearance_",
                         onClick = onOpenAlbum
                     )
                 }
@@ -449,8 +469,18 @@ private fun TopTrackRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+            // Mise à jour 066 — « album · année » en gris (année déduite de la date d'ajout).
+            val year = releaseYearOf(track.dateAdded)
             Text(
-                text = track.album.ifBlank { "Album Inconnu" },
+                text = if (year != null) {
+                    stringResource(
+                        R.string.artist_album_year_format,
+                        track.album.ifBlank { "Album Inconnu" },
+                        year
+                    )
+                } else {
+                    track.album.ifBlank { "Album Inconnu" }
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = scheme.onSurfaceVariant,
                 maxLines = 1,
@@ -551,6 +581,15 @@ private fun ReleaseCarousel(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                // Mise à jour 067 — année affichée sous la pochette quand elle est connue.
+                if (release.year != null) {
+                    Text(
+                        text = release.year.toString(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = scheme.onSurfaceVariant,
+                        maxLines = 1
+                    )
+                }
                 Text(
                     text = stringResource(metaRes, count),
                     style = MaterialTheme.typography.bodySmall,

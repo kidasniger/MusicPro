@@ -5,22 +5,27 @@ import com.example.data.local.AudioTrackEntity
 /** Nom affiché quand le fichier n'a pas d'artiste (identique à celui des résumés de la bibliothèque). */
 internal const val UnknownArtistName = "Artiste Inconnu"
 
-/** Au-delà de ce nombre de titres, une sortie est classée « Discographie » ; sinon « Singles ». */
+/** Au-delà de ce nombre de titres, une sortie est classée « Discographie » ; sinon « Singles et EP ». */
 internal const val SingleMaxTracks = 3
 
-/** Nombre de titres montrés avant « Afficher tout ». */
+/** Nombre de titres montrés avant « Voir plus ». */
 internal const val TopTracksLimit = 5
+
+/** Mise à jour 066 — maximum affiché après déploiement de « Voir plus ». */
+internal const val TopTracksExpandedLimit = 10
 
 /** Nombre maximum d'artistes similaires proposés. */
 internal const val SimilarArtistsLimit = 10
 
 internal fun normalizedArtist(artist: String): String = artist.ifBlank { UnknownArtistName }
 
-/** Une sortie (album ou single) d'un artiste, regroupée à partir des fichiers détectés. */
+/** Une sortie (album, single ou apparition) d'un artiste, regroupée à partir des fichiers détectés. */
 internal data class ArtistRelease(
     val name: String,
     val coverUri: String?,
-    val tracks: List<AudioTrackEntity>
+    val tracks: List<AudioTrackEntity>,
+    /** Mise à jour 067 — année (fichiers ajoutés), null si inconnue. */
+    val year: Int? = null
 )
 
 /** Un artiste proche, déduit des dossiers partagés (aucune donnée de genre n'est stockée). */
@@ -35,14 +40,28 @@ internal fun artistTracksOf(tracks: List<AudioTrackEntity>, artistName: String):
     tracks.filter { normalizedArtist(it.artist) == artistName }
         .sortedBy { it.title.lowercase() }
 
-/** Les sorties d'un artiste, par nom d'album. */
+/**
+ * Mise à jour 067 — année d'une sortie : déduite de la date d'ajout locale du fichier
+ * (aucune année de sortie n'est stockée dans les métadonnées). Null si absente.
+ */
+internal fun releaseYearOf(dateAddedSeconds: Long): Int? {
+    if (dateAddedSeconds <= 0L) return null
+    val calendar = java.util.Calendar.getInstance()
+    calendar.timeInMillis = dateAddedSeconds * 1000L
+    return calendar.get(java.util.Calendar.YEAR)
+}
+
+/**
+ * Les sorties d'un artiste, par nom d'album, avec leur année (date d'ajout la plus récente).
+ */
 internal fun artistReleasesOf(artistTracks: List<AudioTrackEntity>): List<ArtistRelease> =
     artistTracks.groupBy { it.album.ifBlank { "Album Inconnu" } }
         .map { (album, list) ->
             ArtistRelease(
                 name = album,
                 coverUri = list.firstNotNullOfOrNull { it.albumArtUri?.takeIf(String::isNotBlank) },
-                tracks = list.sortedBy { it.path.ifBlank { it.title } }
+                tracks = list.sortedBy { it.path.ifBlank { it.title } },
+                year = list.maxOfOrNull { it.dateAdded }?.let(::releaseYearOf)
             )
         }
         .sortedBy { it.name.lowercase() }
@@ -54,13 +73,43 @@ internal fun singlesOf(releases: List<ArtistRelease>): List<ArtistRelease> =
     releases.filter { it.tracks.size <= SingleMaxTracks }
 
 /**
- * Titres les plus joués : faute de compteur de lectures avant la mise à jour 028, on classe par
- * dernière écoute (les plus récents d'abord), puis par titre.
+ * Mise à jour 067 — « Apparitions » : albums où l'artiste apparaît mais qui appartiennent
+ * d'abord à un autre artiste (celui qui y a le plus de morceaux).
  */
-internal fun topTracksOf(artistTracks: List<AudioTrackEntity>, limit: Int = TopTracksLimit): List<AudioTrackEntity> =
+internal fun appearancesOf(
+    allTracks: List<AudioTrackEntity>,
+    artistName: String
+): List<ArtistRelease> = allTracks
+    .groupBy { it.album.ifBlank { "Album Inconnu" } }
+    .mapNotNull { (album, list) ->
+        val mine = list.filter { normalizedArtist(it.artist) == artistName }
+        if (mine.isEmpty()) return@mapNotNull null
+        val dominantArtist = list.groupingBy { normalizedArtist(it.artist) }.eachCount()
+            .maxByOrNull { it.value }?.key
+        if (dominantArtist == artistName) return@mapNotNull null
+        ArtistRelease(
+            name = album,
+            coverUri = mine.firstNotNullOfOrNull { it.albumArtUri?.takeIf(String::isNotBlank) },
+            tracks = mine.sortedBy { it.path.ifBlank { it.title } },
+            year = list.maxOfOrNull { it.dateAdded }?.let(::releaseYearOf)
+        )
+    }
+    .sortedBy { it.name.lowercase() }
+
+/**
+ * Mise à jour 066 — titres les plus joués : classement par nombre d'écoutes
+ * ([playCounts], écoutes cumulées par morceau), puis par dernière écoute, puis par titre.
+ * Sans historique ([playCounts] vide), l'ordre retombe sur les plus récents.
+ */
+internal fun topTracksOf(
+    artistTracks: List<AudioTrackEntity>,
+    limit: Int = TopTracksLimit,
+    playCounts: Map<Long, Int> = emptyMap()
+): List<AudioTrackEntity> =
     artistTracks
         .sortedWith(
-            compareByDescending<AudioTrackEntity> { it.lastPlayed }
+            compareByDescending<AudioTrackEntity> { playCounts[it.id] ?: 0 }
+                .thenByDescending { it.lastPlayed }
                 .thenBy { it.title.lowercase() }
         )
         .take(limit)

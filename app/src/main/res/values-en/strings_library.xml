@@ -77,4 +77,20 @@
     <string name="selection_play_next">Play next</string>
     <string name="selection_delete">Delete</string>
     <string name="selection_exit">Exit selection</string>
+    <!-- 061-065 album, 068 playlist, 069 AI, 070 share card -->
+    <string name="album_pause">Pause</string>
+    <string name="album_track_actions">Track actions</string>
+    <string name="playlist_track_removed">“%1$s” removed from the playlist</string>
+    <string name="ai_generate_button">Generate with AI</string>
+    <string name="ai_ambiance_label">Describe the mood…</string>
+    <string name="ai_generate">Generate</string>
+    <string name="ai_generating">Generating…</string>
+    <string name="ai_preview_title">Tracks picked from your library</string>
+    <string name="ai_create">Create the playlist</string>
+    <string name="ai_need_key">Add your AI API key in settings to use this feature.</string>
+    <string name="ai_error">Generation failed. Try again.</string>
+    <string name="share_card_title">Share track card</string>
+    <string name="share_card_hint">Choose to include the cover art or leave it out to respect rights.</string>
+    <string name="share_card_with_cover">With cover art</string>
+    <string name="share_card_no_cover">Without cover art</string>
 </resources>

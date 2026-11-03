@@ -47,8 +47,16 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -58,9 +66,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -78,6 +88,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil.compose.AsyncImage
+import com.example.R
 import com.example.data.local.AudioTrackEntity
 import com.example.data.local.PlaylistSummary
 import com.example.ui.theme.MusicProCyanLight
@@ -89,6 +100,7 @@ import com.example.ui.theme.MusicProPrimaryGradient
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPrimary
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @Composable
@@ -101,6 +113,7 @@ fun PlaylistDetailScreen(
     onPlayAll: (startIndex: Int, shuffle: Boolean) -> Unit,
     onTrackClick: (track: AudioTrackEntity, queue: List<AudioTrackEntity>) -> Unit,
     onRemoveTrack: (trackId: Long) -> Unit,
+    onUndoRemoveTrack: (trackId: Long) -> Unit,
     onReorderTracks: (orderedTrackIds: List<Long>) -> Unit,
     onDeletePlaylist: () -> Unit,
     onRenamePlaylist: (newName: String, newDescription: String) -> Unit,
@@ -119,14 +132,31 @@ fun PlaylistDetailScreen(
     var showMenu by remember { mutableStateOf(false) }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
     var showRenameDialog by remember { mutableStateOf(false) }
-    var trackPendingRemoval by remember { mutableStateOf<AudioTrackEntity?>(null) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Mise à jour 068 — suppression par balayage avec « Annuler » dans un snackbar.
+    fun removeTrackWithUndo(track: AudioTrackEntity) {
+        localTracks.removeAll { it.id == track.id }
+        onRemoveTrack(track.id)
+        scope.launch {
+            val result = snackbarHostState.showSnackbar(
+                message = context.getString(R.string.playlist_track_removed, track.title),
+                actionLabel = context.getString(R.string.playlist_cancel),
+                duration = SnackbarDuration.Short
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                onUndoRemoveTrack(track.id)
+            }
+        }
+    }
 
     // Interception du bouton retour Android pour fermer les dialogues ou revenir à la vue précédente
     BackHandler {
         when {
             showDeleteConfirmDialog -> showDeleteConfirmDialog = false
             showRenameDialog -> showRenameDialog = false
-            trackPendingRemoval != null -> trackPendingRemoval = null
             showMenu -> showMenu = false
             else -> onBack()
         }
@@ -136,7 +166,8 @@ fun PlaylistDetailScreen(
         modifier = modifier
             .fillMaxSize()
             .testTag("playlist_detail_screen"),
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -242,7 +273,8 @@ fun PlaylistDetailScreen(
                 trackCount = localTracks.size,
                 onPlayAll = { onPlayAll(0, false) },
                 onShuffle = { onPlayAll(0, true) },
-                onAddTracks = onOpenAddTracks
+                onAddTracks = onOpenAddTracks,
+                onRename = { showRenameDialog = true }
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -342,40 +374,71 @@ fun PlaylistDetailScreen(
                     ) { index, track ->
                         val isCurrent = currentPlayingTrack?.id == track.id
 
-                        ReorderableTrackRow(
-                            index = index,
-                            totalCount = localTracks.size,
-                            track = track,
-                            isCurrent = isCurrent,
-                            isPlaying = isPlaying && isCurrent,
-                            onClick = {
-                                onTrackClick(track, localTracks.toList())
-                            },
-                            onRemove = {
-                                trackPendingRemoval = track
-                            },
-                            onMoveUp = {
-                                if (index > 0) {
-                                    val item = localTracks.removeAt(index)
-                                    localTracks.add(index - 1, item)
-                                    onReorderTracks(localTracks.map { it.id })
-                                }
-                            },
-                            onMoveDown = {
-                                if (index < localTracks.size - 1) {
-                                    val item = localTracks.removeAt(index)
-                                    localTracks.add(index + 1, item)
-                                    onReorderTracks(localTracks.map { it.id })
-                                }
-                            },
-                            onDragMoved = { from, to ->
-                                if (from in localTracks.indices && to in localTracks.indices && from != to) {
-                                    val item = localTracks.removeAt(from)
-                                    localTracks.add(to, item)
-                                    onReorderTracks(localTracks.map { it.id })
+                        // Mise à jour 068 — balayage vers la gauche pour retirer, snackbar « Annuler ».
+                        val dismissState = rememberSwipeToDismissBoxState(
+                            confirmValueChange = { value ->
+                                if (value == SwipeToDismissBoxValue.EndToStart) {
+                                    removeTrackWithUndo(track)
+                                    true
+                                } else {
+                                    false
                                 }
                             }
                         )
+                        SwipeToDismissBox(
+                            state = dismissState,
+                            enableDismissFromStartToEnd = false,
+                            backgroundContent = {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(MusicProError)
+                                        .padding(horizontal = 20.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.End
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = null,
+                                        tint = Color.White
+                                    )
+                                }
+                            }
+                        ) {
+                            ReorderableTrackRow(
+                                index = index,
+                                totalCount = localTracks.size,
+                                track = track,
+                                isCurrent = isCurrent,
+                                isPlaying = isPlaying && isCurrent,
+                                onClick = {
+                                    onTrackClick(track, localTracks.toList())
+                                },
+                                onRemove = { removeTrackWithUndo(track) },
+                                onMoveUp = {
+                                    if (index > 0) {
+                                        val item = localTracks.removeAt(index)
+                                        localTracks.add(index - 1, item)
+                                        onReorderTracks(localTracks.map { it.id })
+                                    }
+                                },
+                                onMoveDown = {
+                                    if (index < localTracks.size - 1) {
+                                        val item = localTracks.removeAt(index)
+                                        localTracks.add(index + 1, item)
+                                        onReorderTracks(localTracks.map { it.id })
+                                    }
+                                },
+                                onDragMoved = { from, to ->
+                                    if (from in localTracks.indices && to in localTracks.indices && from != to) {
+                                        val item = localTracks.removeAt(from)
+                                        localTracks.add(to, item)
+                                        onReorderTracks(localTracks.map { it.id })
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -413,38 +476,6 @@ fun PlaylistDetailScreen(
         )
     }
 
-    // Dialogue de suppression d'un morceau de la playlist
-    trackPendingRemoval?.let { track ->
-        AlertDialog(
-            onDismissRequest = { trackPendingRemoval = null },
-            title = { Text("Retirer le morceau", color = MaterialTheme.colorScheme.onBackground) },
-            text = {
-                Text(
-                    "Retirer \"${track.title}\" de la playlist \"${playlist.name}\" ?",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        onRemoveTrack(track.id)
-                        localTracks.removeAll { it.id == track.id }
-                        trackPendingRemoval = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MusicProError)
-                ) {
-                    Text("Retirer")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { trackPendingRemoval = null }) {
-                    Text("Annuler", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            },
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    }
-
     // Dialogue de renommage de la playlist
     if (showRenameDialog) {
         CreatePlaylistDialog(
@@ -466,7 +497,8 @@ private fun PlaylistHeaderHero(
     trackCount: Int,
     onPlayAll: () -> Unit,
     onShuffle: () -> Unit,
-    onAddTracks: () -> Unit
+    onAddTracks: () -> Unit,
+    onRename: () -> Unit
 ) {
     Surface(
         shape = RoundedCornerShape(20.dp),
@@ -492,14 +524,31 @@ private fun PlaylistHeaderHero(
                 )
 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = playlist.name,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = playlist.name,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+                        // Mise à jour 068 — renommage en place (crayon à côté du nom).
+                        IconButton(
+                            onClick = onRename,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .testTag("playlist_rename_inline")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Renommer la playlist",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
 
                     if (playlist.description.isNotBlank()) {
                         Spacer(modifier = Modifier.height(4.dp))

@@ -77,4 +77,20 @@
     <string name="selection_play_next">Lire ensuite</string>
     <string name="selection_delete">Supprimer</string>
     <string name="selection_exit">Quitter la sélection</string>
+    <!-- 061-065 — album, 068 — playlist, 069 — IA, 070 — carte de partage -->
+    <string name="album_pause">Pause</string>
+    <string name="album_track_actions">Actions du morceau</string>
+    <string name="playlist_track_removed">« %1$s » retiré de la playlist</string>
+    <string name="ai_generate_button">Générer avec l\'IA</string>
+    <string name="ai_ambiance_label">Décrivez l\'ambiance…</string>
+    <string name="ai_generate">Générer</string>
+    <string name="ai_generating">Génération en cours…</string>
+    <string name="ai_preview_title">Morceaux choisis dans votre bibliothèque</string>
+    <string name="ai_create">Créer la playlist</string>
+    <string name="ai_need_key">Ajoutez votre clé API IA dans les réglages pour utiliser cette fonction.</string>
+    <string name="ai_error">Génération impossible. Réessayez.</string>
+    <string name="share_card_title">Partager la carte du morceau</string>
+    <string name="share_card_hint">Choisissez d\'inclure la pochette ou de la laisser de côté pour respecter les droits.</string>
+    <string name="share_card_with_cover">Avec la pochette</string>
+    <string name="share_card_no_cover">Sans pochette</string>
 </resources>

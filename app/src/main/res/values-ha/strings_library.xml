@@ -77,4 +77,20 @@
     <string name="selection_play_next">Kunna na gaba</string>
     <string name="selection_delete">Goge</string>
     <string name="selection_exit">Fita daga zaɓi</string>
+    <!-- 061-065 kundin, 068 jerin wakoki, 069 AI, 070 katin rabawa -->
+    <string name="album_pause">Tsayawo na ɗan lokaci</string>
+    <string name="album_track_actions">Ayyukan waƙa</string>
+    <string name="playlist_track_removed">An cire “%1$s” daga jerin waƙoƙi</string>
+    <string name="ai_generate_button">Kirkira da AI</string>
+    <string name="ai_ambiance_label">Bayyana yanayin…</string>
+    <string name="ai_generate">Kirkira</string>
+    <string name="ai_generating">Ana kirkira…</string>
+    <string name="ai_preview_title">Wakokin da aka zaɓa daga ɗakin karatu na ka</string>
+    <string name="ai_create">Kirkirin jerin waƙoƙi</string>
+    <string name="ai_need_key">Ƙara maɓallin API ɗinka a cikin saituna domin amfani da wannan fasalin.</string>
+    <string name="ai_error">Kirkira ta gaza. Sake gwadawa.</string>
+    <string name="share_card_title">Raba katin waƙa</string>
+    <string name="share_card_hint">Zaɓi saka murfin ko bar shi don kare haƙƙoƙi.</string>
+    <string name="share_card_with_cover">Tare da murfin</string>
+    <string name="share_card_no_cover">Ba tare da murfin ba</string>
 </resources>

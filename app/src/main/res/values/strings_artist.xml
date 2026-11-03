@@ -23,4 +23,10 @@
         <item quantity="one">%d album</item>
         <item quantity="other">%d albums</item>
     </plurals>
+    <!-- 066-067 — sections de la page artiste -->
+    <string name="artist_albums_section">Albums</string>
+    <string name="artist_singles_ep">Singles et EP</string>
+    <string name="artist_appearances">Apparitions</string>
+    <string name="artist_release_appearance">Apparition · %s</string>
+    <string name="artist_album_year_format">%1$s · %2$d</string>
 </resources>

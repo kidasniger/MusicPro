@@ -135,6 +135,7 @@ import com.example.ui.components.EmptyAudioStateView
 import com.example.ui.components.EmptyStateVariant
 import com.example.ui.components.SkeletonTracksList
 import com.example.ui.components.TrackActionsSheet
+import com.example.ui.components.TrackShareCardDialog
 import com.example.ui.components.glass.GlassBackdropHost
 import com.example.ui.components.glass.GlassMiniPlayer
 import com.example.ui.components.glass.GlassNavBar
@@ -159,6 +160,7 @@ import com.example.ui.search.SearchScreen
 import com.example.ui.stats.StatsScreen
 import com.example.ui.chat.ChatScreen
 import com.example.ui.theme.MusicProCyanLight
+import androidx.compose.ui.graphics.toArgb
 import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProCyanVibrant
 import com.example.ui.theme.MusicProGreenEmerald
@@ -318,6 +320,7 @@ fun HomeScreen(
     var trackForActions by remember { mutableStateOf<AudioTrackEntity?>(null) }
     // Cible des paroles quand elles sont ouvertes depuis la feuille d'actions.
     var lyricsTargetTrack by remember { mutableStateOf<AudioTrackEntity?>(null) }
+    var trackForShareCard by remember { mutableStateOf<AudioTrackEntity?>(null) }
 
     val saveFeedbackMessage by audioViewModel.saveFeedbackMessage.collectAsStateWithLifecycle()
 
@@ -599,6 +602,10 @@ fun HomeScreen(
                                     onPlaylistClick = { pl -> audioViewModel.selectPlaylist(pl.id) },
                                     onPlayPlaylistDirectly = { pl -> audioViewModel.playPlaylistDirectly(pl.id) },
                                     onCreatePlaylist = { name, desc -> audioViewModel.createPlaylist(name, desc) },
+                                    onCreatePlaylistWithTracks = { name, desc, ids ->
+                                        // Mise à jour 069 — playlist générée avec l'IA (morceaux locaux).
+                                        audioViewModel.createPlaylist(name, desc, ids)
+                                    },
                                     onRenamePlaylist = { id, name, desc -> audioViewModel.updatePlaylistName(id, name, desc) },
                                     onDeletePlaylist = { id -> audioViewModel.deletePlaylist(id) },
                                     onSelectTab = { audioViewModel.selectTab(it) },
@@ -708,13 +715,8 @@ fun HomeScreen(
                 onOpenKaraokeSettings = { isKaraokeSettingsOpen = true },
                 onAddToPlaylist = { activeTrack?.let { tracksForPlaylistChooser = listOf(it) } },
                 onShare = {
-                    activeTrack?.let { track ->
-                        val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(android.content.Intent.EXTRA_TEXT, track.title + " — " + track.artist)
-                        }
-                        context.startActivity(android.content.Intent.createChooser(shareIntent, "Partager le morceau"))
-                    }
+                    // Mise à jour 070 — carte de morceau (avec/sans pochette) au lieu du texte.
+                    activeTrack?.let { track -> trackForShareCard = track }
                 },
                 lyricsData = lyricsData,
                 onOpenLyrics = { isLyricsOpen = true },
@@ -902,6 +904,10 @@ fun HomeScreen(
                     onRemoveTrack = { trackId ->
                         audioViewModel.removeTrackFromPlaylist(pl.id, trackId)
                     },
+                    onUndoRemoveTrack = { trackId ->
+                        // Mise à jour 068 — « Annuler » du snackbar : réinsertion du morceau.
+                        audioViewModel.addTracksToPlaylist(pl.id, listOf(trackId))
+                    },
                     onReorderTracks = { orderedTrackIds ->
                         audioViewModel.reorderPlaylistTracks(pl.id, orderedTrackIds)
                     },
@@ -993,18 +999,19 @@ fun HomeScreen(
                     isLyricsOpen = true
                 },
                 onShare = {
-                    val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(
-                            android.content.Intent.EXTRA_TEXT,
-                            actionTrack.title + " — " + actionTrack.artist
-                        )
-                    }
-                    context.startActivity(
-                        android.content.Intent.createChooser(shareIntent, "Partager le morceau")
-                    )
+                    // Mise à jour 070 — carte de morceau (avec/sans pochette).
+                    trackForShareCard = actionTrack
                 },
                 onDelete = { audioViewModel.requestDeleteTracks(listOf(actionTrack)) }
+            )
+        }
+
+        // Mise à jour 070 — carte de morceau à partager (avec ou sans pochette).
+        trackForShareCard?.let { track ->
+            TrackShareCardDialog(
+                track = track,
+                accentArgb = MusicProCyanNeon.toArgb(),
+                onDismiss = { trackForShareCard = null }
             )
         }
 
