@@ -12,11 +12,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         AudioTrackEntity::class,
         PlaylistEntity::class,
         PlaylistTrackCrossRef::class,
-        ListeningStatEntity::class,
-        ChatEntity::class,
-        ChatMessageEntity::class
+        ListeningStatEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class MusicProDatabase : RoomDatabase() {
@@ -24,9 +22,6 @@ abstract class MusicProDatabase : RoomDatabase() {
     abstract fun audioTrackDao(): AudioTrackDao
     abstract fun playlistDao(): PlaylistDao
     abstract fun listeningStatsDao(): ListeningStatsDao
-
-    /** Mise à jour 097 — historique des conversations de l'assistant IA. */
-    abstract fun chatDao(): ChatDao
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -84,42 +79,25 @@ abstract class MusicProDatabase : RoomDatabase() {
         }
 
         /**
-         * Mise à jour 097 — tables locales du chat : conversations (titre, modèle,
-         * ton) et messages (rôle, contenu, pouce haut/bas), liées en cascade.
+         * Retrait du chat IA : les tables des conversations (mises à jour 097) sont
+         * supprimées. MIGRATION_4_6 couvre les installations restées en version 4,
+         * MIGRATION_5_6 celles qui avaient déjà reçu les tables du chat.
          */
-        val MIGRATION_4_5 = object : Migration(4, 5) {
+        val MIGRATION_4_6 = object : Migration(4, 6) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL(
-                    """
-                    CREATE TABLE IF NOT EXISTS chat_conversations (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                        title TEXT NOT NULL,
-                        model TEXT NOT NULL,
-                        tone TEXT NOT NULL,
-                        suggestionKey TEXT NOT NULL,
-                        createdAt INTEGER NOT NULL,
-                        updatedAt INTEGER NOT NULL
-                    )
-                    """.trimIndent()
-                )
-                db.execSQL(
-                    """
-                    CREATE TABLE IF NOT EXISTS chat_messages (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                        conversationId INTEGER NOT NULL,
-                        role TEXT NOT NULL,
-                        content TEXT NOT NULL,
-                        feedback INTEGER NOT NULL,
-                        createdAt INTEGER NOT NULL,
-                        FOREIGN KEY(conversationId) REFERENCES chat_conversations(id) ON UPDATE NO ACTION ON DELETE CASCADE
-                    )
-                    """.trimIndent()
-                )
-                db.execSQL("CREATE INDEX IF NOT EXISTS index_chat_messages_conversationId ON chat_messages(conversationId)")
+                db.execSQL("DROP TABLE IF EXISTS chat_messages")
+                db.execSQL("DROP TABLE IF EXISTS chat_conversations")
             }
         }
 
-        private val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DROP TABLE IF EXISTS chat_messages")
+                db.execSQL("DROP TABLE IF EXISTS chat_conversations")
+            }
+        }
+
+        private val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_6, MIGRATION_5_6)
 
         @Volatile
         private var INSTANCE: MusicProDatabase? = null

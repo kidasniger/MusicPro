@@ -20,26 +20,12 @@
     <string name="nav_library">Bibliothèque</string>
     <string name="nav_search">Recherche</string>
     <string name="nav_stats">Stats</string>
-    <string name="nav_chat">Chat IA</string>
     <string  translatable="false" name="home_greeting_morning">Bonjour</string>
     <string  translatable="false" name="home_greeting_afternoon">Bon après-midi</string>
     <string  translatable="false" name="home_greeting_evening">Bonsoir</string>
     <string  translatable="false" name="home_greeting_night">Bonne nuit</string>
     <string  translatable="false" name="home_welcome_back">Heureux de vous retrouver sur MusicPro.</string>
     <string  translatable="false" name="home_resume_playback">Reprendre où vous en étiez</string>
-    <string  translatable="false" name="chat_welcome_title">Que voulez-vous découvrir ?</string>
-    <string  translatable="false" name="chat_welcome_subtitle">Votre assistant musical, propulsé par Groq.</string>
-    <string  translatable="false" name="chat_suggestion_playlist">Crée une playlist pour courir</string>
-    <string  translatable="false" name="chat_suggestion_lyrics">Trouve les paroles de…</string>
-    <string  translatable="false" name="chat_suggestion_explain">Explique cet album</string>
-    <string  translatable="false" name="chat_assistant_name">MusicPro IA</string>
-    <string  translatable="false" name="chat_thinking">Réflexion en cours…</string>
-    <string  translatable="false" name="chat_input_hint">Écrivez votre message…</string>
-    <string  translatable="false" name="chat_send">Envoyer</string>
-    <string  translatable="false" name="chat_stop">Arrêter la génération</string>
-    <string  translatable="false" name="chat_privacy_hint">Les messages sont transmis à Groq pour générer les réponses.</string>
-    <string  translatable="false" name="chat_empty_response">Je n’ai pas reçu de réponse. Réessayez.</string>
-    <string  translatable="false" name="chat_error">Une erreur est survenue pendant la réponse.</string>
     <string  translatable="false" name="stats_title">Statistiques d’écoute</string>
     <string  translatable="false" name="stats_week">Temps d’écoute · 7 derniers jours</string>
     <string  translatable="false" name="stats_top_tracks">Morceaux les plus écoutés</string>
@@ -259,8 +245,6 @@
     <!-- Mises à jour 088/089 — hors connexion et diagnostic (textes français pour toutes les langues). -->
     <string translatable="false" name="offline_banner">Hors connexion</string>
     <string translatable="false" name="action_retry">Réessayer</string>
-    <string translatable="false" name="chat_error_friendly">L’assistant n’a pas pu répondre. Vérifiez votre connexion Internet, puis réessayez.</string>
-    <string translatable="false" name="chat_error_offline">Vous êtes hors connexion. Reconnectez-vous pour discuter avec l’assistant.</string>
     <string translatable="false" name="diag_copy_title">Copier le diagnostic</string>
     <string translatable="false" name="diag_copied">Diagnostic copié</string>
 </resources>

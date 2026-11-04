@@ -2,14 +2,12 @@ package com.example.groq
 
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.Header
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
-import retrofit2.http.Streaming
 
 interface GroqApiService {
 
@@ -27,15 +25,6 @@ interface GroqApiService {
         @Part("timestamp_granularities[]") timestampGranularities: RequestBody? = null,
         @Part("language") language: RequestBody? = null
     ): Response<GroqTranscriptionResponse>
-
-    
-    /** Flux SSE des réponses de conversation Groq. */
-    @Streaming
-    @POST("openai/v1/chat/completions")
-    suspend fun streamChatCompletion(
-        @Header("Authorization") authorization: String,
-        @Body request: GroqStreamingChatRequest
-    ): Response<ResponseBody>
 
     /**
      * Normalise un titre/artiste pour améliorer une recherche de paroles LRCLIB.

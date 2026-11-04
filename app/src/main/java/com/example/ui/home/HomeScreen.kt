@@ -53,7 +53,6 @@ import androidx.compose.material.icons.automirrored.outlined.QueueMusic
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Home
@@ -71,7 +70,6 @@ import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.BarChart
-import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.NewReleases
 import androidx.compose.material.icons.outlined.Radio
 import androidx.compose.material.icons.outlined.Search
@@ -173,7 +171,6 @@ import com.example.ui.nowplaying.NowPlayingScreen
 import com.example.ui.radio.RadioScreen
 import com.example.ui.search.SearchScreen
 import com.example.ui.stats.StatsScreen
-import com.example.ui.chat.ChatScreen
 import com.example.ui.theme.MusicProCyanLight
 import androidx.compose.ui.graphics.toArgb
 import com.example.ui.theme.MusicProCyanNeon
@@ -208,8 +205,7 @@ enum class NavigationSection(
     RADIO(R.string.nav_radio, Icons.Outlined.Radio, Icons.Default.Radio),
     LIBRARY(R.string.nav_library, Icons.AutoMirrored.Outlined.QueueMusic, Icons.AutoMirrored.Filled.QueueMusic),
     SEARCH(R.string.nav_search, Icons.Outlined.Search, Icons.Default.Search),
-    STATS(R.string.nav_stats, Icons.Outlined.BarChart, Icons.Default.BarChart),
-    CHAT(R.string.nav_chat, Icons.Outlined.ChatBubbleOutline, Icons.Filled.ChatBubble)
+    STATS(R.string.nav_stats, Icons.Outlined.BarChart, Icons.Default.BarChart)
 }
 
 @Composable
@@ -625,10 +621,6 @@ fun HomeScreen(
                             }
                             composable(NavigationSection.STATS.name) {
                                 StatsScreen()
-                            }
-                            composable(NavigationSection.CHAT.name) {
-                                // 096 — les morceaux cités par l'assistant se lancent d'un tap.
-                                ChatScreen(onPlayTrack = { audioViewModel.playTrack(it) })
                             }
                             composable(NavigationSection.SEARCH.name) {
                                 SearchScreen(

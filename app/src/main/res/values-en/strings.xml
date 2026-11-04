@@ -1,6 +1,6 @@
 <resources>
 <string name="language_title">Language</string><string name="language_auto">Auto</string><string name="language_french">Français</string><string name="language_english">English</string><string name="language_arabic">العربية</string><string name="language_hausa">Hausa</string><string name="language_zarma">Zarma</string><string name="language_restart_hint">The interface refreshes after changing the language.</string>
-<string name="nav_home">Home</string><string name="nav_new">New</string><string name="nav_radio">Radio</string><string name="nav_library">Library</string><string name="nav_search">Search</string><string name="nav_stats">Stats</string><string name="nav_chat">AI Chat</string>
+<string name="nav_home">Home</string><string name="nav_new">New</string><string name="nav_radio">Radio</string><string name="nav_library">Library</string><string name="nav_search">Search</string><string name="nav_stats">Stats</string>
 <string name="appearance_title">Appearance</string><string name="appearance_light">Light</string><string name="appearance_dark">Dark</string><string name="appearance_auto">Auto (follows system)</string><string name="appearance_dark_evening">Dark in the evening</string><string name="style_title">Style</string><string name="style_minimal">Minimal</string><string name="style_neon">Neon</string><string name="style_glass">Glass</string><string name="accent_title">Accent</string><string name="dynamic_color_title">Dynamic colors</string><string name="dynamic_color_subtitle">Uses your wallpaper colors (Android 12 and later)</string>
 
     <!-- Ressources non encore localisées : fallback français explicite, conservé pour éviter les libellés vides. -->
@@ -15,19 +15,6 @@
 <string translatable="false" name="home_greeting_night">Bonne nuit</string>
 <string translatable="false" name="home_welcome_back">Heureux de vous retrouver sur MusicPro.</string>
 <string translatable="false" name="home_resume_playback">Reprendre où vous en étiez</string>
-<string translatable="false" name="chat_welcome_title">Que voulez-vous découvrir ?</string>
-<string translatable="false" name="chat_welcome_subtitle">Votre assistant musical, propulsé par Groq.</string>
-<string translatable="false" name="chat_suggestion_playlist">Crée une playlist pour courir</string>
-<string translatable="false" name="chat_suggestion_lyrics">Trouve les paroles de…</string>
-<string translatable="false" name="chat_suggestion_explain">Explique cet album</string>
-<string translatable="false" name="chat_assistant_name">MusicPro IA</string>
-<string translatable="false" name="chat_thinking">Réflexion en cours…</string>
-<string translatable="false" name="chat_input_hint">Écrivez votre message…</string>
-<string translatable="false" name="chat_send">Envoyer</string>
-<string translatable="false" name="chat_stop">Arrêter la génération</string>
-<string translatable="false" name="chat_privacy_hint">Les messages sont transmis à Groq pour générer les réponses.</string>
-<string translatable="false" name="chat_empty_response">Je n’ai pas reçu de réponse. Réessayez.</string>
-<string translatable="false" name="chat_error">Une erreur est survenue pendant la réponse.</string>
 <string translatable="false" name="stats_title">Statistiques d’écoute</string>
 <string translatable="false" name="stats_week">Temps d’écoute · 7 derniers jours</string>
 <string translatable="false" name="stats_top_tracks">Morceaux les plus écoutés</string>
@@ -321,8 +308,6 @@
     <!-- Mises à jour 088/089 — hors connexion et diagnostic (textes français pour toutes les langues). -->
     <string translatable="false" name="offline_banner">Hors connexion</string>
     <string translatable="false" name="action_retry">Réessayer</string>
-    <string translatable="false" name="chat_error_friendly">L’assistant n’a pas pu répondre. Vérifiez votre connexion Internet, puis réessayez.</string>
-    <string translatable="false" name="chat_error_offline">Vous êtes hors connexion. Reconnectez-vous pour discuter avec l’assistant.</string>
     <string translatable="false" name="diag_copy_title">Copier le diagnostic</string>
     <string translatable="false" name="diag_copied">Diagnostic copié</string>
 </resources>

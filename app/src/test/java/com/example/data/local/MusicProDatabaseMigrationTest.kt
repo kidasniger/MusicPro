@@ -48,7 +48,8 @@ class MusicProDatabaseMigrationTest {
                 MusicProDatabase.MIGRATION_1_2,
                 MusicProDatabase.MIGRATION_2_3,
                 MusicProDatabase.MIGRATION_3_4,
-                MusicProDatabase.MIGRATION_4_5
+                MusicProDatabase.MIGRATION_4_6,
+                MusicProDatabase.MIGRATION_5_6
             )
             .build()
 
@@ -77,7 +78,8 @@ class MusicProDatabaseMigrationTest {
                 MusicProDatabase.MIGRATION_1_2,
                 MusicProDatabase.MIGRATION_2_3,
                 MusicProDatabase.MIGRATION_3_4,
-                MusicProDatabase.MIGRATION_4_5
+                MusicProDatabase.MIGRATION_4_6,
+                MusicProDatabase.MIGRATION_5_6
             )
             .build()
 
@@ -180,13 +182,8 @@ class MusicProDatabaseMigrationTest {
         db.close()
     }
 
-    /**
-     * Mise à jour 097 — la migration 4 → 5 crée les tables du chat (conversations
-     * et messages) sans toucher aux données existantes.
-     */
-    @Test
-    fun migration4To5CreatesChatTables() {
-        createVersionTwoDatabase()
+    /** Passe une base v2 au schéma v4 (colonnes lastPlayed/genre + listening_stats). */
+    private fun upgradeVersionTwoToVersionFour() {
         val db = context.openOrCreateDatabase(dbName, Context.MODE_PRIVATE, null)
         db.execSQL("ALTER TABLE audio_tracks ADD COLUMN lastPlayed INTEGER NOT NULL DEFAULT 0")
         db.execSQL("ALTER TABLE audio_tracks ADD COLUMN genre TEXT NOT NULL DEFAULT ''")
@@ -196,6 +193,67 @@ class MusicProDatabaseMigrationTest {
                 "PRIMARY KEY(dayEpoch, trackId))"
         )
         db.execSQL("CREATE INDEX index_listening_stats_dayEpoch ON listening_stats(dayEpoch)")
+    }
+
+    /** Recrée les tables du chat telles qu'elles existaient en version 5. */
+    private fun createLegacyChatTables(db: android.database.sqlite.SQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE chat_conversations (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "title TEXT NOT NULL, model TEXT NOT NULL, tone TEXT NOT NULL, suggestionKey TEXT NOT NULL, " +
+                "createdAt INTEGER NOT NULL, updatedAt INTEGER NOT NULL)"
+        )
+        db.execSQL(
+            "CREATE TABLE chat_messages (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "conversationId INTEGER NOT NULL, role TEXT NOT NULL, content TEXT NOT NULL, " +
+                "feedback INTEGER NOT NULL, createdAt INTEGER NOT NULL)"
+        )
+        db.execSQL("CREATE INDEX index_chat_messages_conversationId ON chat_messages(conversationId)")
+        db.execSQL("INSERT INTO chat_conversations(id, title, model, tone, suggestionKey, createdAt, updatedAt) VALUES(1, 'Ancienne conversation', 'fast', 'neutral', '', 100, 100)")
+        db.execSQL("INSERT INTO chat_messages(id, conversationId, role, content, feedback, createdAt) VALUES(1, 1, 'user', 'Bonjour', 0, 101)")
+    }
+
+    private fun chatTableCount(): Int {
+        val cursor = migratedDatabase!!.openHelper.writableDatabase
+            .query("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'chat_%'")
+        cursor.use { return it.count }
+    }
+
+    /**
+     * Retrait du chat IA — une base v5 qui contient encore les tables du chat est
+     * migrée en v6 : les tables sont supprimées, les données musicales intactes.
+     */
+    @Test
+    fun migration5To6DropsChatTables() {
+        createVersionTwoDatabase()
+        upgradeVersionTwoToVersionFour()
+        val db = context.openOrCreateDatabase(dbName, Context.MODE_PRIVATE, null)
+        createLegacyChatTables(db)
+        db.version = 5
+        db.close()
+
+        migratedDatabase = Room.databaseBuilder(
+            context,
+            MusicProDatabase::class.java,
+            dbName
+        )
+            .allowMainThreadQueries()
+            .addMigrations(MusicProDatabase.MIGRATION_5_6)
+            .build()
+
+        assertEquals(0, chatTableCount())
+        val tracks = runBlocking { migratedDatabase!!.audioTrackDao().getAllTracksSnapshot() }
+        assertTrue(tracks.map { it.id }.containsAll(listOf(501L, 601L)))
+    }
+
+    /**
+     * Retrait du chat IA — une base v4 monte directement en v6 : la migration
+     * tolère l'absence des tables du chat et préserve les données musicales.
+     */
+    @Test
+    fun migration4To6UpgradesWithoutChatTables() {
+        createVersionTwoDatabase()
+        upgradeVersionTwoToVersionFour()
+        val db = context.openOrCreateDatabase(dbName, Context.MODE_PRIVATE, null)
         db.version = 4
         db.close()
 
@@ -205,42 +263,10 @@ class MusicProDatabaseMigrationTest {
             dbName
         )
             .allowMainThreadQueries()
-            .addMigrations(
-                MusicProDatabase.MIGRATION_1_2,
-                MusicProDatabase.MIGRATION_2_3,
-                MusicProDatabase.MIGRATION_3_4,
-                MusicProDatabase.MIGRATION_4_5
-            )
+            .addMigrations(MusicProDatabase.MIGRATION_4_6)
             .build()
 
-        val dao = migratedDatabase!!.chatDao()
-        val conversationId = runBlocking {
-            dao.insertConversation(
-                ChatEntity(
-                    title = "Conversation migrée",
-                    model = "fast",
-                    tone = "neutral",
-                    createdAt = 100L,
-                    updatedAt = 100L
-                )
-            )
-        }
-        runBlocking {
-            dao.insertMessage(
-                ChatMessageEntity(
-                    conversationId = conversationId,
-                    role = "user",
-                    content = "Bonjour",
-                    createdAt = 101L
-                )
-            )
-        }
-
-        val messages = runBlocking { dao.getMessagesOnce(conversationId) }
-        assertEquals(1, messages.size)
-        assertEquals("Bonjour", messages.single().content)
-
-        // Les données d'avant la migration sont intactes (501 et 601).
+        assertEquals(0, chatTableCount())
         val tracks = runBlocking { migratedDatabase!!.audioTrackDao().getAllTracksSnapshot() }
         assertTrue(tracks.map { it.id }.containsAll(listOf(501L, 601L)))
     }
