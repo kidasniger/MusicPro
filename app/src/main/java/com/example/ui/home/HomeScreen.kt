@@ -627,7 +627,8 @@ fun HomeScreen(
                                 StatsScreen()
                             }
                             composable(NavigationSection.CHAT.name) {
-                                ChatScreen()
+                                // 096 — les morceaux cités par l'assistant se lancent d'un tap.
+                                ChatScreen(onPlayTrack = { audioViewModel.playTrack(it) })
                             }
                             composable(NavigationSection.SEARCH.name) {
                                 SearchScreen(

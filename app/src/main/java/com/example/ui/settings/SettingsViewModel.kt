@@ -159,6 +159,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val reduceAnimations: StateFlow<Boolean> = preferencesRepository.reduceAnimations
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    /** Mise à jour 100 — consentement au contexte musical transmis à l'IA du chat. */
+    val aiContextConsent: StateFlow<Boolean> = preferencesRepository.aiContextConsent
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     val autoPlay: StateFlow<Boolean> = preferencesRepository.autoPlay
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
@@ -352,6 +356,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun setReduceAnimations(enabled: Boolean) {
         viewModelScope.launch { preferencesRepository.setReduceAnimations(enabled) }
+    }
+
+    /** Mise à jour 100 — consentement au contexte musical de l'IA du chat. */
+    fun setAiContextConsent(enabled: Boolean) {
+        viewModelScope.launch { preferencesRepository.setAiContextConsent(enabled) }
     }
 
     fun setTextSizePreference(value: TextSizePreference) {

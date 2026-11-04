@@ -45,6 +45,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.NetworkCheck
 import androidx.compose.material.icons.filled.OpenInBrowser
+import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Search
@@ -99,6 +100,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.example.R
+import com.example.data.local.MusicProDatabase
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import com.example.data.backup.BackupFormatException
@@ -236,6 +238,10 @@ fun SettingsScreen(
 
     // Dialog de confirmation pour effacer le cache
     var showClearCacheDialog by remember { mutableStateOf(false) }
+
+    // Mise à jour 100 — consentement IA du chat + « Tout effacer » des conversations
+    val aiContextConsent by settingsViewModel.aiContextConsent.collectAsStateWithLifecycle()
+    var showClearChatDialog by remember { mutableStateOf(false) }
     var expandedGroups by remember { mutableStateOf(setOf("APPARENCE")) }
     var settingsSearch by remember { mutableStateOf("") }
     val normalizedSearch = settingsSearch.trim().lowercase()
@@ -478,6 +484,12 @@ fun SettingsScreen(
                         }
                     }
                 )
+                Spacer(modifier = Modifier.height(8.dp))
+                ChatPrivacyCard(
+                    consent = aiContextConsent,
+                    onConsentChanged = { settingsViewModel.setAiContextConsent(it) },
+                    onClearAll = { showClearChatDialog = true }
+                )
             }
 
             if (normalizedSearch.isEmpty() || "STOCKAGE" in matchingGroups) SettingsGroupCard(
@@ -564,6 +576,51 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
         }
+    }
+
+    // Mise à jour 100 — confirmation « Tout effacer » de l'historique du chat
+    if (showClearChatDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearChatDialog = false },
+            title = {
+                Text(
+                    text = stringResource(R.string.settings_chat_clear_all),
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.settings_chat_clear_all_confirm),
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 18.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showClearChatDialog = false
+                        scope.launch {
+                            val chatDao = MusicProDatabase.getInstance(context).chatDao()
+                            chatDao.deleteAllMessages()
+                            chatDao.deleteAllConversations()
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MusicProError),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text(stringResource(R.string.settings_clear), fontWeight = FontWeight.Bold, color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearChatDialog = false }) {
+                    Text(stringResource(R.string.settings_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(16.dp)
+        )
     }
 
     // Dialogue de confirmation pour vider le cache
@@ -1196,5 +1253,60 @@ private fun ImportSummaryLine(label: String, value: String) {
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
+    }
+}
+
+/**
+ * Mise à jour 100 — carte « Confidentialité » du groupe Intelligence artificielle :
+ * consentement explicite à l'envoi du contexte musical (titre, artiste, album,
+ * genre uniquement) et « Tout effacer » de l'historique des conversations.
+ */
+@Composable
+private fun ChatPrivacyCard(
+    consent: Boolean,
+    onConsentChanged: (Boolean) -> Unit,
+    onClearAll: () -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.settings_ai_consent_title),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = stringResource(R.string.settings_ai_consent_sub),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 15.sp
+                )
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+            Switch(
+                checked = consent,
+                onCheckedChange = onConsentChanged,
+                modifier = Modifier.testTag("ai_consent_switch")
+            )
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        TextButton(onClick = onClearAll) {
+            Icon(
+                imageVector = Icons.Default.DeleteSweep,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = stringResource(R.string.settings_chat_clear_all),
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
     }
 }

@@ -29,9 +29,9 @@
     <string  translatable="false" name="home_resume_playback">Reprendre où vous en étiez</string>
     <string  translatable="false" name="chat_welcome_title">Que voulez-vous découvrir ?</string>
     <string  translatable="false" name="chat_welcome_subtitle">Votre assistant musical, propulsé par Groq.</string>
-    <string  translatable="false" name="chat_suggestion_playlist">Une playlist calme pour travailler</string>
-    <string  translatable="false" name="chat_suggestion_lyrics">Trouve les paroles de ce morceau</string>
-    <string  translatable="false" name="chat_suggestion_explain">Explique-moi ce morceau</string>
+    <string  translatable="false" name="chat_suggestion_playlist">Crée une playlist pour courir</string>
+    <string  translatable="false" name="chat_suggestion_lyrics">Trouve les paroles de…</string>
+    <string  translatable="false" name="chat_suggestion_explain">Explique cet album</string>
     <string  translatable="false" name="chat_assistant_name">MusicPro IA</string>
     <string  translatable="false" name="chat_thinking">Réflexion en cours…</string>
     <string  translatable="false" name="chat_input_hint">Écrivez votre message…</string>

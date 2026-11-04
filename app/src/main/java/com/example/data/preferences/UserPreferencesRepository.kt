@@ -67,6 +67,8 @@ class UserPreferencesRepository(
         val KEY_TEXT_SIZE = stringPreferencesKey("text_size_preference")
         val KEY_LIST_DENSITY = stringPreferencesKey("list_density_preference")
         val KEY_REDUCE_ANIMATIONS = booleanPreferencesKey("reduce_animations")
+        /** Mise à jour 100 — consentement au contexte musical transmis à l'IA du chat. */
+        val KEY_AI_CONTEXT_CONSENT = booleanPreferencesKey("ai_context_consent")
         val KEY_GLASS_MATERIAL = stringPreferencesKey("glass_material")
         /** Force de couleur du verre, en % (0-100). Absente : 70 %. */
         val KEY_GLASS_COLOR_STRENGTH = intPreferencesKey("glass_color_strength")
@@ -223,6 +225,17 @@ class UserPreferencesRepository(
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
         .map { preferences -> preferences[KEY_GLASS_FOLLOW_REDUCE_TRANSPARENCY] ?: true }
+
+    /**
+     * Mise à jour 100 — consentement explicite à l'envoi du contexte musical à l'IA du chat.
+     * Désactivé par défaut : seuls titre, artiste, album et genre sont transmis, jamais
+     * un chemin de fichier ni une donnée personnelle.
+     */
+    val aiContextConsent: Flow<Boolean> = dataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { preferences -> preferences[KEY_AI_CONTEXT_CONSENT] ?: false }
 
     // --- Apparence et style (mises à jour 013, 017, 018) ------------------------------------------
 
@@ -445,6 +458,11 @@ class UserPreferencesRepository(
 
     suspend fun setReduceAnimations(enabled: Boolean) {
         dataStore.edit { it[KEY_REDUCE_ANIMATIONS] = enabled }
+    }
+
+    /** Mise à jour 100 — consentement au contexte musical pour l'IA du chat. */
+    suspend fun setAiContextConsent(enabled: Boolean) {
+        dataStore.edit { it[KEY_AI_CONTEXT_CONSENT] = enabled }
     }
 
     suspend fun setTextSizePreference(value: TextSizePreference) {

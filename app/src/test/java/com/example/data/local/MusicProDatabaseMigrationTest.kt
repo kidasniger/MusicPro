@@ -7,6 +7,7 @@ import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -46,7 +47,8 @@ class MusicProDatabaseMigrationTest {
             .addMigrations(
                 MusicProDatabase.MIGRATION_1_2,
                 MusicProDatabase.MIGRATION_2_3,
-                MusicProDatabase.MIGRATION_3_4
+                MusicProDatabase.MIGRATION_3_4,
+                MusicProDatabase.MIGRATION_4_5
             )
             .build()
 
@@ -74,7 +76,8 @@ class MusicProDatabaseMigrationTest {
             .addMigrations(
                 MusicProDatabase.MIGRATION_1_2,
                 MusicProDatabase.MIGRATION_2_3,
-                MusicProDatabase.MIGRATION_3_4
+                MusicProDatabase.MIGRATION_3_4,
+                MusicProDatabase.MIGRATION_4_5
             )
             .build()
 
@@ -175,5 +178,70 @@ class MusicProDatabaseMigrationTest {
         )
         db.version = 2
         db.close()
+    }
+
+    /**
+     * Mise à jour 097 — la migration 4 → 5 crée les tables du chat (conversations
+     * et messages) sans toucher aux données existantes.
+     */
+    @Test
+    fun migration4To5CreatesChatTables() {
+        createVersionTwoDatabase()
+        val db = context.openOrCreateDatabase(dbName, Context.MODE_PRIVATE, null)
+        db.execSQL("ALTER TABLE audio_tracks ADD COLUMN lastPlayed INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE audio_tracks ADD COLUMN genre TEXT NOT NULL DEFAULT ''")
+        db.execSQL(
+            "CREATE TABLE listening_stats (dayEpoch INTEGER NOT NULL, trackId INTEGER NOT NULL, " +
+                "title TEXT NOT NULL, artist TEXT NOT NULL, genre TEXT NOT NULL, listenedMs INTEGER NOT NULL, " +
+                "PRIMARY KEY(dayEpoch, trackId))"
+        )
+        db.execSQL("CREATE INDEX index_listening_stats_dayEpoch ON listening_stats(dayEpoch)")
+        db.version = 4
+        db.close()
+
+        migratedDatabase = Room.databaseBuilder(
+            context,
+            MusicProDatabase::class.java,
+            dbName
+        )
+            .allowMainThreadQueries()
+            .addMigrations(
+                MusicProDatabase.MIGRATION_1_2,
+                MusicProDatabase.MIGRATION_2_3,
+                MusicProDatabase.MIGRATION_3_4,
+                MusicProDatabase.MIGRATION_4_5
+            )
+            .build()
+
+        val dao = migratedDatabase!!.chatDao()
+        val conversationId = runBlocking {
+            dao.insertConversation(
+                ChatEntity(
+                    title = "Conversation migrée",
+                    model = "fast",
+                    tone = "neutral",
+                    createdAt = 100L,
+                    updatedAt = 100L
+                )
+            )
+        }
+        runBlocking {
+            dao.insertMessage(
+                ChatMessageEntity(
+                    conversationId = conversationId,
+                    role = "user",
+                    content = "Bonjour",
+                    createdAt = 101L
+                )
+            )
+        }
+
+        val messages = runBlocking { dao.getMessagesOnce(conversationId) }
+        assertEquals(1, messages.size)
+        assertEquals("Bonjour", messages.single().content)
+
+        // Les données d'avant la migration sont intactes (501 et 601).
+        val tracks = runBlocking { migratedDatabase!!.audioTrackDao().getAllTracksSnapshot() }
+        assertTrue(tracks.map { it.id }.containsAll(listOf(501L, 601L)))
     }
 }
