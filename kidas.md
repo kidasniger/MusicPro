@@ -1,7 +1,7 @@
 ---
 name: "MusicPro"
 slug: "musicpro"
-version: "1.0-b207"
+version: "1.0-b240"
 status: "Stable"
 category: "Lecteur musical"
 author: "kidasniger"
@@ -25,7 +25,7 @@ github: "https://github.com/kidasniger/MusicPro"
 demo: "À renseigner"
 website: "À renseigner"
 documentation: "À renseigner"
-download: "https://github.com/kidasniger/MusicPro/releases/download/v1.0-b207/MusicPro-v1.0-b207.apk"
+download: "https://github.com/kidasniger/MusicPro/releases/download/v1.0-b240/MusicPro-v1.0-b240.apk"
 icon: "https://raw.githubusercontent.com/kidasniger/MusicPro/main/app/src/main/res/drawable/musicpro_logo_square.png"
 cover: "À renseigner"
 ---
@@ -102,8 +102,8 @@ Lecteur musical Android pour organiser sa bibliothèque, créer des playlists, r
 
 ## Android
 
-- URL: "https://github.com/kidasniger/MusicPro/releases/download/v1.0-b207/MusicPro-v1.0-b207.apk"
-- Version: "1.0-b207"
+- URL: "https://github.com/kidasniger/MusicPro/releases/download/v1.0-b240/MusicPro-v1.0-b240.apk"
+- Version: "1.0-b240"
 - Architecture: "APK universel"
 - Taille: "21.9 MB"
 
@@ -134,7 +134,7 @@ Lecteur musical Android pour organiser sa bibliothèque, créer des playlists, r
 - Démo: "À renseigner"
 - Site web: "À renseigner"
 - Documentation: "À renseigner"
-- Téléchargement: "https://github.com/kidasniger/MusicPro/releases/download/v1.0-b207/MusicPro-v1.0-b207.apk"
+- Téléchargement: "https://github.com/kidasniger/MusicPro/releases/download/v1.0-b240/MusicPro-v1.0-b240.apk"
 - YouTube: "À renseigner"
 - Vidéo de présentation: "À renseigner"
 
@@ -158,7 +158,9 @@ Lecteur musical Android pour organiser sa bibliothèque, créer des playlists, r
 
 # Changelog
 
-## État du dépôt — 3 novembre 2026
+## État du dépôt — 5 novembre 2026
+
+La dernière release Android confirmée est `v1.0-b240`. Le lien de téléchargement et la version de référence de cette fiche sont alignés sur cette release. Les détails précis du changelog de `v1.0-b240` et la taille de son APK restent à confirmer.
 
 Les derniers commits consultés documentent les lots de mises à jour 041 à 090. Le lot 081–090 apporte notamment :
 
@@ -174,6 +176,12 @@ Les derniers commits consultés documentent les lots de mises à jour 041 à 090
 - 180 captures Roborazzi (10 écrans × 6 thèmes × 3 tailles), avec seuil de différence de 0,5 %
 
 Validation rapportée dans le commit du lot 081–090 : 53 classes / 393 tests verts, lint sans erreur et chaînes FR/EN/AR/HA/DJE alignées.
+
+## 1.0-b240
+
+- Release Android la plus récente confirmée au 5 novembre 2026.
+- APK de production référencé : `MusicPro-v1.0-b240.apk`.
+- Détails fonctionnels et empreinte SHA-256 de cette release non renseignés faute de vérification de l’asset.
 
 ## 1.0-b207
 
@@ -226,12 +234,14 @@ MusicPro est un lecteur musical Android moderne pour organiser une bibliothèque
 
 Identifiant d'application Android : com.aistudio.musicpro.qkzmvp
 
-Dernière release Android vérifiée dans ce fichier : v1.0-b207
+Dernière release Android vérifiée dans ce fichier : v1.0-b240
 
-APK de production référencé : MusicPro-v1.0-b207.apk
+APK de production référencé : MusicPro-v1.0-b240.apk
 
-SHA-256 de l'APK v1.0-b207 :
+SHA-256 de l’APK v1.0-b240 : non vérifié.
+
+SHA-256 historique de l’APK v1.0-b207 :
 
 cf9aebf05700b8f9eacfaa0ba1a54f48c746b19cf3319a1eb57cb21ac68b2968
 
-Note : les commits récents consultés décrivent des évolutions du dépôt postérieures à la version APK référencée. La version de release et le lien de téléchargement sont conservés tant qu'une nouvelle release Android n'a pas été vérifiée.
+Note : l’empreinte SHA-256 et la taille de l’APK b240 restent à renseigner après récupération de l’asset officiel.
