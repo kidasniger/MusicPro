@@ -5,7 +5,7 @@ version: "1.0-b240"
 status: "Stable"
 category: "Lecteur musical"
 author: "kidasniger"
-license: "À renseigner"
+license: "Non spécifiée dans le dépôt"
 platforms:
   - "Android"
 technologies:
@@ -22,12 +22,12 @@ technologies:
   - "Firebase"
 featured: false
 github: "https://github.com/kidasniger/MusicPro"
-demo: "À renseigner"
-website: "À renseigner"
-documentation: "À renseigner"
+demo: "Non publiée"
+website: "Non publié"
+documentation: "Non publiée"
 download: "https://github.com/kidasniger/MusicPro/releases/download/v1.0-b240/MusicPro-v1.0-b240.apk"
 icon: "https://raw.githubusercontent.com/kidasniger/MusicPro/main/app/src/main/res/drawable/musicpro_logo_square.png"
-cover: "À renseigner"
+cover: "Non publiée"
 ---
 
 # Description
@@ -92,11 +92,11 @@ Lecteur musical Android pour organiser sa bibliothèque, créer des playlists, r
 
 # Captures d'écran
 
-- À renseigner
+- Aucune ressource publiée dans le dépôt
 
 # Vidéos
 
-- À renseigner
+- Aucune ressource publiée dans le dépôt
 
 # Téléchargements
 
@@ -109,34 +109,25 @@ Lecteur musical Android pour organiser sa bibliothèque, créer des playlists, r
 
 ## Windows
 
-- URL: "À renseigner"
-- Version: "À renseigner"
-- Architecture: "À renseigner"
-- Taille: "À renseigner"
+- Disponibilité : Non prise en charge (application Android)
 
 ## Linux
 
-- URL: "À renseigner"
-- Version: "À renseigner"
-- Architecture: "À renseigner"
-- Taille: "À renseigner"
+- Disponibilité : Non prise en charge (application Android)
 
 ## macOS
 
-- URL: "À renseigner"
-- Version: "À renseigner"
-- Architecture: "À renseigner"
-- Taille: "À renseigner"
+- Disponibilité : Non prise en charge (application Android)
 
 # Liens
 
 - GitHub: "https://github.com/kidasniger/MusicPro"
-- Démo: "À renseigner"
-- Site web: "À renseigner"
-- Documentation: "À renseigner"
+- Démo: "Non disponible"
+- Site web: "Non disponible"
+- Documentation: "Non disponible"
 - Téléchargement: "https://github.com/kidasniger/MusicPro/releases/download/v1.0-b240/MusicPro-v1.0-b240.apk"
-- YouTube: "À renseigner"
-- Vidéo de présentation: "À renseigner"
+- YouTube: "Non disponible"
+- Vidéo de présentation: "Non disponible"
 
 # Nouveautés
 
@@ -238,10 +229,10 @@ Dernière release Android vérifiée dans ce fichier : v1.0-b240
 
 APK de production référencé : MusicPro-v1.0-b240.apk
 
-SHA-256 de l’APK v1.0-b240 : non vérifié.
+SHA-256 de l’APK v1.0-b240 : non publié / non vérifié.
 
 SHA-256 historique de l’APK v1.0-b207 :
 
 cf9aebf05700b8f9eacfaa0ba1a54f48c746b19cf3319a1eb57cb21ac68b2968
 
-Note : l’empreinte SHA-256 et la taille de l’APK b240 restent à renseigner après récupération de l’asset officiel.
+Note : l’empreinte SHA-256 et la taille de l’APK b240 ne sont pas renseignées, car l’asset officiel n’a pas été récupéré et vérifié lors de cette mise à jour.
