@@ -215,7 +215,7 @@ MusicPro est un lecteur musical Android moderne pour organiser une bibliothèque
 
 ## Open Graph Image
 
-À renseigner
+Non publiée. Aucune image Open Graph dédiée n’est actuellement référencée.
 
 ## Canonical URL
 
