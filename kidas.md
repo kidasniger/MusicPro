@@ -23,7 +23,7 @@ technologies:
 featured: false
 github: "https://github.com/kidasniger/MusicPro"
 demo: "Non publiée"
-website: "Non publié"
+website: "https://musicpro.vercel.app/"
 documentation: "Non publiée"
 download: "https://github.com/kidasniger/MusicPro/releases/download/v1.0-b240/MusicPro-v1.0-b240.apk"
 icon: "https://raw.githubusercontent.com/kidasniger/MusicPro/main/app/src/main/res/drawable/musicpro_logo_square.png"
@@ -123,7 +123,7 @@ Lecteur musical Android pour organiser sa bibliothèque, créer des playlists, r
 
 - GitHub: "https://github.com/kidasniger/MusicPro"
 - Démo: "Non disponible"
-- Site web: "Non disponible"
+- Site web: "https://musicpro.vercel.app/"
 - Documentation: "Non disponible"
 - Téléchargement: "https://github.com/kidasniger/MusicPro/releases/download/v1.0-b240/MusicPro-v1.0-b240.apk"
 - YouTube: "Non disponible"
