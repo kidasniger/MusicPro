@@ -49,6 +49,41 @@ class MediaStoreAudioScanner(private val context: Context) : AudioScanner {
         }
     }
 
+    /**
+     * Auto-réparation : le cache de l'application peut être purgé par le système
+     * (Samsung Device Care, stockage plein) pendant ou après une mise à jour.
+     * Les URI file:// de la base deviennent alors morts et les pochettes disparaissent
+     * partout (bibliothèque, lecteur, écran Paroles, mini-lecteur). Le chemin du cache
+     * étant déterministe (<id>_<taille>.jpg), réécrire le fichier suffit à rendre l'URI
+     * valide à nouveau — aucune écriture en base ni rescan complet n'est nécessaire.
+     */
+    override suspend fun repairMissingArtworkFiles(tracks: List<AudioTrackEntity>): Int = withContext(Dispatchers.IO) {
+        var repaired = 0
+        for (track in tracks) {
+            val artUri = track.albumArtUri ?: continue
+            if (!artUri.startsWith("file:")) continue
+            val artworkPath = Uri.parse(artUri).path ?: continue
+            val artworkFile = File(artworkPath)
+            if (artworkFile.exists() && artworkFile.length() > 0L) continue
+            if (track.path.isBlank()) continue
+            val source = File(track.path)
+            if (!source.exists()) continue
+            try {
+                val retriever = MediaMetadataRetriever()
+                retriever.setDataSource(source.path)
+                val picture = retriever.embeddedPicture
+                retriever.release()
+                if (picture == null || picture.isEmpty()) continue
+                artworkFile.parentFile?.mkdirs()
+                FileOutputStream(artworkFile).use { it.write(picture) }
+                repaired++
+            } catch (exception: Exception) {
+                Log.d(TAG, "Réparation de jaquette impossible pour " + source.path + ": " + exception.message)
+            }
+        }
+        repaired
+    }
+
 
     private fun extractGenre(path: String): String {
         if (path.isBlank()) return ""

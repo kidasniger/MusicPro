@@ -225,6 +225,26 @@ class AudioRepository(
         }
     }
 
+    /**
+     * Auto-réparation des pochettes : le cache de l'application peut être purgé par
+     * le système (Samsung Device Care, stockage plein), laissant des URI file:// morts
+     * dans la base. On réécrit les fichiers manquants depuis l'image embarquée des
+     * fichiers audio — rapide, silencieux, sans rescan ni écriture en base.
+     *
+     * @return le nombre de fichiers de jaquettes recréés.
+     */
+    suspend fun repairMissingArtwork(): Int = withContext(Dispatchers.IO) {
+        try {
+            val tracks = audioTrackDao.getAllTracksSnapshot()
+            scanner.repairMissingArtworkFiles(tracks)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Erreur repairMissingArtwork: ${e.message}", e)
+            0
+        }
+    }
+
     suspend fun updateLyricsStatus(trackId: Long, hasLyrics: Boolean) = withContext(Dispatchers.IO) {
         try {
             audioTrackDao.updateLyricsStatus(trackId, hasLyrics)
