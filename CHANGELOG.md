@@ -22,6 +22,7 @@
 - Nouvelle ligne « Son » dans Lecture : égaliseur en feuille du bas avec préréglages (Normal, Basses, Voix, Classique, Pop, Rock), réglage par bande −/+ et bouton « Comparer » qui alterne avec/sans effet pendant 3 secondes.
 - « Exporter mes réglages » et « Importer » : fichier JSON (thème, style, verre, karaoké, favoris) via le sélecteur système ; la version du schéma est validée et un résumé est affiché avant application.
 - Section IA : clé Groq masquée par défaut, « Tester la clé » avec résultat clair et bouton « Supprimer » ; la clé reste chiffrée et n'est jamais journalisée.
+- Stockage de la clé IA auto-réparé : si le Keystore ou le fichier chiffré devient illisible (fréquent sur Samsung après un changement de code de verrouillage, une mise à jour système ou une restauration Smart Switch), les données corrompues sont supprimées puis le stockage se recrée au lieu de rester bloqué ; le fichier de la clé est aussi exclu des sauvegardes Google et des transferts d'appareil, et un message clair invite à effacer les données de l'app si le stockage sécurisé reste indisponible.
 - Chaque groupe de réglages propose un menu ⋯ « Réinitialiser cette section » : une confirmation en feuille du bas précise exactement ce qui sera remis par défaut, avec « Annuler » au même niveau visuel que « Réinitialiser ».
 
 - Interface plus cohérente en mode sombre, clair et automatique.

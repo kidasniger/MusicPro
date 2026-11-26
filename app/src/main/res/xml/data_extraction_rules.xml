@@ -1,19 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-   Sample data extraction rules file; uncomment and customize as necessary.
-   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
-   for details.
+   Règles d'extraction de données (Android 12+) : le fichier chiffré de la clé
+   API Groq est exclu des sauvegardes cloud et des transferts d'appareil, car
+   la clé maître du Keystore Android est liée au matériel et ne voyage pas ;
+   restaurer le fichier chiffré sans elle le rend illisible.
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <exclude domain="sharedpref" path="musicpro_groq_encrypted_prefs.xml" />
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <exclude domain="sharedpref" path="musicpro_groq_encrypted_prefs.xml" />
     </device-transfer>
-    -->
 </data-extraction-rules>

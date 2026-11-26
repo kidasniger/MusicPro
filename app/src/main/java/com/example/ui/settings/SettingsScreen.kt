@@ -451,7 +451,13 @@ fun SettingsScreen(
                                 maskedKey = apiKeyStore.getMaskedApiKey()
                                 statusFeedbackMessage = Pair(true, context.getString(R.string.settings_groq_key_saved))
                             } else {
-                                statusFeedbackMessage = Pair(false, context.getString(R.string.settings_groq_key_save_failed))
+                                statusFeedbackMessage = Pair(
+                                    false,
+                                    context.getString(
+                                        if (apiKeyStore.isStorageAvailable()) R.string.settings_groq_key_save_failed
+                                        else R.string.settings_groq_key_storage_unavailable
+                                    )
+                                )
                             }
                         } else {
                             statusFeedbackMessage = Pair(false, context.getString(R.string.settings_groq_key_required))
