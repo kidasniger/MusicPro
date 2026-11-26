@@ -111,6 +111,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
 import com.example.R
 import com.example.data.local.AudioTrackEntity
 import com.example.lyrics.LyricLine
@@ -299,13 +300,19 @@ fun LyricsScreen(
                         }
                     )
             ) {
-                // 1. Fond immersif : pochette floutée (API 31+), sinon simple halo coloré
+                // 1. Fond immersif : pochette floutée (API 31+), sinon simple halo coloré.
+                // Si l'image ne charge plus (fichier de cache purgé par le système),
+                // on retombe proprement sur le halo coloré au lieu d'un fond vide.
                 val canBlur = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-                if (canBlur && !track?.albumArtUri.isNullOrBlank()) {
+                var coverBlurFailed by remember(track?.albumArtUri) { mutableStateOf(false) }
+                if (canBlur && !track?.albumArtUri.isNullOrBlank() && !coverBlurFailed) {
                     AsyncImage(
                         model = track?.albumArtUri,
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
+                        onState = { state ->
+                            if (state is AsyncImagePainter.State.Error) coverBlurFailed = true
+                        },
                         modifier = Modifier
                             .fillMaxSize()
                             .blur(60.dp)

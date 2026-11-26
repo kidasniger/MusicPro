@@ -407,6 +407,18 @@ class AudioViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
 
+        // Auto-réparation des pochettes : le cache de l'app peut être purgé par le
+        // système (Samsung Device Care) pendant ou après une mise à jour — les URI
+        // file:// de la base deviennent morts et les pochettes disparaissent partout.
+        // On réécrit les fichiers de jaquettes manquants depuis l'image embarquée,
+        // sans rescan complet ; un message discret confirme la restauration.
+        viewModelScope.launch {
+            val repaired = repository.repairMissingArtwork()
+            if (repaired > 0) {
+                _statusMessage.value = "$repaired pochette(s) restaurée(s) automatiquement"
+            }
+        }
+
         // Chargement automatique des paroles et mise à jour de la date d'écoute à chaque changement de piste
         viewModelScope.launch {
             currentTrack.collect { track ->

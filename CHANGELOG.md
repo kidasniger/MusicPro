@@ -2,6 +2,15 @@
 
 ## Prochaine mise à jour
 
+- **Pochettes auto-réparées** : le cache de l'app peut être purgé par le système (Samsung Device Care, stockage plein), ce qui faisait disparaître toutes les pochettes jusqu'à un rescan manuel. Au démarrage, les fichiers de jaquettes manquants sont recréés depuis l'image embarquée des morceaux — les pochettes reviennent sans aucune action, avec un message discret confirmant la restauration.
+- **Écran Paroles plus robuste** : si l'image de fond ne charge plus, l'écran retombe sur son halo coloré au lieu d'un fond vide.
+
+- **101 — Aperçu karaoké « lueur douce » (onglet Lecture)** : la ligne active s'affiche en cyan néon avec un halo doux et une légère montée d'échelle ; fenêtre de 5 lignes centrée sur la progression, voisins atténués, badge « Paroles synchronisées ».
+- **101 — Transport équilibré** : Aléatoire et Répéter deviennent des boutons ronds de 44 dp en verre dépoli, état actif en cyan avec point lumineux, cibles tactiles conformes à la rangée.
+- **101 — Vinyle vivant** : le disque entier tourne en continu pendant la lecture (18 s/tour), la pochette centrale reste stable et un reflet lumineux balaie la surface du disque.
+- **101 — Titres propres** : les compteurs de doublons « (0) » / « [2] » sont masqués, les années « (2024) » et mentions « (Live) » restent visibles ; sans paroles, un mini-vinyle animé et un égaliseur à barres remplacent l'invitation statique.
+- **101 — Code réorganisé** : NowPlayingScreen.kt scindé en fichiers thématiques (barre supérieure, pochette, contrôles, onglets) pour la maintenabilité.
+
 - **041 — Pochette immersive pleine largeur** : la pochette s'affiche en haut sur toute la largeur, sans cadre, et se fond vers le fond avec un dégradé vertical de 160 dp. Le fond de l'écran reprend la couleur dominante de la pochette (assombrie de 35 %) et se met à jour en 400 ms à chaque morceau.
 - **042 — Bandeau titre/artiste en pilule de verre** : titre (2 lignes max) et artiste dans une pilule de verre, avec à droite trois boutons ronds de 40 dp (Radio, File d'attente, J'aime). Le cœur s'anime (échelle 1→1,25→1, 220 ms) et vibre légèrement quand on aime.
 - **043 — Barre de progression fine et tactile** : barre de 4 dp (10 dp au toucher) avec temps écoulé à gauche et restant/total à droite, zone tactile de 40 dp, aperçu flottant du temps au-dessus du doigt pendant le glissement ; toujours sans `Slider` Material.
