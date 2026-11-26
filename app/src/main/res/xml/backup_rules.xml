@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-   Sample backup rules file; uncomment and customize as necessary.
-   See https://developer.android.com/guide/topics/data/autobackup
-   for details.
-   Note: This file is ignored for devices older than API 31
-   See https://developer.android.com/about/versions/12/backup-restore
+   Règles de sauvegarde (Android &lt; 12) : le fichier chiffré de la clé API
+   Groq est exclu des sauvegardes, car la clé maître du Keystore Android est
+   liée au matériel et ne voyage pas ; restaurer le fichier chiffré sans elle
+   le rend illisible.
 -->
 <full-backup-content>
-    <!--
-   <include domain="sharedpref" path="."/>
-   <exclude domain="sharedpref" path="device.xml"/>
--->
+    <exclude domain="sharedpref" path="musicpro_groq_encrypted_prefs.xml" />
 </full-backup-content>
