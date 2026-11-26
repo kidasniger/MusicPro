@@ -107,8 +107,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -122,6 +124,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -138,6 +141,7 @@ import com.example.ui.components.glass.LocalReduceAnimations
 import com.example.ui.components.glass.rememberAnimationsEnabled
 import com.example.ui.components.glass.rememberSystemAnimationsEnabled
 import com.example.ui.components.AnchoredSheet
+import com.example.ui.components.EqualizerIndicator
 import com.example.ui.components.glass.sharedCover
 import com.example.ui.theme.MusicProCyanGlow
 import com.example.ui.theme.MusicProCyanLight
@@ -150,6 +154,7 @@ import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPrimary
 import com.example.ui.theme.darkened
 import com.example.ui.theme.rememberTrackDominantColor
+import com.example.util.TrackTitleFormatter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -180,7 +185,11 @@ enum class PlayerTab { LECTURE, PAROLES, EGALISEUR, INFOS }
  * - 048 : présentation pochette / vinyle / minimal choisie dans Réglages › Lecture ;
  * - 049 : icône appareils en haut à droite → feuille « Sortie audio » + volume −/+ ;
  * - 050 : minuterie de sommeil (5 à 60 min ou fin du morceau) avec pastille de compte à
- *   rebours près du titre et fondu de volume sur les 10 dernières secondes.
+ *   rebours près du titre et fondu de volume sur les 10 dernières secondes ;
+ * - 101 : aperçu karaoké avec lueur douce dans l'onglet Lecture, espace animé d'invitation
+ *   quand aucune parole n'existe, transport équilibré (pastilles rondes pour aléatoire et
+ *   répéter), vinyle entièrement animé avec reflet qui balaie la surface, et titres affichés
+ *   sans compteur de doublon « (0) ».
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -571,6 +580,9 @@ fun NowPlayingScreen(
                             PlayerTab.LECTURE -> LectureTabContent(
                                 lyricsData = lyricsData,
                                 positionMs = displayPositionMs,
+                                animationsEnabled = animationsEnabled,
+                                isPlaying = isPlaying,
+                                vinylRotation = vinylRotation,
                                 onOpenLyrics = onOpenLyrics
                             )
                             PlayerTab.PAROLES -> LyricsTabContent(
@@ -1074,6 +1086,7 @@ private fun VinylPresentation(
                     spotColor = MusicProVioletGlow,
                     ambientColor = MusicProCyanGlow
                 )
+                .rotate(if (isPlaying) vinylRotation else 0f)
                 .clip(CircleShape)
                 .background(
                     Brush.radialGradient(
@@ -1103,7 +1116,6 @@ private fun VinylPresentation(
                     .sharedCover()
                     .size(centerArtSize)
                     .clip(CircleShape)
-                    .rotate(if (isPlaying) vinylRotation else 0f)
                     .border(2.dp, MusicProCyanNeon, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
@@ -1141,6 +1153,22 @@ private fun VinylPresentation(
                         .border(1.5.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.50f), CircleShape)
                 )
             }
+
+            // Mise à jour 101 — reflet lumineux solidaire du disque : il balaie la surface
+            // pendant la rotation, comme la lumière d'une étagère sur un vrai 33 tours.
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        Brush.linearGradient(
+                            0.00f to Color.White.copy(alpha = 0f),
+                            0.30f to Color.White.copy(alpha = 0.12f),
+                            0.50f to Color.White.copy(alpha = 0.03f),
+                            0.68f to Color.White.copy(alpha = 0f)
+                        ),
+                        shape = CircleShape
+                    )
+            )
         }
     }
 }
@@ -1211,7 +1239,9 @@ private fun TitleArtistPill(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = track?.title ?: stringResource(R.string.np_no_track),
+                    text = track?.title?.takeIf { it.isNotBlank() }
+                        ?.let(TrackTitleFormatter::displayTitle)
+                        ?: stringResource(R.string.np_no_track),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground,
@@ -1502,11 +1532,10 @@ private fun TransportRow(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        StateDotButton(
+        TransportStateButton(
             icon = Icons.Default.Shuffle,
             contentDescription = stringResource(R.string.np_shuffle),
             active = isShuffleEnabled,
-            size = 28.dp,
             onClick = onToggleShuffle
         )
 
@@ -1544,11 +1573,10 @@ private fun TransportRow(
             )
         }
 
-        StateDotButton(
+        TransportStateButton(
             icon = if (repeatMode == androidx.media3.common.Player.REPEAT_MODE_ONE) Icons.Default.RepeatOne else Icons.Default.Repeat,
             contentDescription = stringResource(R.string.np_repeat),
             active = repeatMode != androidx.media3.common.Player.REPEAT_MODE_OFF,
-            size = 28.dp,
             onClick = onToggleRepeat
         )
     }
@@ -1589,28 +1617,54 @@ private fun TransportCircle(
     }
 }
 
-/** Icône 28 dp d'état (aléatoire/répéter) avec point sous l'icône quand actif (044, accessibilité). */
+/**
+ * Pastille ronde d'état (aléatoire/répéter) — mise à jour 101 : même langage visuel que les
+ * autres boutons de transport (cercle de verre de 44 dp) au lieu d'une icône nue de 28 dp,
+ * avec point d'état sous la pastille quand le réglage est actif (044, accessibilité).
+ */
 @Composable
-private fun StateDotButton(
+private fun TransportStateButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     contentDescription: String,
     active: Boolean,
-    size: androidx.compose.ui.unit.Dp,
     onClick: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .clip(RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
             .padding(horizontal = 6.dp, vertical = 4.dp)
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            tint = if (active) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(size)
-        )
+        Surface(
+            shape = CircleShape,
+            color = if (active) {
+                MusicProCyanNeon.copy(alpha = 0.14f)
+            } else {
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+            },
+            border = BorderStroke(
+                1.dp,
+                if (active) {
+                    MusicProCyanNeon.copy(alpha = 0.45f)
+                } else {
+                    MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)
+                }
+            ),
+            modifier = Modifier.size(44.dp)
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = contentDescription,
+                    tint = if (active) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
         // Point d'état : visible uniquement quand le réglage est actif.
         Box(
             modifier = Modifier
@@ -1624,66 +1678,193 @@ private fun StateDotButton(
     }
 }
 
-/** 045 — Onglet Lecture : aperçu de la ligne karaoké synchronisée. */
+/**
+ * 045 / mise à jour 101 — Onglet Lecture : fenêtre karaoké synchronisée avec lueur douce
+ * autour de la ligne active, ou espace d'invitation animé quand le morceau n'a aucune
+ * parole. Toute la carte est cliquable et ouvre l'onglet Paroles.
+ */
 @Composable
 private fun LectureTabContent(
     lyricsData: LyricsData,
     positionMs: Long,
+    animationsEnabled: Boolean,
+    isPlaying: Boolean,
+    vinylRotation: Float,
     onOpenLyrics: () -> Unit
 ) {
-    val activeLineIndex = remember(lyricsData, positionMs) {
-        lyricsData.findActiveLineIndex(positionMs)
-    }
-    val activeLineText = if (activeLineIndex in lyricsData.lines.indices) {
-        lyricsData.lines[activeLineIndex].text
-    } else null
-
     Surface(
         onClick = onOpenLyrics,
         shape = RoundedCornerShape(14.dp),
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f),
-        border = BorderStroke(
-            1.dp,
-            if (activeLineText != null) MusicProCyanNeon.copy(alpha = 0.6f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)
-        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)),
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxSize()
             .testTag("now_playing_lyrics_preview_card")
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Subtitles,
-                contentDescription = null,
-                tint = if (activeLineText != null) MusicProCyanNeon else MusicProVioletLight,
-                modifier = Modifier.size(16.dp)
+        if (lyricsData.lines.isEmpty()) {
+            LyricsInvitation(
+                animationsEnabled = animationsEnabled,
+                isPlaying = isPlaying,
+                vinylRotation = vinylRotation
             )
-            Text(
-                text = activeLineText?.ifBlank { "…" }
-                    ?: stringResource(R.string.np_open_synced_lyrics),
-                fontSize = 12.sp,
-                fontWeight = if (activeLineText != null) FontWeight.SemiBold else FontWeight.Normal,
-                color = if (activeLineText != null) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 8.dp)
-            )
-            Text(
-                text = if (lyricsData.lines.isNotEmpty()) {
-                    stringResource(R.string.np_lyrics_synced)
-                } else {
-                    stringResource(R.string.np_lyrics_open)
-                },
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = MusicProVioletLight,
-                modifier = Modifier.padding(start = 8.dp)
+        } else {
+            KaraokePreview(
+                lyricsData = lyricsData,
+                positionMs = positionMs
             )
         }
+    }
+}
+
+/** Fenêtre karaoké de 5 lignes centrée sur la ligne active, lueur douce cyan (mise à jour 101). */
+@Composable
+private fun KaraokePreview(
+    lyricsData: LyricsData,
+    positionMs: Long
+) {
+    val activeIndex = remember(lyricsData, positionMs) {
+        lyricsData.findActiveLineIndex(positionMs)
+    }
+    val windowStart = (activeIndex - 2).coerceAtLeast(0)
+    val windowEnd = (windowStart + 5).coerceAtMost(lyricsData.lines.size)
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Étiquette discrète en haut à droite (045) : confirme que les paroles sont synchronisées.
+        Text(
+            text = stringResource(R.string.np_lyrics_synced),
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color = MusicProVioletLight,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 10.dp, end = 14.dp)
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 18.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            repeat(windowEnd - windowStart) { offset ->
+                val index = windowStart + offset
+                val isActive = index == activeIndex
+                val distance = kotlin.math.abs(index - activeIndex)
+                val scale by animateFloatAsState(
+                    targetValue = if (isActive) 1.15f else 1f,
+                    animationSpec = tween(durationMillis = 180),
+                    label = "np_karaoke_scale"
+                )
+                Text(
+                    text = lyricsData.lines[index].text.ifBlank { "♪" },
+                    fontSize = 14.sp,
+                    fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium,
+                    color = if (isActive) {
+                        MusicProCyanNeon
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    style = if (isActive) {
+                        // Lueur douce : halo cyan derrière le texte de la ligne chantée.
+                        TextStyle(
+                            shadow = Shadow(
+                                color = MusicProCyanNeon.copy(alpha = 0.55f),
+                                offset = Offset.Zero,
+                                blurRadius = 20f
+                            )
+                        )
+                    } else {
+                        TextStyle.Default
+                    },
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                            alpha = when (distance) {
+                                0 -> 1f
+                                1 -> 0.55f
+                                else -> 0.30f
+                            }
+                        }
+                        .padding(vertical = 2.dp)
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Espace d'invitation animé quand le morceau n'a aucune parole (mise à jour 101) :
+ * mini-disque qui tourne pendant la lecture, barres d'égaliseur vivantes et invitation
+ * à rechercher les paroles en ligne — à la place du grand rectangle quasi vide.
+ */
+@Composable
+private fun LyricsInvitation(
+    animationsEnabled: Boolean,
+    isPlaying: Boolean,
+    vinylRotation: Float
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // Mini-disque décoratif qui tourne avec la lecture.
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(CircleShape)
+                .rotate(if (isPlaying && animationsEnabled) vinylRotation else 0f)
+                .background(
+                    Brush.radialGradient(
+                        0f to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.10f),
+                        0.55f to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.16f),
+                        1f to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+                    )
+                )
+                .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.18f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Album,
+                contentDescription = null,
+                tint = MusicProVioletLight.copy(alpha = 0.85f),
+                modifier = Modifier.size(20.dp)
+            )
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.background)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Barres d'égaliseur animées : l'espace reste vivant même sans paroles.
+        EqualizerIndicator(
+            color = MusicProCyanNeon,
+            barWidth = 5.dp,
+            maxHeight = 18.dp,
+            isPlaying = isPlaying,
+            animate = animationsEnabled
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = stringResource(R.string.np_lyrics_empty),
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 
