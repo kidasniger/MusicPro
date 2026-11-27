@@ -155,7 +155,7 @@ private fun PreviewMiniPlayer(modifier: Modifier = Modifier) {
                     .size(30.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .background(
-                        Brush.linearGradient(listOf(MusicProVioletPrimary, MusicProCyanNeon))
+                        Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary))
                     )
             )
             Column(modifier = Modifier.weight(1f)) {

@@ -53,6 +53,7 @@ import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -150,7 +151,7 @@ fun LrclibSearchScreen(
 
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = MusicProBackground
+        color = MaterialTheme.colorScheme.background
     ) {
         Column(
             modifier = Modifier
@@ -277,13 +278,13 @@ private fun LrclibTopBar(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(MusicProSurfaceElevated)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .testTag("lrclib_back_button")
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Retour",
-                tint = MusicProCyanNeon,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -295,12 +296,12 @@ private fun LrclibTopBar(
                 text = stringResource(R.string.lyrics_search_title),
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
-                color = MusicProTextPrimary
+                color = MaterialTheme.colorScheme.onBackground
             )
             Text(
                 text = currentTrackTitle,
                 fontSize = 12.sp,
-                color = MusicProTextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -319,8 +320,8 @@ private fun SaveFeedbackBanner(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp)
             .testTag("save_feedback_banner"),
-        colors = CardDefaults.cardColors(containerColor = MusicProSurfaceElevated),
-        border = BorderStroke(1.dp, MusicProCyanNeon),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(
@@ -333,13 +334,13 @@ private fun SaveFeedbackBanner(
                 modifier = Modifier
                     .size(28.dp)
                     .clip(CircleShape)
-                    .background(MusicProCyanNeon.copy(alpha = 0.2f)),
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = null,
-                    tint = MusicProCyanNeon,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -347,7 +348,7 @@ private fun SaveFeedbackBanner(
             Text(
                 text = message,
                 fontSize = 12.sp,
-                color = MusicProTextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.weight(1f)
             )
@@ -380,9 +381,9 @@ private fun SearchFormCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .shadow(10.dp, spotColor = MusicProVioletGlow),
-        colors = CardDefaults.cardColors(containerColor = MusicProSurfaceElevated),
-        border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.4f)),
+            .shadow(10.dp, spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
@@ -400,12 +401,12 @@ private fun SearchFormCard(
                         .weight(1f)
                         .testTag("lrclib_input_title"),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MusicProCyanNeon,
-                        unfocusedBorderColor = MusicProVioletPrimary.copy(alpha = 0.4f),
-                        focusedTextColor = MusicProTextPrimary,
-                        unfocusedTextColor = MusicProTextPrimary,
-                        focusedLabelColor = MusicProCyanNeon,
-                        unfocusedLabelColor = MusicProTextSecondary
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     shape = RoundedCornerShape(10.dp)
                 )
@@ -419,12 +420,12 @@ private fun SearchFormCard(
                         .weight(1f)
                         .testTag("lrclib_input_artist"),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MusicProCyanNeon,
-                        unfocusedBorderColor = MusicProVioletPrimary.copy(alpha = 0.4f),
-                        focusedTextColor = MusicProTextPrimary,
-                        unfocusedTextColor = MusicProTextPrimary,
-                        focusedLabelColor = MusicProCyanNeon,
-                        unfocusedLabelColor = MusicProTextSecondary
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     shape = RoundedCornerShape(10.dp)
                 )
@@ -443,7 +444,7 @@ private fun SearchFormCard(
                     val s = durationSec % 60
                     Surface(
                         shape = RoundedCornerShape(6.dp),
-                        color = MusicProVioletPrimary.copy(alpha = 0.15f)
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -452,14 +453,14 @@ private fun SearchFormCard(
                             Icon(
                                 imageVector = Icons.Default.Timer,
                                 contentDescription = null,
-                                tint = MusicProVioletLight,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(12.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = stringResource(R.string.lyrics_duration_format, m, s, durationSec),
                                 fontSize = 11.sp,
-                                color = MusicProVioletPastel
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
@@ -469,12 +470,12 @@ private fun SearchFormCard(
                 val isMp3 = audioPath?.endsWith(".mp3", ignoreCase = true) == true
                 Surface(
                     shape = RoundedCornerShape(6.dp),
-                    color = (if (isMp3) MusicProCyanNeon else MusicProVioletPrimary).copy(alpha = 0.15f)
+                    color = (if (isMp3) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary).copy(alpha = 0.15f)
                 ) {
                     Text(
                         text = if (isMp3) stringResource(R.string.lyrics_target_sylt) else stringResource(R.string.lyrics_target_lrc),
                         fontSize = 11.sp,
-                        color = if (isMp3) MusicProCyanNeon else MusicProVioletLight,
+                        color = if (isMp3) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
@@ -494,7 +495,7 @@ private fun SearchFormCard(
             ) {
                 if (isAiLoading) {
                     CircularProgressIndicator(
-                        color = MusicProCyanNeon,
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(18.dp),
                         strokeWidth = 2.dp
                     )
@@ -502,14 +503,14 @@ private fun SearchFormCard(
                     Icon(
                         imageVector = Icons.Default.AutoAwesome,
                         contentDescription = stringResource(R.string.lyrics_ai_help),
-                        tint = MusicProCyanNeon,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(18.dp)
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = if (isAiLoading) stringResource(R.string.lyrics_search_improved) else stringResource(R.string.lyrics_improve_search),
-                    color = MusicProCyanNeon,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp
                 )
@@ -519,7 +520,7 @@ private fun SearchFormCard(
                 Text(
                     text = stringResource(R.string.lyrics_suggestion_format, suggestedTitle, suggestedArtist),
                     fontSize = 11.sp,
-                    color = MusicProTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -534,7 +535,7 @@ private fun SearchFormCard(
                     .fillMaxWidth()
                     .height(44.dp)
                     .testTag("lrclib_search_button"),
-                colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(10.dp)
             ) {
                 if (isLoading) {
@@ -586,7 +587,7 @@ private fun SearchResultsList(
                     text = pluralStringResource(R.plurals.lyrics_results_count, results.size, results.size),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MusicProCyanNeon
+                    color = MaterialTheme.colorScheme.primary
                 )
                 Text(
                     text = stringResource(R.string.lyrics_result_hint),
@@ -627,10 +628,10 @@ private fun LrclibResultCard(
             .clip(RoundedCornerShape(14.dp))
             .border(
                 1.dp,
-                if (result.hasSyncedLyrics) MusicProCyanNeon.copy(alpha = 0.4f) else MusicProVioletPrimary.copy(alpha = 0.3f),
+                if (result.hasSyncedLyrics) MaterialTheme.colorScheme.primary.copy(alpha = 0.4f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
                 RoundedCornerShape(14.dp)
             ),
-        colors = CardDefaults.cardColors(containerColor = MusicProSurfaceElevated)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             // En-tête : Titre, Artiste, Durée
@@ -644,7 +645,7 @@ private fun LrclibResultCard(
                         text = result.displayTitle,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MusicProTextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -652,7 +653,7 @@ private fun LrclibResultCard(
                     Text(
                         text = result.displayArtist,
                         fontSize = 13.sp,
-                        color = MusicProCyanLight,
+                        color = MaterialTheme.colorScheme.primary,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -671,13 +672,13 @@ private fun LrclibResultCard(
                 Column(horizontalAlignment = Alignment.End) {
                     Surface(
                         shape = RoundedCornerShape(6.dp),
-                        color = if (isExactDurationMatch) MusicProCyanNeon.copy(alpha = 0.2f) else MusicProSurfaceVariant
+                        color = if (isExactDurationMatch) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant
                     ) {
                         Text(
                             text = result.durationFormatted,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (isExactDurationMatch) MusicProCyanNeon else MusicProTextSecondary,
+                            color = if (isExactDurationMatch) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                         )
                     }
@@ -685,7 +686,7 @@ private fun LrclibResultCard(
                         Text(
                             text = stringResource(R.string.lyrics_ideal_duration),
                             fontSize = 9.sp,
-                            color = MusicProCyanNeon,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold
                         )
                     }
@@ -703,8 +704,8 @@ private fun LrclibResultCard(
                 if (result.hasSyncedLyrics) {
                     Surface(
                         shape = RoundedCornerShape(6.dp),
-                        color = MusicProCyanNeon.copy(alpha = 0.18f),
-                        border = BorderStroke(1.dp, MusicProCyanNeon.copy(alpha = 0.6f))
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -714,19 +715,19 @@ private fun LrclibResultCard(
                                 text = stringResource(R.string.lyrics_synced),
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = MusicProCyanNeon
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
                 } else if (result.hasPlainLyrics) {
                     Surface(
                         shape = RoundedCornerShape(6.dp),
-                        color = MusicProVioletPrimary.copy(alpha = 0.2f)
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                     ) {
                         Text(
                             text = stringResource(R.string.lyrics_plain_text),
                             fontSize = 11.sp,
-                            color = MusicProVioletPastel,
+                            color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                         )
                     }
@@ -735,12 +736,12 @@ private fun LrclibResultCard(
                 if (result.instrumental == true) {
                     Surface(
                         shape = RoundedCornerShape(6.dp),
-                        color = MusicProVioletPastel.copy(alpha = 0.15f)
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                     ) {
                         Text(
                             text = stringResource(R.string.lyrics_instrumental),
                             fontSize = 10.sp,
-                            color = MusicProVioletPastel,
+                            color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                         )
                     }
@@ -755,7 +756,7 @@ private fun LrclibResultCard(
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp))
                     .clickable { isPreviewExpanded = !isPreviewExpanded }
-                    .background(MusicProBackground.copy(alpha = 0.5f))
+                    .background(MaterialTheme.colorScheme.background.copy(alpha = 0.5f))
                     .padding(horizontal = 10.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -764,7 +765,7 @@ private fun LrclibResultCard(
                     Icon(
                         imageVector = Icons.Default.Visibility,
                         contentDescription = null,
-                        tint = MusicProCyanNeon,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
@@ -772,13 +773,13 @@ private fun LrclibResultCard(
                         text = if (isPreviewExpanded) stringResource(R.string.lyrics_hide_preview) else stringResource(R.string.lyrics_preview_title),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = MusicProTextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
                 Icon(
                     imageVector = if (isPreviewExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                     contentDescription = null,
-                    tint = MusicProTextSecondary,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -803,7 +804,7 @@ private fun LrclibResultCard(
                     .fillMaxWidth()
                     .height(42.dp)
                     .testTag("select_lyrics_button_${result.id ?: 0}"),
-                colors = ButtonDefaults.buttonColors(containerColor = MusicProVioletPrimary),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(10.dp)
             ) {
                 Icon(
@@ -848,7 +849,7 @@ private fun LyricsPreviewContent(
             .heightIn(max = 180.dp),
         shape = RoundedCornerShape(8.dp),
         color = Color.Black.copy(alpha = 0.4f),
-        border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.25f))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
     ) {
         Column(
             modifier = Modifier
@@ -867,21 +868,21 @@ private fun LyricsPreviewContent(
                             text = timestamp,
                             fontFamily = FontFamily.Monospace,
                             fontSize = 10.sp,
-                            color = MusicProCyanNeon.copy(alpha = 0.85f),
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
                             fontWeight = FontWeight.SemiBold
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = lyricText.ifBlank { "…" },
                             fontSize = 11.sp,
-                            color = MusicProTextPrimary
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 } else {
                     Text(
                         text = line,
                         fontSize = 11.sp,
-                        color = MusicProTextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(vertical = 1.dp)
                     )
                 }
@@ -908,7 +909,7 @@ private fun LoadingResultsView(message: String) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         CircularProgressIndicator(
-            color = MusicProCyanNeon,
+            color = MaterialTheme.colorScheme.primary,
             strokeWidth = 3.dp,
             modifier = Modifier.size(48.dp)
         )
@@ -917,13 +918,13 @@ private fun LoadingResultsView(message: String) {
             text = message,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = MusicProTextPrimary
+            color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = stringResource(R.string.lyrics_online_title),
             fontSize = 12.sp,
-            color = MusicProTextSecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -955,14 +956,14 @@ private fun EmptyResultsView(
             modifier = Modifier
                 .size(72.dp)
                 .clip(CircleShape)
-                .background(MusicProSurfaceElevated)
-                .border(2.dp, MusicProVioletPrimary.copy(alpha = 0.5f), CircleShape),
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .border(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.SearchOff,
                 contentDescription = null,
-                tint = MusicProCyanNeon,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(36.dp)
             )
         }
@@ -973,7 +974,7 @@ private fun EmptyResultsView(
             text = stringResource(R.string.lyrics_no_results),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            color = MusicProTextPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center
         )
 
@@ -982,7 +983,7 @@ private fun EmptyResultsView(
         Text(
             text = stringResource(R.string.lyrics_no_match_title_artist_format, title, artist),
             fontSize = 13.sp,
-            color = MusicProTextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             lineHeight = 18.sp
         )
@@ -991,7 +992,7 @@ private fun EmptyResultsView(
 
         Button(
             onClick = onRetryBroadSearch,
-            colors = ButtonDefaults.buttonColors(containerColor = MusicProVioletPrimary),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             shape = RoundedCornerShape(10.dp)
         ) {
             Icon(
@@ -1027,7 +1028,7 @@ private fun ErrorResultsView(
             modifier = Modifier
                 .size(72.dp)
                 .clip(CircleShape)
-                .background(MusicProSurfaceElevated)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .border(2.dp, Color(0xFFEF4444).copy(alpha = 0.5f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
@@ -1053,7 +1054,7 @@ private fun ErrorResultsView(
             },
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            color = MusicProTextPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center
         )
 
@@ -1062,7 +1063,7 @@ private fun ErrorResultsView(
         Text(
             text = cleanLyricsSearchError(errorMessage),
             fontSize = 13.sp,
-            color = MusicProTextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             lineHeight = 18.sp
         )
@@ -1071,7 +1072,7 @@ private fun ErrorResultsView(
 
         Button(
             onClick = onRetry,
-            colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             shape = RoundedCornerShape(10.dp)
         ) {
             Icon(
@@ -1100,7 +1101,7 @@ private fun IdleSearchPrompt(
         Icon(
             imageVector = Icons.Default.Subtitles,
             contentDescription = null,
-            tint = MusicProCyanNeon,
+            tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(48.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -1108,19 +1109,19 @@ private fun IdleSearchPrompt(
             text = stringResource(R.string.lyrics_online_description),
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = MusicProTextPrimary
+            color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = stringResource(R.string.lyrics_search_description),
             fontSize = 12.sp,
-            color = MusicProTextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(18.dp))
         Button(
             onClick = onTriggerSearch,
-            colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             shape = RoundedCornerShape(10.dp)
         ) {
             Text(stringResource(R.string.lyrics_start_search), color = Color.Black, fontWeight = FontWeight.Bold)

@@ -82,7 +82,7 @@ fun EqualizerPanel(
                 Icon(
                     Icons.Default.Equalizer,
                     contentDescription = null,
-                    tint = MusicProCyanNeon,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
                 )
                 Column(
@@ -99,7 +99,7 @@ fun EqualizerPanel(
                     Text(
                         stringResource(if (enabled) R.string.eq_effect_on else R.string.eq_effect_off),
                         fontSize = 11.sp,
-                        color = if (enabled) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Switch(checked = enabled, onCheckedChange = onEnabledChange)
@@ -132,7 +132,7 @@ fun EqualizerPanel(
                         Text(label, color = MaterialTheme.colorScheme.onBackground, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                         Text(
                             (level / 100f).roundToInt().toString() + " dB",
-                            color = MusicProCyanNeon,
+                            color = MaterialTheme.colorScheme.primary,
                             fontSize = 11.sp
                         )
                     }

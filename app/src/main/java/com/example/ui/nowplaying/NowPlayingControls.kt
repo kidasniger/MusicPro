@@ -47,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -113,7 +114,7 @@ internal fun TitleArtistPill(
                     text = track?.artist ?: stringResource(R.string.np_player_name),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
-                    color = MusicProCyanLight,
+                    color = MaterialTheme.colorScheme.primary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -182,7 +183,7 @@ internal fun VideoPill(onClick: () -> Unit) {
         onClick = onClick,
         shape = RoundedCornerShape(14.dp),
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.10f),
-        border = BorderStroke(1.dp, MusicProCyanNeon.copy(alpha = 0.5f)),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
         modifier = Modifier.testTag("now_playing_video_pill")
     ) {
         Row(
@@ -192,14 +193,14 @@ internal fun VideoPill(onClick: () -> Unit) {
             Icon(
                 imageVector = Icons.Default.SpeakerGroup,
                 contentDescription = null,
-                tint = MusicProCyanNeon,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(14.dp)
             )
             Text(
                 text = stringResource(R.string.np_switch_to_video),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = MusicProCyanNeon,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(start = 6.dp)
             )
         }
@@ -216,8 +217,8 @@ internal fun SleepCountdownPill(
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
-        color = MusicProVioletPrimary.copy(alpha = 0.25f),
-        border = BorderStroke(1.dp, MusicProCyanNeon.copy(alpha = 0.55f)),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)),
         modifier = Modifier.testTag("now_playing_sleep_pill")
     ) {
         Row(
@@ -227,7 +228,7 @@ internal fun SleepCountdownPill(
             Icon(
                 imageVector = Icons.Default.Timer,
                 contentDescription = null,
-                tint = MusicProCyanNeon,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(13.dp)
             )
             Text(
@@ -238,7 +239,7 @@ internal fun SleepCountdownPill(
                 },
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
-                color = MusicProCyanNeon,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(start = 5.dp)
             )
         }
@@ -279,14 +280,14 @@ internal fun FineProgressBar(
                 formatTime(positionMs),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = MusicProCyanLight
+                color = MaterialTheme.colorScheme.primary
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     "−" + formatTime(remainingMs),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = MusicProCyanLight
+                    color = MaterialTheme.colorScheme.primary
                 )
                 Text(
                     " / " + formatTime(durationMs),
@@ -360,7 +361,7 @@ internal fun FineProgressBar(
                     .fillMaxWidth(fraction)
                     .height(barHeight.dp)
                     .clip(RoundedCornerShape(999.dp))
-                    .background(MusicProCyanNeon)
+                    .background(MaterialTheme.colorScheme.primary)
                     .align(Alignment.CenterStart)
             )
         }
@@ -412,7 +413,7 @@ internal fun TransportRow(
             size = 88.dp,
             onClick = onPlayPause,
             testTag = "now_playing_play_pause_button",
-            background = MusicProPrimaryGradient
+            background = SolidColor(MaterialTheme.colorScheme.primary)
         ) {
             Icon(
                 imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
@@ -499,14 +500,14 @@ private fun TransportStateButton(
         Surface(
             shape = CircleShape,
             color = if (active) {
-                MusicProCyanNeon.copy(alpha = 0.14f)
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
             } else {
                 MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
             },
             border = BorderStroke(
                 1.dp,
                 if (active) {
-                    MusicProCyanNeon.copy(alpha = 0.45f)
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
                 } else {
                     MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)
                 }
@@ -520,7 +521,7 @@ private fun TransportStateButton(
                 Icon(
                     imageVector = icon,
                     contentDescription = contentDescription,
-                    tint = if (active) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -531,7 +532,7 @@ private fun TransportStateButton(
                 .padding(top = 3.dp)
                 .size(4.dp)
                 .background(
-                    if (active) MusicProCyanNeon else Color.Transparent,
+                    if (active) MaterialTheme.colorScheme.primary else Color.Transparent,
                     CircleShape
                 )
         )

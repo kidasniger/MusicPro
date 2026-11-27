@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -87,11 +88,11 @@ fun GroqPreviewDialog(
             modifier = Modifier
                 .fillMaxWidth(0.95f)
                 .fillMaxHeight(0.88f)
-                .shadow(24.dp, RoundedCornerShape(24.dp), spotColor = MusicProVioletGlow)
-                .border(1.dp, MusicProCyanNeon.copy(alpha = 0.4f), RoundedCornerShape(24.dp))
+                .shadow(24.dp, RoundedCornerShape(24.dp), spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
+                .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f), RoundedCornerShape(24.dp))
                 .testTag("groq_preview_dialog"),
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MusicProBackground)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
         ) {
             Column(
                 modifier = Modifier
@@ -109,14 +110,14 @@ fun GroqPreviewDialog(
                             modifier = Modifier
                                 .size(38.dp)
                                 .clip(CircleShape)
-                                .background(MusicProVioletPrimary.copy(alpha = 0.2f))
-                                .border(1.dp, MusicProCyanNeon, CircleShape),
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                                .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.AutoAwesome,
                                 contentDescription = null,
-                                tint = MusicProCyanNeon,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -126,12 +127,12 @@ fun GroqPreviewDialog(
                                 text = stringResource(R.string.groq_preview_title),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = MusicProTextPrimary
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                             Text(
                                 text = stringResource(R.string.groq_generation_done),
                                 fontSize = 11.sp,
-                                color = MusicProCyanLight
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
@@ -141,12 +142,12 @@ fun GroqPreviewDialog(
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(MusicProSurfaceElevated)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Fermer",
-                            tint = MusicProTextSecondary,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -158,8 +159,8 @@ fun GroqPreviewDialog(
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
-                    color = MusicProCardBackground,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MusicProSurfaceElevated)
+                    color = MaterialTheme.colorScheme.surface,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     Row(
                         modifier = Modifier
@@ -173,14 +174,14 @@ fun GroqPreviewDialog(
                                 text = result.trackTitle,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = MusicProTextPrimary,
+                                color = MaterialTheme.colorScheme.onBackground,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                             Text(
                                 text = result.artistName,
                                 fontSize = 12.sp,
-                                color = MusicProTextSecondary,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -190,7 +191,7 @@ fun GroqPreviewDialog(
                             // Badge langue
                             Surface(
                                 shape = RoundedCornerShape(6.dp),
-                                color = MusicProVioletPrimary.copy(alpha = 0.25f)
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
                             ) {
                                 Row(
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
@@ -199,7 +200,7 @@ fun GroqPreviewDialog(
                                     Icon(
                                         imageVector = Icons.Default.Translate,
                                         contentDescription = null,
-                                        tint = MusicProVioletLight,
+                                        tint = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.size(12.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
@@ -207,7 +208,7 @@ fun GroqPreviewDialog(
                                         text = result.detectedLanguage.uppercase(),
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = MusicProVioletLight
+                                        color = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             }
@@ -238,7 +239,7 @@ fun GroqPreviewDialog(
                     text = stringResource(R.string.groq_generated_synced_lines),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
-                    color = MusicProTextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -248,8 +249,8 @@ fun GroqPreviewDialog(
                         .weight(1f)
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(MusicProCardBackground)
-                        .border(1.dp, MusicProSurfaceElevated, RoundedCornerShape(14.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(14.dp))
                 ) {
                     if (result.segments.isEmpty()) {
                         Box(
@@ -294,18 +295,18 @@ fun GroqPreviewDialog(
                             .height(48.dp)
                             .testTag("copy_groq_lyrics_button"),
                         shape = RoundedCornerShape(12.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, MusicProVioletLight)
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
                     ) {
                         Icon(
                             imageVector = Icons.Default.ContentCopy,
                             contentDescription = null,
-                            tint = MusicProVioletLight,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = stringResource(R.string.groq_copy_lrc),
-                            color = MusicProVioletLight,
+                            color = MaterialTheme.colorScheme.primary,
                             fontSize = 12.sp
                         )
                     }
@@ -317,10 +318,10 @@ fun GroqPreviewDialog(
                         modifier = Modifier
                             .weight(1f)
                             .height(48.dp)
-                            .shadow(8.dp, spotColor = MusicProCyanNeon)
+                            .shadow(8.dp, spotColor = MaterialTheme.colorScheme.primary)
                             .testTag("integrate_groq_lyrics_button"),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Save,
@@ -347,7 +348,7 @@ private fun SegmentRowItem(index: Int, segment: GroqSegment) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
-        color = MusicProBackground.copy(alpha = 0.6f)
+        color = MaterialTheme.colorScheme.background.copy(alpha = 0.6f)
     ) {
         Row(
             modifier = Modifier
@@ -357,14 +358,14 @@ private fun SegmentRowItem(index: Int, segment: GroqSegment) {
         ) {
             Surface(
                 shape = RoundedCornerShape(4.dp),
-                color = MusicProCyanNeon.copy(alpha = 0.15f)
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
             ) {
                 Text(
                     text = segment.timestampLrc,
                     fontFamily = FontFamily.Monospace,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MusicProCyanNeon,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
                 )
             }
@@ -374,7 +375,7 @@ private fun SegmentRowItem(index: Int, segment: GroqSegment) {
             Text(
                 text = segment.cleanText,
                 fontSize = 13.sp,
-                color = MusicProTextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.weight(1f)
             )
         }

@@ -40,6 +40,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
@@ -134,8 +135,8 @@ fun SplashScreen(
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(
-                        MusicProVioletPrimary.copy(alpha = 0.40f),
-                        MusicProCyanVibrant.copy(alpha = 0.20f),
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.40f),
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.20f),
                         Color.Transparent
                     ),
                     center = centerOffset,
@@ -166,8 +167,8 @@ fun SplashScreen(
                     drawCircle(
                         brush = Brush.radialGradient(
                             colors = listOf(
-                                MusicProCyanNeon.copy(alpha = 0.65f),
-                                MusicProVioletPrimary.copy(alpha = 0.45f),
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.65f),
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
                                 Color.Transparent
                             ),
                             center = centerOffset,
@@ -211,7 +212,7 @@ fun SplashScreen(
                         .offset(x = shimmerOffset.dp)
                         .width(50.dp)
                         .height(3.dp)
-                        .background(MusicProPrimaryGradient, RoundedCornerShape(2.dp))
+                        .background(SolidColor(MaterialTheme.colorScheme.primary), RoundedCornerShape(2.dp))
                 )
             }
         }

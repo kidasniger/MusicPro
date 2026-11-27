@@ -61,8 +61,8 @@ fun FavoritesScreen(
         Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Retour", tint = MaterialTheme.colorScheme.onBackground) }
             Column(Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.Favorite, contentDescription = null, tint = MusicProCyanNeon, modifier = Modifier.size(24.dp)); Spacer(Modifier.width(8.dp)); Text("Favoris", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) }
-                Text(favoriteTracks.size.toString() + " morceau(x) • " + formatDuration(totalDuration), fontSize = 12.sp, color = MusicProCyanNeon)
+                Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.Favorite, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp)); Spacer(Modifier.width(8.dp)); Text("Favoris", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground) }
+                Text(favoriteTracks.size.toString() + " morceau(x) • " + formatDuration(totalDuration), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
             }
         }
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -85,13 +85,13 @@ fun FavoritesScreen(
                 itemsIndexed(favoriteTracks, key = { _, it -> it.id }) { index, track ->
                     Surface(onClick = { onTrackClick(track) }, color = if (currentTrack?.id == track.id) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent, modifier = Modifier.fillMaxWidth()) {
                         Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            if (isPlaying && currentTrack?.id == track.id) { Icon(Icons.Default.PlayArrow, contentDescription = "Lecture en cours", tint = MusicProCyanNeon, modifier = Modifier.size(18.dp)) } else { Text((index + 1).toString(), color = MusicProCyanNeon, fontSize = 11.sp, modifier = Modifier.width(24.dp)) }
+                            if (isPlaying && currentTrack?.id == track.id) { Icon(Icons.Default.PlayArrow, contentDescription = "Lecture en cours", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp)) } else { Text((index + 1).toString(), color = MaterialTheme.colorScheme.primary, fontSize = 11.sp, modifier = Modifier.width(24.dp)) }
                             Surface(Modifier.size(46.dp), shape = RoundedCornerShape(9.dp), color = MaterialTheme.colorScheme.surface) {
-                                if (!track.albumArtUri.isNullOrBlank()) AsyncImage(track.albumArtUri, null, contentScale = ContentScale.Crop) else Icon(Icons.Default.MusicNote, null, tint = MusicProVioletLight)
+                                if (!track.albumArtUri.isNullOrBlank()) AsyncImage(track.albumArtUri, null, contentScale = ContentScale.Crop) else Icon(Icons.Default.MusicNote, null, tint = MaterialTheme.colorScheme.primary)
                             }
                             Spacer(Modifier.width(10.dp))
                             Column(Modifier.weight(1f)) {
-                                Text(track.title, color = if (currentTrack?.id == track.id) MusicProCyanNeon else MaterialTheme.colorScheme.onBackground, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                                Text(track.title, color = if (currentTrack?.id == track.id) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
                                 Text(track.artist + " • " + track.formatDuration(), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, maxLines = 1)
                             }
                             IconButton(onClick = { onAddToQueue(track) }) { Icon(Icons.AutoMirrored.Filled.QueueMusic, "File", tint = MaterialTheme.colorScheme.onSurfaceVariant) }
@@ -154,14 +154,14 @@ fun EqualizerSheet(
     ModalBottomSheet(onDismissRequest = onClose, containerColor = MaterialTheme.colorScheme.surface) {
         Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Equalizer, null, tint = MusicProCyanNeon)
+                Icon(Icons.Default.Equalizer, null, tint = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text(stringResource(R.string.eq_title), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
                     Text(
                         stringResource(if (enabled) R.string.eq_effect_on else R.string.eq_effect_off),
                         fontSize = 12.sp,
-                        color = if (enabled) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 OutlinedButton(onClick = { onEnabledChange(!enabled) }, shape = RoundedCornerShape(12.dp)) {
@@ -185,7 +185,7 @@ fun EqualizerSheet(
                 ) {
                     Column(Modifier.weight(1f)) {
                         Text(label, color = MaterialTheme.colorScheme.onBackground, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                        Text((level / 100f).roundToInt().toString() + " dB", color = MusicProCyanNeon, fontSize = 11.sp)
+                        Text((level / 100f).roundToInt().toString() + " dB", color = MaterialTheme.colorScheme.primary, fontSize = 11.sp)
                     }
                     IconButton(
                         onClick = { onBandChange(index, (level - 100).coerceIn(-1500, 1500)) },
@@ -260,7 +260,7 @@ fun KaraokeSettingsDialog(
             }
             Text(
                 fontSize.roundToInt().toString() + " sp",
-                color = MusicProCyanNeon,
+                color = MaterialTheme.colorScheme.primary,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f),
@@ -293,7 +293,7 @@ fun KaraokeSettingsDialog(
             }
             Text(
                 offsetMs.toString() + " ms",
-                color = MusicProCyanNeon,
+                color = MaterialTheme.colorScheme.primary,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f),
@@ -318,7 +318,7 @@ fun KaraokeSettingsDialog(
             Spacer(Modifier.width(6.dp))
             Text("Tout rétablir")
         }
-    } }, confirmButton = { TextButton(onClick = onDismiss) { Text("Fermer", color = MusicProCyanNeon) } })
+    } }, confirmButton = { TextButton(onClick = onDismiss) { Text("Fermer", color = MaterialTheme.colorScheme.primary) } })
 }
 
 private fun formatDuration(ms: Long): String {

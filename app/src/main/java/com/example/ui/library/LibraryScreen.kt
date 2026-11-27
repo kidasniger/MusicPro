@@ -282,7 +282,7 @@ fun LibraryScreen(
                         modifier = Modifier
                             .size(6.dp)
                             .clip(CircleShape)
-                            .background(if (isScanning) MusicProCyanNeon else MusicProGreenEmerald)
+                            .background(if (isScanning) MaterialTheme.colorScheme.primary else MusicProGreenEmerald)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
@@ -306,7 +306,7 @@ fun LibraryScreen(
                 Icon(
                     imageVector = Icons.Default.Refresh,
                     contentDescription = "Actualiser la bibliothèque",
-                    tint = MusicProCyanNeon,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .size(22.dp)
                         .then(if (isScanning) Modifier.rotate(rotationAngle) else Modifier)
@@ -325,7 +325,7 @@ fun LibraryScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(3.dp),
-                color = MusicProCyanNeon,
+                color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
         }
@@ -350,12 +350,12 @@ fun LibraryScreen(
                             .heightIn(min = 44.dp)
                             .clip(RoundedCornerShape(20.dp))
                             .background(
-                                if (isSelected) MusicProPrimaryGradient
+                                if (isSelected) SolidColor(MaterialTheme.colorScheme.primary)
                                 else SolidColor(MaterialTheme.colorScheme.surfaceVariant)
                             )
                             .border(
                                 1.dp,
-                                if (isSelected) MusicProVioletGlow
+                                if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
                                 else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                                 RoundedCornerShape(20.dp)
                             )
@@ -396,7 +396,7 @@ fun LibraryScreen(
                 Icon(
                     imageVector = Icons.Default.Sort,
                     contentDescription = stringResource(R.string.library_sort_action),
-                    tint = MusicProCyanNeon,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -557,7 +557,7 @@ fun LibraryScreen(
                         .testTag("library_selection_bar"),
                     shape = RoundedCornerShape(18.dp),
                     color = MaterialTheme.colorScheme.surface,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MusicProVioletGlow.copy(alpha = 0.5f)),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.45f).copy(alpha = 0.5f)),
                     shadowElevation = 8.dp
                 ) {
                     Row(
@@ -568,7 +568,7 @@ fun LibraryScreen(
                             text = stringResource(R.string.selection_count, selectedTrackIds.size),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MusicProCyanNeon,
+                            color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .weight(1f)
                                 .padding(start = 10.dp),
@@ -800,7 +800,7 @@ fun TrackRowItem(
             )
             .background(
                 when {
-                    inSelectionMode && selected -> MusicProCyanNeon.copy(alpha = 0.14f)
+                    inSelectionMode && selected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
                     isCurrent -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)
                     else -> Color.Transparent
                 }
@@ -826,10 +826,10 @@ fun TrackRowItem(
                         .size(24.dp)
                         .scale(checkScale)
                         .clip(CircleShape)
-                        .background(if (selected) MusicProCyanNeon else Color.Transparent)
+                        .background(if (selected) MaterialTheme.colorScheme.primary else Color.Transparent)
                         .border(
                             2.dp,
-                            if (selected) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
+                            if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             CircleShape
                         ),
                     contentAlignment = Alignment.Center
@@ -853,7 +853,7 @@ fun TrackRowItem(
                 if (isCurrent && isPlaying) {
                     // Mise à jour 076 — égaliseur 3 barres animé, figé à la pause.
                     EqualizerIndicator(
-                        color = MusicProCyanNeon,
+                        color = MaterialTheme.colorScheme.primary,
                         isPlaying = isPlaying,
                         modifier = Modifier.size(width = 16.dp, height = 18.dp)
                     )
@@ -861,7 +861,7 @@ fun TrackRowItem(
                     Text(
                         text = "%02d".format(index),
                         fontSize = 12.sp,
-                        color = if (isCurrent) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -878,7 +878,7 @@ fun TrackRowItem(
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .border(
                     1.dp,
-                    if (isCurrent) MusicProCyanNeon else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+                    if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                     RoundedCornerShape(10.dp)
                 ),
             contentAlignment = Alignment.Center
@@ -895,7 +895,7 @@ fun TrackRowItem(
                 Icon(
                     imageVector = Icons.Default.MusicNote,
                     contentDescription = null,
-                    tint = if (isCurrent) MusicProCyanNeon else MusicProVioletLight,
+                    tint = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -909,7 +909,7 @@ fun TrackRowItem(
                 text = track.title,
                 fontSize = 14.sp,
                 fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.SemiBold,
-                color = if (isCurrent) MusicProCyanNeon else MaterialTheme.colorScheme.onBackground,
+                color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -942,7 +942,7 @@ fun TrackRowItem(
                         text = track.getAudioFormat(),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (track.getAudioFormat() == "FLAC") MusicProGreenEmerald else MusicProVioletLight
+                        color = if (track.getAudioFormat() == "FLAC") MusicProGreenEmerald else MaterialTheme.colorScheme.primary
                     )
                 }
 
@@ -958,7 +958,7 @@ fun TrackRowItem(
                             text = "Paroles",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MusicProCyanNeon
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -1060,7 +1060,7 @@ private fun AlbumGridItem(
                     .clip(RoundedCornerShape(12.dp))
                     .background(
                         Brush.linearGradient(
-                            listOf(MusicProVioletPrimary.copy(alpha = 0.5f), MusicProCyanVibrant.copy(alpha = 0.3f))
+                            listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
                         )
                     ),
                 contentAlignment = Alignment.Center
@@ -1077,7 +1077,7 @@ private fun AlbumGridItem(
                     Icon(
                         imageVector = Icons.Default.Album,
                         contentDescription = null,
-                        tint = MusicProCyanNeon,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(48.dp)
                     )
                 }
@@ -1111,7 +1111,7 @@ private fun AlbumGridItem(
             text = "${album.trackCount} titres",
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
-            color = MusicProCyanLight
+            color = MaterialTheme.colorScheme.primary
         )
     }
 }
@@ -1165,10 +1165,10 @@ private fun ArtistsList(
                             .clip(CircleShape)
                             .background(
                                 Brush.linearGradient(
-                                    listOf(MusicProVioletPrimary, MusicProCyanVibrant)
+                                    listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary)
                                 )
                             )
-                            .border(1.5.dp, MusicProCyanNeon, CircleShape),
+                            .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -1199,7 +1199,7 @@ private fun ArtistsList(
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
                         contentDescription = null,
-                        tint = MusicProCyanNeon,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -1257,7 +1257,7 @@ private fun FoldersList(
                     Icon(
                         imageVector = Icons.Default.Folder,
                         contentDescription = null,
-                        tint = MusicProCyanNeon,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -1291,7 +1291,7 @@ private fun FoldersList(
                         text = "${folder.trackCount} titres",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = MusicProCyanLight
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -1331,7 +1331,7 @@ private fun AlbumDetailView(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Retour aux albums",
-                        tint = MusicProCyanNeon
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
                 Spacer(modifier = Modifier.width(6.dp))
@@ -1357,7 +1357,7 @@ private fun AlbumDetailView(
                         .size(80.dp)
                         .clip(RoundedCornerShape(14.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .border(1.dp, MusicProVioletPrimary, RoundedCornerShape(14.dp)),
+                        .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(14.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     if (!album.coverUri.isNullOrBlank() && !imageLoadError) {
@@ -1372,7 +1372,7 @@ private fun AlbumDetailView(
                         Icon(
                             imageVector = Icons.Default.Album,
                             contentDescription = null,
-                            tint = MusicProCyanNeon,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(40.dp)
                         )
                     }
@@ -1393,7 +1393,7 @@ private fun AlbumDetailView(
                     Text(
                         text = album.artist,
                         fontSize = 13.sp,
-                        color = MusicProVioletLight
+                        color = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -1414,7 +1414,7 @@ private fun AlbumDetailView(
                     onClick = onPlayAll,
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MusicProVioletPrimary)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(17.dp))
                     Spacer(Modifier.width(6.dp))
@@ -1425,7 +1425,7 @@ private fun AlbumDetailView(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Icon(Icons.Default.Shuffle, contentDescription = null, tint = MusicProCyanNeon, modifier = Modifier.size(17.dp))
+                    Icon(Icons.Default.Shuffle, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(17.dp))
                     Spacer(Modifier.width(6.dp))
                     Text("Aléatoire", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
@@ -1481,7 +1481,7 @@ private fun ArtistDetailView(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Retour aux artistes",
-                        tint = MusicProCyanNeon
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
                 Spacer(modifier = Modifier.width(6.dp))
@@ -1505,8 +1505,8 @@ private fun ArtistDetailView(
                     modifier = Modifier
                         .size(70.dp)
                         .clip(CircleShape)
-                        .background(MusicProPrimaryGradient)
-                        .border(2.dp, MusicProCyanNeon, CircleShape),
+                        .background(SolidColor(MaterialTheme.colorScheme.primary))
+                        .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -1530,7 +1530,7 @@ private fun ArtistDetailView(
                     Text(
                         text = "${artist.trackCount} morceau(x) • ${artist.albumsCount} album(s)",
                         fontSize = 12.sp,
-                        color = MusicProCyanLight
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -1545,7 +1545,7 @@ private fun ArtistDetailView(
                     onClick = onPlayAll,
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MusicProVioletPrimary)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Text("Lire", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
@@ -1554,7 +1554,7 @@ private fun ArtistDetailView(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.Shuffle, contentDescription = null, tint = MusicProCyanNeon, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(5.dp)); Text("Aléatoire", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
+                    Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.Shuffle, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(5.dp)); Text("Aléatoire", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
                 }
             }
         }
@@ -1608,7 +1608,7 @@ private fun FolderDetailView(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Retour aux dossiers",
-                        tint = MusicProCyanNeon
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
                 Spacer(modifier = Modifier.width(6.dp))
@@ -1633,13 +1633,13 @@ private fun FolderDetailView(
                         .size(60.dp)
                         .clip(RoundedCornerShape(14.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .border(1.5.dp, MusicProCyanNeon, RoundedCornerShape(14.dp)),
+                        .border(1.5.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(14.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Folder,
                         contentDescription = null,
-                        tint = MusicProCyanNeon,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -1665,7 +1665,7 @@ private fun FolderDetailView(
                     Text(
                         text = "${folder.trackCount} fichier(s) audio",
                         fontSize = 12.sp,
-                        color = MusicProVioletLight
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -1680,7 +1680,7 @@ private fun FolderDetailView(
                     onClick = onPlayAll,
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MusicProVioletPrimary)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) { Text("Lire", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
                 androidx.compose.material3.OutlinedButton(
                     onClick = onShuffle,

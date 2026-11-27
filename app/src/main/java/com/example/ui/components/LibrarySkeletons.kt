@@ -181,7 +181,7 @@ fun ScanProgressBanner(
             Icon(
                 imageVector = Icons.Default.GraphicEq,
                 contentDescription = null,
-                tint = MusicProCyanNeon,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(10.dp))

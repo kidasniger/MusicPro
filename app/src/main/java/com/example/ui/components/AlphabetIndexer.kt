@@ -123,7 +123,7 @@ fun AlphabetIndexer(
                     text = letter.toString(),
                     fontSize = 10.sp,
                     fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
-                    color = if (isCurrent) MusicProCyanNeon
+                    color = if (isCurrent) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 1.dp)
                 )
@@ -140,7 +140,7 @@ fun AlphabetIndexer(
                 modifier = Modifier
                     .padding(end = 30.dp)
                     .clip(CircleShape)
-                    .background(MusicProVioletGlow)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
                     .padding(12.dp),
                 contentAlignment = Alignment.Center
             ) {

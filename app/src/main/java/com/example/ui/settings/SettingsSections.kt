@@ -160,7 +160,7 @@ fun SettingsTopBar(onBack: () -> Unit) {
             Text(
                 text = stringResource(R.string.settings_section_appearance_desc),
                 fontSize = 12.sp,
-                color = MusicProCyanNeon,
+                color = MaterialTheme.colorScheme.primary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -181,8 +181,8 @@ fun ThemeSelectionCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(8.dp, RoundedCornerShape(18.dp), spotColor = MusicProVioletGlow)
-            .border(1.dp, MusicProVioletPrimary.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
+            .shadow(8.dp, RoundedCornerShape(18.dp), spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
+            .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
             .testTag("theme_settings_card"),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -194,13 +194,13 @@ fun ThemeSelectionCard(
                     modifier = Modifier
                         .size(34.dp)
                         .clip(CircleShape)
-                        .background(MusicProVioletPrimary.copy(alpha = 0.25f)),
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.GraphicEq,
                         contentDescription = null,
-                        tint = MusicProCyanNeon,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -231,7 +231,7 @@ fun ThemeSelectionCard(
                     title = stringResource(R.string.settings_neon_dark),
                     subtitle = stringResource(R.string.settings_recommended),
                     isSelected = currentTheme == AppThemeMode.DARK,
-                    accentColor = MusicProCyanNeon,
+                    accentColor = MaterialTheme.colorScheme.primary,
                     containerColor = Color(0xFF130924),
                     modifier = Modifier
                         .weight(1f)
@@ -243,7 +243,7 @@ fun ThemeSelectionCard(
                     title = "Clair",
                     subtitle = stringResource(R.string.settings_minimal_clean),
                     isSelected = currentTheme == AppThemeMode.LIGHT,
-                    accentColor = MusicProVioletPrimary,
+                    accentColor = MaterialTheme.colorScheme.primary,
                     containerColor = Color(0xFFF3F4F8),
                     modifier = Modifier
                         .weight(1f)
@@ -255,7 +255,7 @@ fun ThemeSelectionCard(
                     title = stringResource(R.string.settings_system),
                     subtitle = "Auto",
                     isSelected = currentTheme == AppThemeMode.SYSTEM,
-                    accentColor = MusicProVioletLight,
+                    accentColor = MaterialTheme.colorScheme.primary,
                     containerColor = Color(0xFF1E1530),
                     modifier = Modifier
                         .weight(1f)
@@ -298,7 +298,7 @@ fun ThemeSelectionCard(
                             onCheckedChange = onDynamicColorChanged,
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = Color.White,
-                                checkedTrackColor = MusicProCyanNeon,
+                                checkedTrackColor = MaterialTheme.colorScheme.primary,
                                 uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
                             ),
                             modifier = Modifier.testTag("dynamic_color_switch")
@@ -401,10 +401,10 @@ fun GroqApiKeyCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(8.dp, RoundedCornerShape(18.dp), spotColor = MusicProVioletGlow)
+            .shadow(8.dp, RoundedCornerShape(18.dp), spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
             .border(
                 1.dp,
-                if (isConfigured) MusicProCyanNeon.copy(alpha = 0.5f) else MusicProVioletPrimary.copy(alpha = 0.3f),
+                if (isConfigured) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
                 RoundedCornerShape(18.dp)
             )
             .testTag("groq_settings_card"),
@@ -426,13 +426,13 @@ fun GroqApiKeyCard(
                         modifier = Modifier
                             .size(34.dp)
                             .clip(CircleShape)
-                            .background(MusicProVioletPrimary.copy(alpha = 0.25f)),
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.AutoAwesome,
                             contentDescription = null,
-                            tint = MusicProCyanNeon,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -504,7 +504,7 @@ fun GroqApiKeyCard(
                         Icon(
                             imageVector = Icons.Default.Lock,
                             contentDescription = null,
-                            tint = MusicProCyanNeon,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -541,7 +541,7 @@ fun GroqApiKeyCard(
                             Icon(
                                 imageVector = Icons.Default.ContentPaste,
                                 contentDescription = stringResource(R.string.settings_paste_clipboard),
-                                tint = MusicProCyanLight,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -549,7 +549,7 @@ fun GroqApiKeyCard(
                             Icon(
                                 imageVector = if (isPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                                 contentDescription = if (isPasswordVisible) stringResource(R.string.settings_hide_key) else stringResource(R.string.settings_show_key),
-                                tint = MusicProVioletLight,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -557,13 +557,13 @@ fun GroqApiKeyCard(
                 },
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MusicProCyanNeon,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
-                    focusedLabelColor = MusicProCyanNeon,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
                     unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     focusedTextColor = MaterialTheme.colorScheme.onBackground,
                     unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                    cursorColor = MusicProCyanNeon
+                    cursorColor = MaterialTheme.colorScheme.primary
                 )
             )
 
@@ -574,10 +574,10 @@ fun GroqApiKeyCard(
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp),
-                        color = if (isSuccess) MusicProSuccess.copy(alpha = 0.12f) else MusicProError.copy(alpha = 0.12f),
+                        color = if (isSuccess) MusicProSuccess.copy(alpha = 0.12f) else MaterialTheme.colorScheme.error.copy(alpha = 0.12f),
                         border = BorderStroke(
                             1.dp,
-                            if (isSuccess) MusicProSuccess.copy(alpha = 0.4f) else MusicProError.copy(alpha = 0.4f)
+                            if (isSuccess) MusicProSuccess.copy(alpha = 0.4f) else MaterialTheme.colorScheme.error.copy(alpha = 0.4f)
                         )
                     ) {
                         Row(
@@ -587,14 +587,14 @@ fun GroqApiKeyCard(
                             Icon(
                                 imageVector = if (isSuccess) Icons.Default.CheckCircle else Icons.Default.Warning,
                                 contentDescription = null,
-                                tint = if (isSuccess) MusicProSuccess else MusicProError,
+                                tint = if (isSuccess) MusicProSuccess else MaterialTheme.colorScheme.error,
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = message,
                                 fontSize = 12.sp,
-                                color = if (isSuccess) MusicProSuccess else MusicProError,
+                                color = if (isSuccess) MusicProSuccess else MaterialTheme.colorScheme.error,
                                 lineHeight = 15.sp
                             )
                         }
@@ -617,7 +617,7 @@ fun GroqApiKeyCard(
                         .height(44.dp)
                         .testTag("save_groq_key_button"),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Save,
@@ -643,25 +643,25 @@ fun GroqApiKeyCard(
                         .height(44.dp)
                         .testTag("test_groq_key_button"),
                     shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, MusicProVioletLight)
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
                 ) {
                     if (isTestingKey) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(16.dp),
-                            color = MusicProVioletLight,
+                            color = MaterialTheme.colorScheme.primary,
                             strokeWidth = 2.dp
                         )
                     } else {
                         Icon(
                             imageVector = Icons.Default.NetworkCheck,
                             contentDescription = null,
-                            tint = MusicProVioletLight,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = "Tester",
-                            color = MusicProVioletLight,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 12.sp,
                             maxLines = 1
@@ -681,7 +681,7 @@ fun GroqApiKeyCard(
                         Icon(
                             imageVector = Icons.Default.DeleteOutline,
                             contentDescription = stringResource(R.string.settings_clear_key),
-                            tint = MusicProError,
+                            tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -703,7 +703,7 @@ fun GroqApiKeyCard(
                     Icon(
                         imageVector = Icons.Default.OpenInBrowser,
                         contentDescription = null,
-                        tint = MusicProCyanLight,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .size(16.dp)
                             .padding(top = 2.dp)
@@ -738,8 +738,8 @@ fun CacheManagementCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(8.dp, RoundedCornerShape(18.dp), spotColor = MusicProVioletGlow)
-            .border(1.dp, MusicProVioletPrimary.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
+            .shadow(8.dp, RoundedCornerShape(18.dp), spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
+            .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
             .testTag("cache_settings_card"),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -756,13 +756,13 @@ fun CacheManagementCard(
                         modifier = Modifier
                             .size(34.dp)
                             .clip(CircleShape)
-                            .background(MusicProVioletPrimary.copy(alpha = 0.25f)),
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Storage,
                             contentDescription = null,
-                            tint = MusicProCyanNeon,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -821,7 +821,7 @@ fun CacheManagementCard(
                             text = cacheSize,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MusicProCyanNeon
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
 
@@ -829,14 +829,14 @@ fun CacheManagementCard(
                         onClick = onRequestClear,
                         enabled = !isClearing && !isCleaningLibrary,
                         shape = RoundedCornerShape(10.dp),
-                        border = BorderStroke(1.dp, MusicProError.copy(alpha = 0.7f)),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MusicProError),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.7f)),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
                         modifier = Modifier.testTag("clear_cache_button")
                     ) {
                         if (isClearing) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(14.dp),
-                                color = MusicProError,
+                                color = MaterialTheme.colorScheme.error,
                                 strokeWidth = 2.dp
                             )
                         } else {
@@ -892,7 +892,7 @@ fun CacheManagementCard(
                         onClick = onCleanLibrary,
                         enabled = !isCleaningLibrary && !isClearing,
                         shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MusicProVioletPrimary),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         modifier = Modifier.testTag("clean_library_button")
                     ) {
                         if (isCleaningLibrary) {
@@ -978,17 +978,17 @@ fun PlaybackSettingsCard(
     onPresentationSelected: (PlayerPresentation) -> Unit = {}
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth().border(1.dp, MusicProVioletPrimary.copy(alpha = 0.3f), RoundedCornerShape(18.dp)),
+        modifier = Modifier.fillMaxWidth().border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), RoundedCornerShape(18.dp)),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
-                    modifier = Modifier.size(34.dp).clip(CircleShape).background(MusicProVioletPrimary.copy(alpha = 0.25f)),
+                    modifier = Modifier.size(34.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.PlayArrow, null, tint = MusicProCyanNeon, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.PlayArrow, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                 }
                 Spacer(Modifier.width(10.dp))
                 Column {
@@ -1053,10 +1053,10 @@ private fun PresentationOption(
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(10.dp),
-        color = if (selected) MusicProVioletPrimary else MaterialTheme.colorScheme.outline.copy(alpha = 0.10f),
+        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.10f),
         border = BorderStroke(
             1.dp,
-            if (selected) MusicProCyanNeon else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
+            if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
         ),
         modifier = modifier
     ) {
@@ -1101,7 +1101,7 @@ private fun SettingToggleRow(
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
-                checkedTrackColor = MusicProCyanNeon,
+                checkedTrackColor = MaterialTheme.colorScheme.primary,
                 uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
             )
         )
@@ -1117,10 +1117,10 @@ fun SettingsSectionHeader(
         Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(Modifier.size(6.dp).clip(CircleShape).background(MusicProCyanNeon))
+        Box(Modifier.size(6.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary))
         Spacer(Modifier.width(8.dp))
         Column {
-            Text(title, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MusicProCyanNeon)
+            Text(title, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             Text(subtitle, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
@@ -1131,7 +1131,7 @@ fun AboutCard(currentVersion: String = "1.0") {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(8.dp, RoundedCornerShape(18.dp), spotColor = MusicProVioletGlow)
+            .shadow(8.dp, RoundedCornerShape(18.dp), spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
             .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(18.dp))
             .testTag("about_settings_card"),
         shape = RoundedCornerShape(18.dp),
@@ -1148,7 +1148,7 @@ fun AboutCard(currentVersion: String = "1.0") {
                         .size(44.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .border(1.dp, MusicProVioletPrimary, RoundedCornerShape(12.dp)),
+                        .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
@@ -1171,14 +1171,14 @@ fun AboutCard(currentVersion: String = "1.0") {
                         Spacer(modifier = Modifier.width(8.dp))
                         Surface(
                             shape = RoundedCornerShape(6.dp),
-                            color = MusicProCyanNeon.copy(alpha = 0.2f),
-                            border = BorderStroke(1.dp, MusicProCyanNeon.copy(alpha = 0.5f))
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                         ) {
                             Text(
                                 text = stringResource(R.string.settings_version_format, currentVersion),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = MusicProCyanNeon,
+                                color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                             )
                         }
@@ -1238,7 +1238,7 @@ fun AboutCard(currentVersion: String = "1.0") {
                 Icon(
                     imageVector = Icons.Default.ContentCopy,
                     contentDescription = null,
-                    tint = MusicProCyanNeon,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -1300,7 +1300,7 @@ fun TechBadgeRow(title: String, value: String) {
             text = value,
             fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
-            color = MusicProCyanLight,
+            color = MaterialTheme.colorScheme.primary,
             fontFamily = FontFamily.Monospace,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -1316,7 +1316,7 @@ fun PermissionsCard(onNavigateToPermissions: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(8.dp, RoundedCornerShape(18.dp), spotColor = MusicProVioletGlow)
+            .shadow(8.dp, RoundedCornerShape(18.dp), spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
             .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(18.dp)),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
@@ -1345,12 +1345,12 @@ fun PermissionsCard(onNavigateToPermissions: () -> Unit) {
             OutlinedButton(
                 onClick = onNavigateToPermissions,
                 shape = RoundedCornerShape(10.dp),
-                border = BorderStroke(1.dp, MusicProVioletLight),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
                 modifier = Modifier.testTag("manage_permissions_button")
             ) {
                 Text(
                     text = stringResource(R.string.settings_manage),
-                    color = MusicProVioletLight,
+                    color = MaterialTheme.colorScheme.primary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold
                 )
