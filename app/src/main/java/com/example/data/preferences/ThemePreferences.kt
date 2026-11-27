@@ -38,7 +38,9 @@ fun legacyThemeToAppearance(legacy: String?): AppearanceMode = when (legacy) {
 
 fun legacyThemeToStyle(legacy: String?): AppStyle = when (legacy) {
     "LIGHT", "SYSTEM" -> AppStyle.MINIMAL
-    else -> AppStyle.NEON
+    // Refonte minimaliste : Minimal devient le style de référence, y compris pour les
+    // installations historiques sans choix explicite (Néon reste sélectionnable dans les réglages).
+    else -> AppStyle.MINIMAL
 }
 
 /** Valeur enregistrée si elle est valide, sinon déduite de l'ancienne clé. */

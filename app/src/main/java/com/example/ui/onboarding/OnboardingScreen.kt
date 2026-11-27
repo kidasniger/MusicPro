@@ -102,7 +102,7 @@ fun OnboardingScreen(
     val context = LocalContext.current
     val preferences = remember(context) { UserPreferencesRepository(context) }
     var selectedAppearance by remember { mutableStateOf(AppearanceMode.AUTO) }
-    var selectedStyle by remember { mutableStateOf(AppStyle.GLASS) }
+    var selectedStyle by remember { mutableStateOf(AppStyle.MINIMAL) }
     val pages = listOf(
         OnboardingPageData(
             title = "Votre bibliothèque musicale",

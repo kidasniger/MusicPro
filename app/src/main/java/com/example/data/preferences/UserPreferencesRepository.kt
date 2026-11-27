@@ -57,6 +57,8 @@ class UserPreferencesRepository(
         val KEY_APPEARANCE_MODE = stringPreferencesKey("appearance_mode")
         /** Style (Minimal, Néon, Verre). Absente : déduite de [KEY_THEME_MODE]. */
         val KEY_APP_STYLE = stringPreferencesKey("app_style")
+        /** Bascule unique de la refonte minimaliste : Minimal appliqué une fois, puis choix libre. */
+        val KEY_STYLE_REDESIGN_APPLIED = booleanPreferencesKey("style_redesign_minimal_applied")
         /** Accent (Terracotta, Bleu, Vert, Violet, Selon la pochette). Absente : Terracotta. */
         val KEY_ACCENT_CHOICE = stringPreferencesKey("accent_choice")
         /** Début de « Sombre le soir », en minutes depuis minuit. Absente : 20:00. */
@@ -274,6 +276,21 @@ class UserPreferencesRepository(
         }
         if (preferences[KEY_APP_STYLE] == null) {
             preferences[KEY_APP_STYLE] = legacyThemeToStyle(legacy).name
+        }
+    }
+
+    /**
+     * Refonte minimaliste (une seule fois par installation) : le style Minimal devient le style
+     * de référence. Les utilisateurs qui avaient explicitement choisi Néon ou Verre sont basculés
+     * une unique fois ; ils peuvent re-choisir leur style dans Réglages › Apparence › Style.
+     */
+    suspend fun applyMinimalRedesignOnce() {
+        dataStore.edit { preferences ->
+            migrateThemeKeys(preferences)
+            if (preferences[KEY_STYLE_REDESIGN_APPLIED] != true) {
+                preferences[KEY_APP_STYLE] = AppStyle.MINIMAL.name
+                preferences[KEY_STYLE_REDESIGN_APPLIED] = true
+            }
         }
     }
 
@@ -611,7 +628,7 @@ class UserPreferencesRepository(
     suspend fun resetAppearanceSection() {
         dataStore.edit { preferences ->
             preferences[KEY_APPEARANCE_MODE] = AppearanceMode.DARK.name
-            preferences[KEY_APP_STYLE] = AppStyle.NEON.name
+            preferences[KEY_APP_STYLE] = AppStyle.MINIMAL.name
             preferences[KEY_ACCENT_CHOICE] = AccentChoice.TERRACOTTA.name
             preferences[KEY_EVENING_START] = DefaultEveningStartMinutes
             preferences[KEY_EVENING_END] = DefaultEveningEndMinutes
