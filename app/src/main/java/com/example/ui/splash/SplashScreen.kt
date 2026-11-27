@@ -128,6 +128,9 @@ fun SplashScreen(
             .testTag("splash_screen"),
         contentAlignment = Alignment.Center
     ) {
+        // Halo ambiant : la couleur du thème est lue hors du lambda DrawScope (non composable).
+        val glowPrimary = MaterialTheme.colorScheme.primary.copy(alpha = 0.40f)
+        val glowPrimarySoft = MaterialTheme.colorScheme.primary.copy(alpha = 0.20f)
         // Neon ambient glow rendered via Canvas to avoid edge clipping
         Canvas(modifier = Modifier.fillMaxSize()) {
             val centerOffset = Offset(size.width / 2f, size.height / 2f)
@@ -135,8 +138,8 @@ fun SplashScreen(
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.40f),
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.20f),
+                        glowPrimary,
+                        glowPrimarySoft,
                         Color.Transparent
                     ),
                     center = centerOffset,
@@ -161,14 +164,16 @@ fun SplashScreen(
                     .testTag("splash_logo")
             ) {
                 // Soft radial glow behind the logo with vibrant neon diffusion
+                val logoGlow = MaterialTheme.colorScheme.primary.copy(alpha = 0.65f)
+                val logoGlowSoft = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
                 Canvas(modifier = Modifier.size(190.dp)) {
                     val centerOffset = Offset(size.width / 2f, size.height / 2f)
                     val glowRadius = size.width / 2f
                     drawCircle(
                         brush = Brush.radialGradient(
                             colors = listOf(
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.65f),
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
+                                logoGlow,
+                                logoGlowSoft,
                                 Color.Transparent
                             ),
                             center = centerOffset,
