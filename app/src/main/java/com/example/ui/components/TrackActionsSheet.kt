@@ -46,6 +46,8 @@ import com.example.R
 import com.example.data.local.AudioTrackEntity
 import com.example.ui.components.AnchoredSheet
 import com.example.ui.theme.MusicProCyanNeon
+import com.example.ui.artwork.ArtworkSize
+import com.example.ui.artwork.MusicProArtwork
 
 /**
  * Mise à jour 059 — feuille du bas ouverte par le menu ⋯ d'une ligne de morceau :
@@ -96,10 +98,11 @@ fun TrackActionsSheet(
                     contentAlignment = Alignment.Center
                 ) {
                     if (!track.albumArtUri.isNullOrBlank()) {
-                        AsyncImage(
+                        MusicProArtwork(
                             model = track.albumArtUri,
                             contentDescription = track.album,
-                            contentScale = ContentScale.Crop,
+                            size = ArtworkSize.GRID,
+                            fallbackIconSize = 23.dp,
                             modifier = Modifier.size(52.dp)
                         )
                     } else {

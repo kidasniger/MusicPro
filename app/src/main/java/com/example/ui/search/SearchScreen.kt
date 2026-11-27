@@ -84,6 +84,8 @@ import com.example.ui.theme.MusicProCyanNeon
 import com.example.ui.theme.MusicProGreenEmerald
 import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPrimary
+import com.example.ui.artwork.ArtworkSize
+import com.example.ui.artwork.MusicProArtwork
 import java.util.Calendar
 import java.util.Locale
 
@@ -739,10 +741,11 @@ private fun BestResultCard(
                 contentAlignment = Alignment.Center
             ) {
                 if (!track.albumArtUri.isNullOrBlank()) {
-                    AsyncImage(
+                    MusicProArtwork(
                         model = track.albumArtUri,
                         contentDescription = track.album,
-                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                        size = ArtworkSize.GRID,
+                        fallbackIconSize = 29.dp,
                         modifier = Modifier.size(64.dp)
                     )
                 } else {
@@ -798,10 +801,11 @@ private fun SummaryCover(
         contentAlignment = Alignment.Center
     ) {
         if (!coverUri.isNullOrBlank()) {
-            AsyncImage(
+            MusicProArtwork(
                 model = coverUri,
                 contentDescription = title,
-                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                size = ArtworkSize.GRID,
+                fallbackIconSize = 20.dp,
                 modifier = Modifier.size(44.dp)
             )
         } else {

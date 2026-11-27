@@ -100,6 +100,8 @@ import com.example.ui.theme.MusicProPrimaryGradient
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPrimary
+import com.example.ui.artwork.ArtworkSize
+import com.example.ui.artwork.MusicProArtwork
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -659,40 +661,45 @@ fun PlaylistCoverArt(
                 // 2x2 collage
                 Column(modifier = Modifier.fillMaxSize()) {
                     Row(modifier = Modifier.weight(1f)) {
-                        AsyncImage(
+                        MusicProArtwork(
                             model = artworkUris[0],
                             contentDescription = null,
-                            contentScale = ContentScale.Crop,
+                            size = ArtworkSize.GRID,
+                            fallbackIconSize = 36.dp,
                             modifier = Modifier.weight(1f).fillMaxSize()
                         )
-                        AsyncImage(
+                        MusicProArtwork(
                             model = artworkUris[1],
                             contentDescription = null,
-                            contentScale = ContentScale.Crop,
+                            size = ArtworkSize.GRID,
+                            fallbackIconSize = 36.dp,
                             modifier = Modifier.weight(1f).fillMaxSize()
                         )
                     }
                     Row(modifier = Modifier.weight(1f)) {
-                        AsyncImage(
+                        MusicProArtwork(
                             model = artworkUris[2],
                             contentDescription = null,
-                            contentScale = ContentScale.Crop,
+                            size = ArtworkSize.GRID,
+                            fallbackIconSize = 36.dp,
                             modifier = Modifier.weight(1f).fillMaxSize()
                         )
-                        AsyncImage(
+                        MusicProArtwork(
                             model = artworkUris[3],
                             contentDescription = null,
-                            contentScale = ContentScale.Crop,
+                            size = ArtworkSize.GRID,
+                            fallbackIconSize = 36.dp,
                             modifier = Modifier.weight(1f).fillMaxSize()
                         )
                     }
                 }
             }
             artworkUris.isNotEmpty() -> {
-                AsyncImage(
+                MusicProArtwork(
                     model = artworkUris.first(),
                     contentDescription = null,
-                    contentScale = ContentScale.Crop,
+                    size = ArtworkSize.GRID,
+                    fallbackIconSize = 36.dp,
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -802,10 +809,11 @@ private fun ReorderableTrackRow(
                 contentAlignment = Alignment.Center
             ) {
                 if (!track.albumArtUri.isNullOrBlank()) {
-                    AsyncImage(
+                    MusicProArtwork(
                         model = track.albumArtUri,
                         contentDescription = null,
-                        contentScale = ContentScale.Crop,
+                        size = ArtworkSize.GRID,
+                        fallbackIconSize = 36.dp,
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {

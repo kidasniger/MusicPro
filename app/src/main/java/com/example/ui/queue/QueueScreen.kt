@@ -1,5 +1,8 @@
 package com.example.ui.queue
 
+import com.example.ui.artwork.ArtworkSize
+import com.example.ui.artwork.MusicProArtwork
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -420,10 +423,11 @@ private fun TrackCover(track: AudioTrackEntity, size: androidx.compose.ui.unit.D
         contentAlignment = Alignment.Center
     ) {
         if (!track.albumArtUri.isNullOrBlank()) {
-            AsyncImage(
+            MusicProArtwork(
                 model = track.albumArtUri,
                 contentDescription = null,
-                contentScale = ContentScale.Crop,
+                size = ArtworkSize.GRID,
+                fallbackIconSize = 36.dp,
                 modifier = Modifier.fillMaxSize()
             )
         } else {

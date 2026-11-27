@@ -94,6 +94,8 @@ import com.example.ui.detail.DetailRouter
 import com.example.ui.theme.MusicProTerracotta
 import com.example.ui.theme.MusicProTokens
 import com.example.ui.theme.dominantAccentArgb
+import com.example.ui.artwork.ArtworkSize
+import com.example.ui.artwork.MusicProArtwork
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -251,10 +253,11 @@ fun AlbumScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             if (coverUri != null) {
-                                AsyncImage(
+                                MusicProArtwork(
                                     model = coverUri,
                                     contentDescription = null,
-                                    contentScale = ContentScale.Crop,
+                                    size = ArtworkSize.GRID,
+                                    fallbackIconSize = 36.dp,
                                     modifier = Modifier.fillMaxSize()
                                 )
                             } else {

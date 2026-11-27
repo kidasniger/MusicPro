@@ -42,6 +42,8 @@ import coil.compose.AsyncImage
 import com.example.R
 import com.example.data.local.AudioTrackEntity
 import com.example.ui.theme.MusicProTokens
+import com.example.ui.artwork.ArtworkSize
+import com.example.ui.artwork.MusicProArtwork
 
 /** Nombre maximum de pochettes par carrousel. */
 internal const val NewCarouselLimit = 20
@@ -255,10 +257,11 @@ private fun CoverCard(
             contentAlignment = Alignment.Center
         ) {
             if (!coverUri.isNullOrBlank()) {
-                AsyncImage(
+                MusicProArtwork(
                     model = coverUri,
                     contentDescription = null,
-                    contentScale = ContentScale.Crop,
+                    size = ArtworkSize.GRID,
+                    fallbackIconSize = 36.dp,
                     modifier = Modifier.fillMaxSize()
                 )
             } else {

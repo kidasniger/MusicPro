@@ -100,18 +100,18 @@ val MusicProLogoMagenta = Color(0xFF9333EA)
 // ==========================================
 // 5. COULEURS SÉMANTIQUES (STATUS & FUNCTIONAL)
 // ==========================================
-/** Vert émeraude (100% hors-ligne actif, succès) - #10B981 */
-val MusicProSuccess = Color(0xFF10B981)
-val MusicProSuccessGlow = Color(0xCC10B981)
-val MusicProSuccessContainer = Color(0x2610B981)
+/** Vert réussite de la maquette (succès, hors-ligne actif) - #6FCF97 */
+val MusicProSuccess = Color(0xFF6FCF97)
+val MusicProSuccessGlow = Color(0xCC6FCF97)
+val MusicProSuccessContainer = Color(0x266FCF97)
 
 /** Ambre / Orange (Avertissement, cache ponctuel) - #F59E0B */
 val MusicProWarning = Color(0xFFF59E0B)
 val MusicProWarningContainer = Color(0x26F59E0B)
 
-/** Rose néon (Favoris, cœur actif) - #FF4D6D */
-val MusicProFavorite = Color(0xFFFF4D6D)
-val MusicProFavoriteContainer = Color(0x33FF4D6D)
+/** Rose favori de la maquette (cœur actif) - #E0708C */
+val MusicProFavorite = Color(0xFFE0708C)
+val MusicProFavoriteContainer = Color(0x33E0708C)
 
 /** Rouge écarlate néon (Erreurs, quota dépassé, échec API) - #EF4444 */
 val MusicProError = Color(0xFFEF4444)

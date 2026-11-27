@@ -72,6 +72,8 @@ import com.example.ui.theme.MusicProTextSecondary
 import com.example.ui.theme.MusicProVioletGlow
 import com.example.ui.theme.MusicProVioletLight
 import com.example.ui.theme.MusicProVioletPrimary
+import com.example.ui.artwork.ArtworkSize
+import com.example.ui.artwork.MusicProArtwork
 
 @Composable
 fun AddTracksToPlaylistDialog(
@@ -339,10 +341,11 @@ private fun TrackSelectionRow(
                 contentAlignment = Alignment.Center
             ) {
                 if (!track.albumArtUri.isNullOrBlank()) {
-                    AsyncImage(
+                    MusicProArtwork(
                         model = track.albumArtUri,
                         contentDescription = null,
-                        contentScale = ContentScale.Crop,
+                        size = ArtworkSize.GRID,
+                        fallbackIconSize = 36.dp,
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {

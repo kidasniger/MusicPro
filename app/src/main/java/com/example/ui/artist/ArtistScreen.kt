@@ -72,6 +72,8 @@ import coil.compose.AsyncImage
 import com.example.R
 import com.example.data.local.AudioTrackEntity
 import com.example.ui.theme.MusicProTokens
+import com.example.ui.artwork.ArtworkSize
+import com.example.ui.artwork.MusicProArtwork
 
 /** Taille du nom selon sa longueur, pour que les noms longs tiennent sur deux lignes au plus. */
 internal fun artistNameFontSizeSp(name: String): Int = when {
@@ -471,10 +473,11 @@ private fun TopTrackRow(
             contentAlignment = Alignment.Center
         ) {
             if (!track.albumArtUri.isNullOrBlank()) {
-                AsyncImage(
+                MusicProArtwork(
                     model = track.albumArtUri,
                     contentDescription = null,
-                    contentScale = ContentScale.Crop,
+                    size = ArtworkSize.GRID,
+                    fallbackIconSize = 36.dp,
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
@@ -583,10 +586,11 @@ private fun ReleaseCarousel(
                     contentAlignment = Alignment.Center
                 ) {
                     if (release.coverUri != null) {
-                        AsyncImage(
+                        MusicProArtwork(
                             model = release.coverUri,
                             contentDescription = null,
-                            contentScale = ContentScale.Crop,
+                            size = ArtworkSize.GRID,
+                            fallbackIconSize = 36.dp,
                             modifier = Modifier.fillMaxSize()
                         )
                     } else {
@@ -646,10 +650,11 @@ private fun SimilarArtistItem(artist: SimilarArtist, onClick: () -> Unit) {
             contentAlignment = Alignment.Center
         ) {
             if (artist.coverUri != null) {
-                AsyncImage(
+                MusicProArtwork(
                     model = artist.coverUri,
                     contentDescription = null,
-                    contentScale = ContentScale.Crop,
+                    size = ArtworkSize.GRID,
+                    fallbackIconSize = 36.dp,
                     modifier = Modifier.fillMaxSize()
                 )
             } else {

@@ -36,6 +36,8 @@ import com.example.R
 import com.example.data.local.AudioTrackEntity
 import com.example.ui.queue.QueueScreen
 import com.example.ui.theme.*
+import com.example.ui.artwork.ArtworkSize
+import com.example.ui.artwork.MusicProArtwork
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -87,7 +89,13 @@ fun FavoritesScreen(
                         Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                             if (isPlaying && currentTrack?.id == track.id) { Icon(Icons.Default.PlayArrow, contentDescription = "Lecture en cours", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp)) } else { Text((index + 1).toString(), color = MaterialTheme.colorScheme.primary, fontSize = 11.sp, modifier = Modifier.width(24.dp)) }
                             Surface(Modifier.size(46.dp), shape = RoundedCornerShape(9.dp), color = MaterialTheme.colorScheme.surface) {
-                                if (!track.albumArtUri.isNullOrBlank()) AsyncImage(track.albumArtUri, null, contentScale = ContentScale.Crop) else Icon(Icons.Default.MusicNote, null, tint = MaterialTheme.colorScheme.primary)
+                                if (!track.albumArtUri.isNullOrBlank()) MusicProArtwork(
+                                    model = track.albumArtUri,
+                                    contentDescription = null,
+                                    size = ArtworkSize.GRID,
+                                    fallbackIconSize = 36.dp,
+                                    modifier = Modifier
+                                ) else Icon(Icons.Default.MusicNote, null, tint = MaterialTheme.colorScheme.primary)
                             }
                             Spacer(Modifier.width(10.dp))
                             Column(Modifier.weight(1f)) {
