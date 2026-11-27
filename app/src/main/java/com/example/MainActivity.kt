@@ -149,6 +149,8 @@ class MainActivity : AppCompatActivity() {
         listDensity = listDensityPreference,
         reduceAnimations = reduceAnimations
       ) {
+        // Refonte minimaliste : bascule unique vers Minimal au premier lancement de la mise à jour.
+        LaunchedEffect(Unit) { settingsViewModel.applyMinimalRedesignOnce() }
         val context = LocalContext.current
         val lifecycleOwner = LocalLifecycleOwner.current
         val uiState by permissionViewModel.uiState.collectAsStateWithLifecycle()

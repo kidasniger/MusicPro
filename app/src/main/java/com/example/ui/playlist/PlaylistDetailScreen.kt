@@ -224,9 +224,9 @@ fun PlaylistDetailScreen(
                         modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Ajouter des morceaux", color = MusicProCyanNeon) },
+                            text = { Text("Ajouter des morceaux", color = MaterialTheme.colorScheme.primary) },
                             leadingIcon = {
-                                Icon(Icons.Default.Add, contentDescription = null, tint = MusicProCyanNeon)
+                                Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                             },
                             onClick = {
                                 showMenu = false
@@ -234,9 +234,9 @@ fun PlaylistDetailScreen(
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Partager la playlist", color = MusicProCyanNeon) },
+                            text = { Text("Partager la playlist", color = MaterialTheme.colorScheme.primary) },
                             leadingIcon = {
-                                Icon(Icons.Default.Share, contentDescription = null, tint = MusicProCyanNeon)
+                                Icon(Icons.Default.Share, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                             },
                             onClick = {
                                 showMenu = false
@@ -254,9 +254,9 @@ fun PlaylistDetailScreen(
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Supprimer la playlist", color = MusicProError) },
+                            text = { Text("Supprimer la playlist", color = MaterialTheme.colorScheme.error) },
                             leadingIcon = {
-                                Icon(Icons.Default.Delete, contentDescription = null, tint = MusicProError)
+                                Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                             },
                             onClick = {
                                 showMenu = false
@@ -298,7 +298,7 @@ fun PlaylistDetailScreen(
                 if (localTracks.size > 1) {
                     Text(
                         text = "Glisser pour réordonner",
-                        color = MusicProCyanLight.copy(alpha = 0.8f),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
                         fontSize = 12.sp
                     )
                 }
@@ -326,7 +326,7 @@ fun PlaylistDetailScreen(
                                 Icon(
                                     imageVector = Icons.Default.PlaylistPlay,
                                     contentDescription = null,
-                                    tint = MusicProVioletLight,
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(36.dp)
                                 )
                             }
@@ -350,7 +350,7 @@ fun PlaylistDetailScreen(
                         Button(
                             onClick = onOpenAddTracks,
                             shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MusicProVioletPrimary),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                             modifier = Modifier.testTag("empty_playlist_add_button")
                         ) {
                             Icon(Icons.Default.Add, contentDescription = null)
@@ -393,7 +393,7 @@ fun PlaylistDetailScreen(
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .clip(RoundedCornerShape(12.dp))
-                                        .background(MusicProError)
+                                        .background(MaterialTheme.colorScheme.error)
                                         .padding(horizontal = 20.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.End
@@ -462,7 +462,7 @@ fun PlaylistDetailScreen(
                         showDeleteConfirmDialog = false
                         onDeletePlaylist()
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = MusicProError)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
                     Text("Supprimer")
                 }
@@ -506,7 +506,7 @@ private fun PlaylistHeaderHero(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .border(1.dp, MusicProVioletPrimary.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
+            .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
     ) {
         Column(
             modifier = Modifier
@@ -573,7 +573,7 @@ private fun PlaylistHeaderHero(
                         ) {
                             Text(
                                 text = "$trackCount morceau(x)",
-                                color = MusicProCyanNeon,
+                                color = MaterialTheme.colorScheme.primary,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
@@ -602,7 +602,7 @@ private fun PlaylistHeaderHero(
                     onClick = onPlayAll,
                     enabled = trackCount > 0,
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MusicProVioletPrimary),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     modifier = Modifier
                         .weight(1f)
                         .testTag("playlist_play_all_button")
@@ -616,7 +616,7 @@ private fun PlaylistHeaderHero(
                     onClick = onShuffle,
                     enabled = trackCount > 0,
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MusicProCyanNeon),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
                     modifier = Modifier
                         .weight(1f)
                         .testTag("playlist_shuffle_button")
@@ -632,10 +632,10 @@ private fun PlaylistHeaderHero(
                         .size(48.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .border(1.dp, MusicProCyanNeon.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
                         .testTag("playlist_add_tracks_button")
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Ajouter des morceaux", tint = MusicProCyanNeon)
+                    Icon(Icons.Default.Add, contentDescription = "Ajouter des morceaux", tint = MaterialTheme.colorScheme.primary)
                 }
             }
         }
@@ -651,7 +651,7 @@ fun PlaylistCoverArt(
         modifier = modifier
             .clip(RoundedCornerShape(14.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .border(1.dp, MusicProVioletPrimary.copy(alpha = 0.5f), RoundedCornerShape(14.dp)),
+            .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), RoundedCornerShape(14.dp)),
         contentAlignment = Alignment.Center
     ) {
         when {
@@ -700,7 +700,7 @@ fun PlaylistCoverArt(
                 Icon(
                     imageVector = Icons.Default.PlaylistPlay,
                     contentDescription = null,
-                    tint = MusicProCyanNeon,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(36.dp)
                 )
             }
@@ -734,7 +734,7 @@ private fun ReorderableTrackRow(
             .offset { IntOffset(0, offsetY.roundToInt()) }
             .border(
                 1.dp,
-                if (isCurrent) MusicProCyanNeon.copy(alpha = 0.7f) else Color.Transparent,
+                if (isCurrent) MaterialTheme.colorScheme.primary.copy(alpha = 0.7f) else Color.Transparent,
                 RoundedCornerShape(12.dp)
             )
             .testTag("reorder_track_row_${track.id}")
@@ -779,7 +779,7 @@ private fun ReorderableTrackRow(
                 Icon(
                     imageVector = Icons.Default.DragHandle,
                     contentDescription = "Glisser pour réordonner",
-                    tint = if (isDragging) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = if (isDragging) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -787,7 +787,7 @@ private fun ReorderableTrackRow(
             // Index badge (#1, #2)
             Text(
                 text = "${index + 1}",
-                color = if (isCurrent) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
+                color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.width(22.dp)
@@ -812,7 +812,7 @@ private fun ReorderableTrackRow(
                     Icon(
                         imageVector = Icons.Default.MusicNote,
                         contentDescription = null,
-                        tint = if (isCurrent) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -822,7 +822,7 @@ private fun ReorderableTrackRow(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = track.title,
-                    color = if (isCurrent) MusicProCyanNeon else MaterialTheme.colorScheme.onBackground,
+                    color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,

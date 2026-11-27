@@ -106,7 +106,7 @@ fun TrackActionsSheet(
                         Icon(
                             imageVector = Icons.Default.PlayArrow,
                             contentDescription = null,
-                            tint = MusicProCyanNeon
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }

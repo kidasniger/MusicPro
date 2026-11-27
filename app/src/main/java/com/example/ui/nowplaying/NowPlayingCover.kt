@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -179,7 +180,7 @@ private fun SquareCoverPresentation(
                 modifier = Modifier
                     .fillMaxSize()
                     .sharedCover()
-                    .background(MusicProPrimaryGradient),
+                    .background(SolidColor(MaterialTheme.colorScheme.primary)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -246,8 +247,8 @@ private fun VinylPresentation(
                 .shadow(
                     elevation = 20.dp,
                     shape = CircleShape,
-                    spotColor = MusicProVioletGlow,
-                    ambientColor = MusicProCyanGlow
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
+                    ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.40f)
                 )
                 .rotate(if (isPlaying) vinylRotation else 0f)
                 .clip(CircleShape)
@@ -256,7 +257,7 @@ private fun VinylPresentation(
                         listOf(Color(0xFF221A3A), Color(0xFF0D0B18))
                     )
                 )
-                .border(2.dp, MusicProPrimaryGradient, CircleShape)
+                .border(2.dp, SolidColor(MaterialTheme.colorScheme.primary), CircleShape)
                 .clickable { onPlayPause() },
             contentAlignment = Alignment.Center
         ) {
@@ -279,7 +280,7 @@ private fun VinylPresentation(
                     .sharedCover()
                     .size(centerArtSize)
                     .clip(CircleShape)
-                    .border(2.dp, MusicProCyanNeon, CircleShape),
+                    .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 var imageLoadError by remember(track?.id) { mutableStateOf(false) }
@@ -296,7 +297,7 @@ private fun VinylPresentation(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(MusicProPrimaryGradient),
+                            .background(SolidColor(MaterialTheme.colorScheme.primary)),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -366,7 +367,7 @@ private fun MinimalPresentation(
             text = track?.artist ?: stringResource(R.string.np_player_name),
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
-            color = MusicProCyanLight,
+            color = MaterialTheme.colorScheme.primary,
             textAlign = TextAlign.Center,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,

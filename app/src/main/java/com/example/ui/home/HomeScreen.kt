@@ -150,6 +150,8 @@ import com.example.ui.components.SkeletonTracksList
 import com.example.ui.components.TrackActionsSheet
 import com.example.ui.components.TrackShareCardDialog
 import com.example.ui.components.glass.GlassBackdropHost
+import com.example.ui.artwork.ArtworkSize
+import com.example.ui.artwork.MusicProArtwork
 import com.example.ui.components.glass.GlassMiniPlayer
 import com.example.ui.components.glass.GlassNavBar
 import com.example.ui.components.glass.GlassNavItem
@@ -1121,7 +1123,7 @@ fun HomeScreen(
         trackForShareCard?.let { track ->
             TrackShareCardDialog(
                 track = track,
-                accentArgb = MusicProCyanNeon.toArgb(),
+                accentArgb = MaterialTheme.colorScheme.primary.toArgb(),
                 onDismiss = { trackForShareCard = null }
             )
         }
@@ -1286,9 +1288,9 @@ private fun HomeExplorerContent(
                     Box(
                         modifier = Modifier
                             .size(42.dp)
-                            .shadow(8.dp, CircleShape, spotColor = MusicProVioletGlow)
+                            .shadow(8.dp, CircleShape, spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
                             .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
-                            .border(1.5.dp, MusicProVioletPrimary, CircleShape),
+                            .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
@@ -1320,7 +1322,7 @@ private fun HomeExplorerContent(
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Scanner les morceaux",
-                            tint = if (isScanning) MusicProVioletLight else MusicProCyanNeon,
+                            tint = if (isScanning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .size(20.dp)
                                 .rotate(if (isScanning) spinAngle else 0f)
@@ -1339,7 +1341,7 @@ private fun HomeExplorerContent(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.HelpOutline,
                             contentDescription = "Revoir l'onboarding",
-                            tint = MusicProVioletLight,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -1356,7 +1358,7 @@ private fun HomeExplorerContent(
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = "Paramètres de permissions",
-                            tint = MusicProCyanNeon,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -1537,7 +1539,7 @@ private fun HomeSectionHeader(
                 text = stringResource(R.string.home_see_all),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = MusicProCyanNeon
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }
@@ -1557,7 +1559,6 @@ private fun HomeTrackCard(
             .clickable(onClick = onClick)
             .padding(4.dp)
     ) {
-        var imageLoadError by remember(track.id) { mutableStateOf(false) }
         Box(
             modifier = Modifier
                 .size(120.dp)
@@ -1565,34 +1566,25 @@ private fun HomeTrackCard(
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .border(
                     1.dp,
-                    if (isCurrent) MusicProCyanNeon else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+                    if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                     RoundedCornerShape(12.dp)
                 ),
             contentAlignment = Alignment.Center
         ) {
-            if (!track.albumArtUri.isNullOrBlank() && !imageLoadError) {
-                AsyncImage(
-                    model = track.albumArtUri,
-                    contentDescription = track.title,
-                    contentScale = ContentScale.Crop,
-                    onError = { imageLoadError = true },
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.Default.MusicNote,
-                    contentDescription = null,
-                    tint = MusicProVioletLight,
-                    modifier = Modifier.size(36.dp)
-                )
-            }
+            MusicProArtwork(
+                model = track.albumArtUri,
+                contentDescription = track.title,
+                size = ArtworkSize.GRID,
+                fallbackIconSize = 36.dp,
+                modifier = Modifier.fillMaxSize()
+            )
         }
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = track.title,
             fontSize = 13.sp,
             fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.SemiBold,
-            color = if (isCurrent) MusicProCyanNeon else MaterialTheme.colorScheme.onBackground,
+            color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -1626,8 +1618,8 @@ private fun HomePlaylistCard(
                 .background(
                     Brush.linearGradient(
                         listOf(
-                            MusicProVioletPrimary.copy(alpha = 0.55f),
-                            MusicProCyanNeon.copy(alpha = 0.35f)
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.55f),
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
                         )
                     )
                 ),

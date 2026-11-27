@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -106,11 +107,11 @@ fun AddTracksToPlaylistDialog(
             modifier = Modifier
                 .fillMaxWidth(0.95f)
                 .fillMaxHeight(0.85f)
-                .shadow(24.dp, RoundedCornerShape(24.dp), spotColor = MusicProVioletGlow)
-                .border(1.dp, MusicProCyanNeon.copy(alpha = 0.4f), RoundedCornerShape(24.dp))
+                .shadow(24.dp, RoundedCornerShape(24.dp), spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
+                .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f), RoundedCornerShape(24.dp))
                 .testTag("add_tracks_to_playlist_dialog"),
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MusicProCardBackground)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Column(
                 modifier = Modifier
@@ -126,13 +127,13 @@ fun AddTracksToPlaylistDialog(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "Ajouter à la playlist",
-                            color = MusicProTextPrimary,
+                            color = MaterialTheme.colorScheme.onBackground,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = playlistName,
-                            color = MusicProCyanNeon,
+                            color = MaterialTheme.colorScheme.primary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             maxLines = 1,
@@ -147,7 +148,7 @@ fun AddTracksToPlaylistDialog(
                         Icon(
                             imageVector = Icons.Default.Clear,
                             contentDescription = "Fermer",
-                            tint = MusicProTextSecondary
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -160,7 +161,7 @@ fun AddTracksToPlaylistDialog(
                     onValueChange = { searchQuery = it },
                     placeholder = { Text("Rechercher un morceau ou artiste...", color = MusicProTextMuted) },
                     leadingIcon = {
-                        Icon(Icons.Default.Search, contentDescription = null, tint = MusicProCyanNeon)
+                        Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     },
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
@@ -171,13 +172,13 @@ fun AddTracksToPlaylistDialog(
                     },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = MusicProTextPrimary,
-                        unfocusedTextColor = MusicProTextPrimary,
-                        focusedBorderColor = MusicProCyanNeon,
-                        unfocusedBorderColor = MusicProVioletPrimary.copy(alpha = 0.4f),
-                        cursorColor = MusicProCyanNeon,
-                        focusedContainerColor = MusicProSurfaceElevated,
-                        unfocusedContainerColor = MusicProSurfaceElevated
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                        cursorColor = MaterialTheme.colorScheme.primary,
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -205,7 +206,7 @@ fun AddTracksToPlaylistDialog(
                                 selectedTrackIds.addAll(availableTracks.map { it.id })
                             }
                         ) {
-                            Text("Tout", color = MusicProVioletLight, fontSize = 12.sp)
+                            Text("Tout", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
                         }
 
                         if (selectedTrackIds.isNotEmpty()) {
@@ -270,7 +271,7 @@ fun AddTracksToPlaylistDialog(
                     OutlinedButton(
                         onClick = onDismiss,
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MusicProTextSecondary)
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
                     ) {
                         Text("Annuler")
                     }
@@ -286,8 +287,8 @@ fun AddTracksToPlaylistDialog(
                         enabled = selectedTrackIds.isNotEmpty(),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MusicProVioletPrimary,
-                            disabledContainerColor = MusicProSurfaceElevated
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
                         ),
                         modifier = Modifier.testTag("confirm_add_tracks_button")
                     ) {
@@ -312,12 +313,12 @@ private fun TrackSelectionRow(
         onClick = onToggle,
         enabled = !isAlreadyInPlaylist,
         shape = RoundedCornerShape(12.dp),
-        color = if (isSelected) MusicProSurfaceElevated else MusicProSurface,
+        color = if (isSelected) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface,
         modifier = Modifier
             .fillMaxWidth()
             .border(
                 1.dp,
-                if (isSelected) MusicProCyanNeon.copy(alpha = 0.6f) else MusicProSurfaceElevated,
+                if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else MaterialTheme.colorScheme.surfaceVariant,
                 RoundedCornerShape(12.dp)
             )
             .testTag("track_select_row_${track.id}")
@@ -334,7 +335,7 @@ private fun TrackSelectionRow(
                 modifier = Modifier
                     .size(44.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(MusicProSurfaceElevated),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
                 if (!track.albumArtUri.isNullOrBlank()) {
@@ -348,7 +349,7 @@ private fun TrackSelectionRow(
                     Icon(
                         imageVector = Icons.Default.MusicNote,
                         contentDescription = null,
-                        tint = MusicProCyanNeon,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -358,7 +359,7 @@ private fun TrackSelectionRow(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = track.title,
-                    color = if (isAlreadyInPlaylist) MusicProTextMuted else MusicProTextPrimary,
+                    color = if (isAlreadyInPlaylist) MusicProTextMuted else MaterialTheme.colorScheme.onBackground,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
@@ -377,7 +378,7 @@ private fun TrackSelectionRow(
             if (isAlreadyInPlaylist) {
                 Surface(
                     shape = RoundedCornerShape(6.dp),
-                    color = MusicProSurfaceElevated,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     modifier = Modifier.padding(end = 4.dp)
                 ) {
                     Text(
@@ -393,8 +394,8 @@ private fun TrackSelectionRow(
                     checked = isSelected,
                     onCheckedChange = { onToggle() },
                     colors = CheckboxDefaults.colors(
-                        checkedColor = MusicProCyanNeon,
-                        checkmarkColor = MusicProCardBackground,
+                        checkedColor = MaterialTheme.colorScheme.primary,
+                        checkmarkColor = MaterialTheme.colorScheme.surface,
                         uncheckedColor = MusicProTextMuted
                     )
                 )

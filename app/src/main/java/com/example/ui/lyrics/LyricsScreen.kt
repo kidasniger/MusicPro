@@ -87,6 +87,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
@@ -325,7 +326,7 @@ fun LyricsScreen(
                             .background(
                                 Brush.verticalGradient(
                                     listOf(
-                                        MusicProVioletPrimary.copy(alpha = 0.28f),
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.28f),
                                         Color.Transparent
                                     )
                                 )
@@ -542,7 +543,7 @@ fun LyricsScreen(
                         onClick = { registerInteraction() },
                         shape = RoundedCornerShape(20.dp),
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f),
-                        border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.4f)),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
                         modifier = Modifier.shadow(8.dp)
                     ) {
                         Row(
@@ -622,7 +623,7 @@ fun LyricsScreen(
                             },
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = MusicProVioletPrimary.copy(alpha = 0.5f),
+                                unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
                                 focusedTextColor = MaterialTheme.colorScheme.onBackground,
                                 unfocusedTextColor = MaterialTheme.colorScheme.onBackground
                             ),
@@ -664,7 +665,7 @@ fun LyricsScreen(
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(CircleShape)
-                                .background(MusicProVioletPrimary.copy(alpha = 0.25f)),
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -699,7 +700,7 @@ fun LyricsScreen(
                         Text(
                             text = cleanLyricsUserMessage(groqProgressMessage.ifBlank { "Création des paroles en cours..." }),
                             fontSize = 13.sp,
-                            color = MusicProCyanLight,
+                            color = MaterialTheme.colorScheme.primary,
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(6.dp))
@@ -729,7 +730,7 @@ fun LyricsScreen(
                         Icon(
                             imageVector = Icons.Default.SubtitlesOff,
                             contentDescription = null,
-                            tint = MusicProVioletLight,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -1013,7 +1014,7 @@ private fun LyricsTopBar(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(MusicProVioletPrimary.copy(alpha = 0.25f))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
                     .testTag("lyrics_whisper_button")
             ) {
                 Icon(
@@ -1105,7 +1106,7 @@ private fun LyricsTopBar(
                             Icon(
                                 imageVector = Icons.Default.ContentPaste,
                                 contentDescription = null,
-                                tint = MusicProVioletLight,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(18.dp)
                             )
                         },
@@ -1138,7 +1139,7 @@ private fun LyricLineItem(
 
     val targetColor = if (isActive) {
         when (activeColorName) {
-            "violet" -> MusicProVioletLight
+            "violet" -> MaterialTheme.colorScheme.primary
             "white" -> MaterialTheme.colorScheme.onBackground
             else -> MaterialTheme.colorScheme.primary
         }
@@ -1205,7 +1206,7 @@ private fun EmptyLyricsView(
                 .size(90.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.surfaceVariant)
-                .border(2.dp, MusicProVioletPrimary.copy(alpha = 0.5f), CircleShape),
+                .border(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -1272,9 +1273,9 @@ private fun EmptyLyricsView(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(46.dp)
-                .shadow(6.dp, spotColor = MusicProVioletGlow)
+                .shadow(6.dp, spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
                 .testTag("search_lrclib_online_button"),
-            colors = ButtonDefaults.buttonColors(containerColor = MusicProVioletPrimary),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             shape = RoundedCornerShape(12.dp)
         ) {
             Icon(
@@ -1349,10 +1350,10 @@ private fun LyricsBottomControlBar(
 
     Surface(
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
-        border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.35f)),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(16.dp, spotColor = MusicProVioletGlow)
+            .shadow(16.dp, spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
     ) {
         Column(
             modifier = Modifier
@@ -1494,7 +1495,7 @@ private fun LyricsBottomControlBar(
                     modifier = Modifier
                         .size(52.dp)
                         .clip(CircleShape)
-                        .background(MusicProPrimaryGradient)
+                        .background(SolidColor(MaterialTheme.colorScheme.primary))
                         .testTag("lyrics_play_pause_button")
                 ) {
                     Icon(

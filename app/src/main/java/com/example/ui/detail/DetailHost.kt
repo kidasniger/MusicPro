@@ -269,7 +269,7 @@ fun DetailHost(
     trackForShareCard?.let { track ->
         TrackShareCardDialog(
             track = track,
-            accentArgb = MusicProCyanNeon.toArgb(),
+            accentArgb = MaterialTheme.colorScheme.primary.toArgb(),
             onDismiss = { trackForShareCard = null }
         )
     }

@@ -119,14 +119,14 @@ fun AudioOutputSheet(
                     text = "$volumePercent %",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MusicProCyanNeon,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(horizontal = 18.dp)
                 )
                 IconButton(onClick = onVolumeUp, modifier = Modifier.size(52.dp)) {
                     Icon(
                         Icons.AutoMirrored.Filled.VolumeUp,
                         contentDescription = stringResource(R.string.np_volume_up),
-                        tint = MusicProCyanNeon,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -142,7 +142,7 @@ private fun OutputRow(device: AudioOutputDevice) {
             .fillMaxWidth()
             .padding(top = 8.dp),
         shape = RoundedCornerShape(14.dp),
-        color = if (device.isActive) MusicProCyanNeon.copy(alpha = 0.10f)
+        color = if (device.isActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
         else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
     ) {
         Row(
@@ -152,14 +152,14 @@ private fun OutputRow(device: AudioOutputDevice) {
             Icon(
                 imageVector = device.icon,
                 contentDescription = null,
-                tint = if (device.isActive) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = if (device.isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(22.dp)
             )
             Text(
                 text = stringResource(device.nameRes),
                 fontSize = 14.sp,
                 fontWeight = if (device.isActive) FontWeight.SemiBold else FontWeight.Medium,
-                color = if (device.isActive) MusicProCyanNeon else MaterialTheme.colorScheme.onBackground,
+                color = if (device.isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier
                     .weight(1f)
                     .padding(start = 12.dp)
@@ -168,7 +168,7 @@ private fun OutputRow(device: AudioOutputDevice) {
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = stringResource(R.string.np_output_active),
-                    tint = MusicProCyanNeon,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
                 )
             }

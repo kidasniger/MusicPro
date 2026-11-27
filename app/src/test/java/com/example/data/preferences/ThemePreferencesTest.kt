@@ -12,7 +12,8 @@ class ThemePreferencesTest {
     @Test
     fun legacy_values_are_migrated() {
         assertEquals(AppearanceMode.DARK, legacyThemeToAppearance("DARK"))
-        assertEquals(AppStyle.NEON, legacyThemeToStyle("DARK"))
+        // Refonte minimaliste : Minimal devient le style de référence, même pour les anciens « DARK ».
+        assertEquals(AppStyle.MINIMAL, legacyThemeToStyle("DARK"))
         assertEquals(AppearanceMode.LIGHT, legacyThemeToAppearance("LIGHT"))
         assertEquals(AppStyle.MINIMAL, legacyThemeToStyle("LIGHT"))
         assertEquals(AppearanceMode.AUTO, legacyThemeToAppearance("SYSTEM"))
@@ -22,7 +23,7 @@ class ThemePreferencesTest {
     @Test
     fun missing_or_invalid_values_fall_back_safely() {
         assertEquals(AppearanceMode.DARK, resolveAppearanceMode(null, null))
-        assertEquals(AppStyle.NEON, resolveAppStyle("inconnu", null))
+        assertEquals(AppStyle.MINIMAL, resolveAppStyle("inconnu", null))
         assertEquals(AppearanceMode.AUTO, resolveAppearanceMode(null, "SYSTEM"))
         assertEquals(AccentChoice.TERRACOTTA, resolveAccentChoice(null))
         assertEquals(AppStyle.GLASS, resolveAppStyle("GLASS", "LIGHT"))

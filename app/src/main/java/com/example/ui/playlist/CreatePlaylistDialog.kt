@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlaylistAdd
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -132,11 +133,11 @@ fun CreatePlaylistDialog(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(24.dp, RoundedCornerShape(20.dp), spotColor = MusicProVioletGlow)
-                .border(1.dp, MusicProVioletPrimary.copy(alpha = 0.5f), RoundedCornerShape(20.dp))
+                .shadow(24.dp, RoundedCornerShape(20.dp), spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
+                .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), RoundedCornerShape(20.dp))
                 .testTag("create_playlist_dialog"),
             shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = MusicProCardBackground)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Column(
                 modifier = Modifier
@@ -150,12 +151,12 @@ fun CreatePlaylistDialog(
                     Icon(
                         imageVector = Icons.Default.PlaylistAdd,
                         contentDescription = null,
-                        tint = MusicProCyanNeon,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(28.dp)
                     )
                     Text(
                         text = stringResource(if (isEditing) R.string.playlist_rename_title else R.string.playlist_new),
-                        color = MusicProTextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -175,19 +176,19 @@ fun CreatePlaylistDialog(
                     isError = isError,
                     supportingText = {
                         if (isError) {
-                            Text(stringResource(R.string.playlist_name_empty), color = MusicProError, fontSize = 12.sp)
+                            Text(stringResource(R.string.playlist_name_empty), color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
                         }
                     },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = MusicProTextPrimary,
-                        unfocusedTextColor = MusicProTextPrimary,
-                        focusedBorderColor = MusicProCyanNeon,
-                        unfocusedBorderColor = MusicProVioletPrimary.copy(alpha = 0.5f),
-                        focusedLabelColor = MusicProCyanNeon,
-                        unfocusedLabelColor = MusicProTextSecondary,
-                        cursorColor = MusicProCyanNeon,
-                        focusedContainerColor = MusicProSurfaceElevated,
-                        unfocusedContainerColor = MusicProSurfaceElevated
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        cursorColor = MaterialTheme.colorScheme.primary,
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -203,15 +204,15 @@ fun CreatePlaylistDialog(
                     placeholder = { Text(stringResource(R.string.playlist_description_placeholder), color = MusicProTextMuted) },
                     maxLines = 2,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = MusicProTextPrimary,
-                        unfocusedTextColor = MusicProTextPrimary,
-                        focusedBorderColor = MusicProCyanNeon,
-                        unfocusedBorderColor = MusicProVioletPrimary.copy(alpha = 0.5f),
-                        focusedLabelColor = MusicProCyanNeon,
-                        unfocusedLabelColor = MusicProTextSecondary,
-                        cursorColor = MusicProCyanNeon,
-                        focusedContainerColor = MusicProSurfaceElevated,
-                        unfocusedContainerColor = MusicProSurfaceElevated
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        cursorColor = MaterialTheme.colorScheme.primary,
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -229,7 +230,7 @@ fun CreatePlaylistDialog(
                         ) {
                             Text(
                                 text = stringResource(R.string.ai_generate_button),
-                                color = MusicProCyanNeon,
+                                color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -238,16 +239,16 @@ fun CreatePlaylistDialog(
                         OutlinedTextField(
                             value = ambiance,
                             onValueChange = { ambiance = it },
-                            label = { Text(stringResource(R.string.ai_ambiance_label), color = MusicProTextSecondary) },
+                            label = { Text(stringResource(R.string.ai_ambiance_label), color = MaterialTheme.colorScheme.onSurfaceVariant) },
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = MusicProTextPrimary,
-                                unfocusedTextColor = MusicProTextPrimary,
-                                focusedBorderColor = MusicProCyanNeon,
-                                unfocusedBorderColor = MusicProVioletPrimary.copy(alpha = 0.5f),
-                                cursorColor = MusicProCyanNeon,
-                                focusedContainerColor = MusicProSurfaceElevated,
-                                unfocusedContainerColor = MusicProSurfaceElevated
+                                focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                                cursorColor = MaterialTheme.colorScheme.primary,
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -261,7 +262,7 @@ fun CreatePlaylistDialog(
                                 onClick = { launchGeneration() },
                                 enabled = ambiance.isNotBlank() && !generating,
                                 shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = MusicProVioletPrimary),
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                                 modifier = Modifier.testTag("ai_playlist_generate")
                             ) {
                                 Text(stringResource(R.string.ai_generate), fontWeight = FontWeight.Bold)
@@ -272,7 +273,7 @@ fun CreatePlaylistDialog(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = stringResource(R.string.ai_generating),
-                                    color = MusicProTextSecondary,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 12.sp
                                 )
                             }
@@ -282,7 +283,7 @@ fun CreatePlaylistDialog(
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
                                 text = stringResource(R.string.ai_need_key),
-                                color = MusicProError,
+                                color = MaterialTheme.colorScheme.error,
                                 fontSize = 12.sp
                             )
                         }
@@ -290,7 +291,7 @@ fun CreatePlaylistDialog(
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
                                 text = stringResource(R.string.ai_error),
-                                color = MusicProError,
+                                color = MaterialTheme.colorScheme.error,
                                 fontSize = 12.sp
                             )
                         }
@@ -299,7 +300,7 @@ fun CreatePlaylistDialog(
                             Spacer(modifier = Modifier.height(10.dp))
                             Text(
                                 text = stringResource(R.string.ai_preview_title),
-                                color = MusicProTextSecondary,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -328,14 +329,14 @@ fun CreatePlaylistDialog(
                                         Column(modifier = Modifier.weight(1f)) {
                                             Text(
                                                 text = track.title,
-                                                color = MusicProTextPrimary,
+                                                color = MaterialTheme.colorScheme.onBackground,
                                                 fontSize = 13.sp,
                                                 maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis
                                             )
                                             Text(
                                                 text = track.artist,
-                                                color = MusicProTextSecondary,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 fontSize = 11.sp,
                                                 maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis
@@ -359,7 +360,7 @@ fun CreatePlaylistDialog(
                         onClick = onDismiss,
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MusicProTextSecondary
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                         ),
                         modifier = Modifier.testTag("cancel_playlist_button")
                     ) {
@@ -372,7 +373,7 @@ fun CreatePlaylistDialog(
                         onClick = { confirm() },
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MusicProVioletPrimary
+                            containerColor = MaterialTheme.colorScheme.primary
                         ),
                         modifier = Modifier.testTag("confirm_playlist_button")
                     ) {

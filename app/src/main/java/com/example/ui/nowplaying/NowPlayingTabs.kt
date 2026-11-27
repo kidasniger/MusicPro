@@ -130,7 +130,7 @@ private fun KaraokePreview(
             text = stringResource(R.string.np_lyrics_synced),
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
-            color = MusicProVioletLight,
+            color = MaterialTheme.colorScheme.primary,
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = 10.dp, end = 14.dp)
@@ -157,7 +157,7 @@ private fun KaraokePreview(
                     fontSize = 14.sp,
                     fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium,
                     color = if (isActive) {
-                        MusicProCyanNeon
+                        MaterialTheme.colorScheme.primary
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant
                     },
@@ -165,7 +165,7 @@ private fun KaraokePreview(
                         // Lueur douce : halo cyan derrière le texte de la ligne chantée.
                         TextStyle(
                             shadow = Shadow(
-                                color = MusicProCyanNeon.copy(alpha = 0.55f),
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.55f),
                                 offset = Offset.Zero,
                                 blurRadius = 20f
                             )
@@ -230,7 +230,7 @@ private fun LyricsInvitation(
             Icon(
                 imageVector = Icons.Default.Album,
                 contentDescription = null,
-                tint = MusicProVioletLight.copy(alpha = 0.85f),
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
                 modifier = Modifier.size(20.dp)
             )
             Box(
@@ -245,7 +245,7 @@ private fun LyricsInvitation(
 
         // Barres d'égaliseur animées : l'espace reste vivant même sans paroles.
         EqualizerIndicator(
-            color = MusicProCyanNeon,
+            color = MaterialTheme.colorScheme.primary,
             barWidth = 5.dp,
             maxHeight = 18.dp,
             isPlaying = isPlaying,
@@ -286,7 +286,7 @@ internal fun LyricsTabContent(
                 Icon(
                     Icons.Default.Subtitles,
                     contentDescription = null,
-                    tint = MusicProVioletLight,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
                 Text(
@@ -332,7 +332,7 @@ internal fun LyricsTabContent(
                     text = line.text.ifBlank { "…" },
                     fontSize = if (isActive) 14.sp else 12.sp,
                     fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-                    color = if (isActive) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -441,7 +441,7 @@ private fun RowScope.TabItem(
     Surface(
         onClick = { onSelect(tab) },
         shape = RoundedCornerShape(22.dp),
-        color = if (isSelected) MusicProCyanNeon.copy(alpha = 0.22f) else Color.Transparent,
+        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.22f) else Color.Transparent,
         modifier = Modifier
             .weight(1f)
             .fillMaxSize()
@@ -456,14 +456,14 @@ private fun RowScope.TabItem(
             Icon(
                 imageVector = icon,
                 contentDescription = stringResource(labelRes),
-                tint = if (isSelected) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(17.dp)
             )
             Text(
                 text = stringResource(labelRes),
                 fontSize = 9.sp,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                color = if (isSelected) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1
             )
         }
@@ -495,7 +495,7 @@ internal fun SpeedSheetContent(
                 color = MaterialTheme.colorScheme.onBackground
             )
             TextButton(onClick = onClose, modifier = Modifier.heightIn(min = 48.dp)) {
-                Text(stringResource(R.string.np_close), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = MusicProCyanNeon)
+                Text(stringResource(R.string.np_close), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
             }
         }
 
@@ -511,10 +511,10 @@ internal fun SpeedSheetContent(
                 Surface(
                     onClick = { onSetSpeed(speed) },
                     shape = RoundedCornerShape(8.dp),
-                    color = if (isSelected) MusicProVioletPrimary else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                     border = BorderStroke(
                         1.dp,
-                        if (isSelected) MusicProCyanNeon else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
+                        if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
                     ),
                     modifier = Modifier.weight(1f)
                 ) {
@@ -551,7 +551,7 @@ internal fun SleepTimerSheetContent(
             .padding(horizontal = 24.dp, vertical = 12.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Timer, contentDescription = null, tint = MusicProCyanNeon, modifier = Modifier.size(20.dp))
+            Icon(Icons.Default.Timer, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
             Text(
                 text = stringResource(R.string.np_menu_sleep_timer),
                 fontSize = 18.sp,
@@ -564,7 +564,7 @@ internal fun SleepTimerSheetContent(
                     text = formatTime(remainingMs) + stringResource(R.string.np_sleep_remaining_suffix),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MusicProCyanNeon,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(start = 10.dp)
                 )
             }
@@ -616,10 +616,10 @@ private fun ChipOption(
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(10.dp),
-        color = if (selected) MusicProVioletPrimary else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
         border = BorderStroke(
             1.dp,
-            if (selected) MusicProCyanNeon else MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)
+            if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)
         ),
         modifier = modifier
     ) {

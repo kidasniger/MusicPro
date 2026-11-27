@@ -58,6 +58,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -102,22 +103,22 @@ fun OnboardingScreen(
     val context = LocalContext.current
     val preferences = remember(context) { UserPreferencesRepository(context) }
     var selectedAppearance by remember { mutableStateOf(AppearanceMode.AUTO) }
-    var selectedStyle by remember { mutableStateOf(AppStyle.GLASS) }
+    var selectedStyle by remember { mutableStateOf(AppStyle.MINIMAL) }
     val pages = listOf(
         OnboardingPageData(
             title = "Votre bibliothèque musicale",
             description = "Retrouvez vos morceaux, albums et artistes dans une bibliothèque organisée. Vos fichiers restent stockés sur votre appareil.",
             badgeText = "VOTRE MUSIQUE, AU MÊME ENDROIT",
             icon = Icons.Default.CloudOff,
-            accentColor = MusicProVioletPrimary,
-            glowColor = MusicProVioletGlow
+            accentColor = MaterialTheme.colorScheme.primary,
+            glowColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
         ),
         OnboardingPageData(
             title = "Paroles synchronisées",
             description = "Suivez les paroles pendant l’écoute, profitez du mode karaoké et ajustez leur synchronisation selon vos morceaux.",
             badgeText = "PAROLES & KARAOKÉ",
             icon = Icons.Default.Subtitles,
-            accentColor = MusicProCyanNeon,
+            accentColor = MaterialTheme.colorScheme.primary,
             glowColor = Color(0x6600D4FF)
         ),
         OnboardingPageData(
@@ -125,8 +126,8 @@ fun OnboardingScreen(
             description = "Choisissez votre apparence et votre style. Vous pourrez modifier ces préférences à tout moment dans les réglages.",
             badgeText = "VOTRE STYLE, VOS RÈGLES",
             icon = Icons.AutoMirrored.Filled.QueueMusic,
-            accentColor = MusicProVioletVibrant,
-            glowColor = MusicProVioletGlow
+            accentColor = MaterialTheme.colorScheme.primary,
+            glowColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
         )
     )
 
@@ -175,7 +176,7 @@ fun OnboardingScreen(
                     Box(
                         modifier = Modifier
                             .size(38.dp)
-                            .shadow(8.dp, RoundedCornerShape(12.dp), spotColor = MusicProVioletGlow)
+                            .shadow(8.dp, RoundedCornerShape(12.dp), spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
                             .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
                             .border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(12.dp)),
                         contentAlignment = Alignment.Center
@@ -246,7 +247,7 @@ fun OnboardingScreen(
                                 .width(if (isSelected) 28.dp else 8.dp)
                                 .background(
                                     if (isSelected) {
-                                        MusicProPrimaryGradient
+                                        SolidColor(MaterialTheme.colorScheme.primary)
                                     } else {
                                         Brush.linearGradient(listOf(Color(0x33FFFFFF), Color(0x33FFFFFF)))
                                     },
@@ -275,8 +276,8 @@ fun OnboardingScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)
-                        .shadow(16.dp, RoundedCornerShape(18.dp), spotColor = MusicProVioletGlow)
-                        .background(MusicProPrimaryGradient, RoundedCornerShape(18.dp))
+                        .shadow(16.dp, RoundedCornerShape(18.dp), spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
+                        .background(SolidColor(MaterialTheme.colorScheme.primary), RoundedCornerShape(18.dp))
                         .testTag("onboarding_next_button")
                 ) {
                     Row(
@@ -452,13 +453,13 @@ private fun OnboardingPageView(
                         Surface(
                             shape = RoundedCornerShape(8.dp),
                             color = Color(0x338A2BE2),
-                            border = BorderStroke(1.dp, MusicProVioletPrimary.copy(alpha = 0.5f))
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                         ) {
                             Text(
                                 text = "I said, ooh, I'm blinded by the lights",
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = MusicProCyanNeon,
+                                color = MaterialTheme.colorScheme.primary,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                             )
@@ -493,7 +494,7 @@ private fun OnboardingPageView(
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(
                                     Brush.linearGradient(
-                                        listOf(MusicProVioletPrimary, MusicProCyanVibrant)
+                                        listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary)
                                     )
                                 ),
                             contentAlignment = Alignment.Center
@@ -516,13 +517,13 @@ private fun OnboardingPageView(
                             Text(
                                 text = stringResource(R.string.onboarding_track_widget),
                                 fontSize = 12.sp,
-                                color = MusicProCyanLight
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                         Icon(
                             imageVector = Icons.Default.GraphicEq,
                             contentDescription = null,
-                            tint = MusicProVioletPastel,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
                     }

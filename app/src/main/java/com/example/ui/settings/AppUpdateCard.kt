@@ -68,7 +68,7 @@ fun AppUpdateCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .shadow(8.dp, RoundedCornerShape(18.dp), spotColor = MusicProVioletGlow)
+            .shadow(8.dp, RoundedCornerShape(18.dp), spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
             .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(18.dp))
             .testTag("app_update_card"),
         shape = RoundedCornerShape(18.dp),
@@ -84,13 +84,13 @@ fun AppUpdateCard(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(MusicProCyanNeon.copy(alpha = 0.2f)),
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.SystemUpdate,
                         contentDescription = null,
-                        tint = MusicProCyanNeon,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -115,13 +115,13 @@ fun AppUpdateCard(
                 Surface(
                     shape = RoundedCornerShape(6.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant,
-                    border = BorderStroke(1.dp, MusicProCyanLight.copy(alpha = 0.3f))
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
                 ) {
                     Text(
                         text = "v$currentVersion",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = MusicProCyanLight,
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                     )
                 }
@@ -145,7 +145,7 @@ fun AppUpdateCard(
                         )
                         Button(
                             onClick = onCheckForUpdates,
-                            colors = ButtonDefaults.buttonColors(containerColor = MusicProVioletPrimary),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier.testTag("check_updates_button")
                         ) {
@@ -169,7 +169,7 @@ fun AppUpdateCard(
                     ) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(20.dp),
-                            color = MusicProCyanNeon,
+                            color = MaterialTheme.colorScheme.primary,
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.width(12.dp))
@@ -227,15 +227,15 @@ fun AppUpdateCard(
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
-                        color = MusicProError.copy(alpha = 0.12f),
-                        border = BorderStroke(1.dp, MusicProError.copy(alpha = 0.3f))
+                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.12f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f))
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
                                     imageVector = Icons.Default.ErrorOutline,
                                     contentDescription = null,
-                                    tint = MusicProError,
+                                    tint = MaterialTheme.colorScheme.error,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -249,7 +249,7 @@ fun AppUpdateCard(
                             Spacer(modifier = Modifier.height(8.dp))
                             Button(
                                 onClick = onCheckForUpdates,
-                                colors = ButtonDefaults.buttonColors(containerColor = MusicProVioletPrimary),
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                                 shape = RoundedCornerShape(8.dp),
                                 modifier = Modifier.align(Alignment.End)
                             ) {
@@ -264,15 +264,15 @@ fun AppUpdateCard(
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        color = MusicProVioletPrimary.copy(alpha = 0.15f),
-                        border = BorderStroke(1.dp, MusicProVioletLight.copy(alpha = 0.5f))
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                     ) {
                         Column(modifier = Modifier.padding(14.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
                                     imageVector = Icons.Default.NewReleases,
                                     contentDescription = null,
-                                    tint = MusicProCyanNeon,
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(22.dp)
                                 )
                                 Spacer(modifier = Modifier.width(10.dp))
@@ -289,7 +289,7 @@ fun AppUpdateCard(
                                     Text(
                                         text = "Actuelle : v${info.currentVersion}$sizeMb",
                                         fontSize = 11.sp,
-                                        color = MusicProCyanLight
+                                        color = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             }
@@ -317,7 +317,7 @@ fun AppUpdateCard(
                                 is DownloadState.Idle -> {
                                     Button(
                                         onClick = { onDownloadAndInstall(info.downloadUrl) },
-                                        colors = ButtonDefaults.buttonColors(containerColor = MusicProCyanNeon),
+                                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                                         shape = RoundedCornerShape(10.dp),
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -354,7 +354,7 @@ fun AppUpdateCard(
                                                 text = "${downloadState.progressPercent}%",
                                                 fontSize = 12.sp,
                                                 fontWeight = FontWeight.Bold,
-                                                color = MusicProCyanNeon
+                                                color = MaterialTheme.colorScheme.primary
                                             )
                                         }
                                         Spacer(modifier = Modifier.height(6.dp))
@@ -364,7 +364,7 @@ fun AppUpdateCard(
                                                 .fillMaxWidth()
                                                 .height(8.dp)
                                                 .clip(RoundedCornerShape(4.dp)),
-                                            color = MusicProCyanNeon,
+                                            color = MaterialTheme.colorScheme.primary,
                                             trackColor = MaterialTheme.colorScheme.surfaceVariant
                                         )
                                     }
@@ -418,12 +418,12 @@ fun AppUpdateCard(
                                     Text(
                                         text = downloadState.message,
                                         fontSize = 12.sp,
-                                        color = MusicProError
+                                        color = MaterialTheme.colorScheme.error
                                     )
                                     Spacer(modifier = Modifier.height(6.dp))
                                     Button(
                                         onClick = { onDownloadAndInstall(info.downloadUrl) },
-                                        colors = ButtonDefaults.buttonColors(containerColor = MusicProVioletPrimary),
+                                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                                         shape = RoundedCornerShape(8.dp)
                                     ) {
                                         Text("Réessayer le téléchargement", fontSize = 12.sp)

@@ -2,6 +2,9 @@
 
 ## Prochaine mise à jour
 
+- **102 — Refonte minimaliste appliquée à toute l'application** : le style Minimal devient le style de référence (papier chaud la nuit, accent terracotta, contours fins, titres en Source Serif 4). Les installations existantes basculent une seule fois vers Minimal au premier lancement de la mise à jour ; Néon et Verre restent disponibles dans Réglages › Apparence › Style.
+- **102 — Un accent, pas deux** : les ~520 couleurs violet/cyan néon codées en dur dans les écrans (bibliothèque, recherche, paroles, réglages, dialogues…) sont remplacées par les jetons du thème — chaque écran suit désormais le style actif, l'accent est unique et cohérent.
+- **102 — Composant pochette unique** : `MusicProArtwork` centralise la chaîne d'affichage des pochettes (image, repli icône) et est intégré aux lignes de la bibliothèque et aux carrousels de l'accueil ; plus aucun écran ne dessine sa pochette avec sa propre logique.
 - **Pochettes auto-réparées** : le cache de l'app peut être purgé par le système (Samsung Device Care, stockage plein), ce qui faisait disparaître toutes les pochettes jusqu'à un rescan manuel. Au démarrage, les fichiers de jaquettes manquants sont recréés depuis l'image embarquée des morceaux — les pochettes reviennent sans aucune action, avec un message discret confirmant la restauration.
 - **Écran Paroles plus robuste** : si l'image de fond ne charge plus, l'écran retombe sur son halo coloré au lieu d'un fond vide.
 

@@ -49,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -130,8 +131,8 @@ fun PermissionScreen(
                         .shadow(
                             elevation = 24.dp,
                             shape = CircleShape,
-                            ambientColor = MusicProVioletGlow,
-                            spotColor = MusicProCyanNeon
+                            ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
+                            spotColor = MaterialTheme.colorScheme.primary
                         )
                         .background(
                             brush = Brush.radialGradient(
@@ -142,7 +143,7 @@ fun PermissionScreen(
                         .border(
                             width = 2.dp,
                             brush = Brush.linearGradient(
-                                listOf(MusicProVioletPrimary, MusicProCyanNeon)
+                                listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary)
                             ),
                             shape = CircleShape
                         )
@@ -176,7 +177,7 @@ fun PermissionScreen(
                 ) {
                     Text(
                         text = stringResource(R.string.permission_tag),
-                        color = MusicProCyanNeon,
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                         letterSpacing = 1.sp,
@@ -212,7 +213,7 @@ fun PermissionScreen(
 
                 PermissionDetailCard(
                     icon = Icons.Default.LibraryMusic,
-                    iconColor = MusicProVioletVibrant,
+                    iconColor = MaterialTheme.colorScheme.primary,
                     title = stringResource(R.string.permission_audio_title),
                     permissionTag = audioPermissionName,
                     description = stringResource(R.string.permission_audio_description),
@@ -224,7 +225,7 @@ fun PermissionScreen(
                 // Card 2: Notifications permission
                 PermissionDetailCard(
                     icon = Icons.Default.NotificationsActive,
-                    iconColor = MusicProCyanVibrant,
+                    iconColor = MaterialTheme.colorScheme.primary,
                     title = stringResource(R.string.permission_background_title),
                     permissionTag = "POST_NOTIFICATIONS (Android 13+)",
                     description = stringResource(R.string.permission_background_description),
@@ -348,10 +349,10 @@ fun PermissionScreen(
                             .shadow(
                                 elevation = 12.dp,
                                 shape = RoundedCornerShape(14.dp),
-                                spotColor = MusicProCyanNeon
+                                spotColor = MaterialTheme.colorScheme.primary
                             )
                             .background(
-                                brush = MusicProPrimaryGradient,
+                                brush = SolidColor(MaterialTheme.colorScheme.primary),
                                 shape = RoundedCornerShape(14.dp)
                             )
                             .testTag("request_permission_button")
@@ -377,7 +378,7 @@ fun PermissionScreen(
                         shape = RoundedCornerShape(14.dp),
                         border = androidx.compose.foundation.BorderStroke(
                             1.dp,
-                            MusicProCyanVibrant
+                            MaterialTheme.colorScheme.primary
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -387,7 +388,7 @@ fun PermissionScreen(
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = null,
-                            tint = MusicProCyanNeon,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -395,7 +396,7 @@ fun PermissionScreen(
                             text = stringResource(R.string.permission_retry),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = MusicProCyanNeon
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -498,7 +499,7 @@ private fun PermissionDetailCard(
                                 text = stringResource(R.string.permission_required),
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = MusicProVioletPastel,
+                                color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                             )
                         }
@@ -511,7 +512,7 @@ private fun PermissionDetailCard(
                     text = permissionTag,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
-                    color = MusicProCyanNeon,
+                    color = MaterialTheme.colorScheme.primary,
                     letterSpacing = 0.4.sp
                 )
 

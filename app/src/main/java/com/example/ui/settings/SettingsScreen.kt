@@ -520,7 +520,7 @@ fun SettingsScreen(
                         text = message,
                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                         fontSize = 12.sp,
-                        color = if (ok) MusicProSuccess else MusicProError
+                        color = if (ok) MusicProSuccess else MaterialTheme.colorScheme.error
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
@@ -598,7 +598,7 @@ fun SettingsScreen(
                         showClearCacheDialog = false
                         settingsViewModel.clearCache()
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = MusicProError),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier.testTag("confirm_clear_cache_button")
                 ) {
@@ -681,7 +681,7 @@ fun SettingsScreen(
                             .weight(1f)
                             .testTag("reset_confirm_button"),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MusicProError)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                     ) {
                         Text(stringResource(R.string.settings_reset))
                     }

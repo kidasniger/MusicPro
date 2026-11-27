@@ -59,7 +59,7 @@ fun LibrarySortSheet(
                 Icon(
                     imageVector = Icons.Default.Sort,
                     contentDescription = null,
-                    tint = MusicProCyanNeon
+                    tint = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
@@ -114,14 +114,14 @@ private fun SortOptionRow(
             text = label,
             fontSize = 14.sp,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-            color = if (selected) MusicProCyanNeon else MaterialTheme.colorScheme.onBackground,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.weight(1f)
         )
         if (selected) {
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = null,
-                tint = MusicProCyanNeon,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(20.dp)
             )
         }

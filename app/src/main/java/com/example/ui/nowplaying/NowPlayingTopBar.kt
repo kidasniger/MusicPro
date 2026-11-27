@@ -115,7 +115,7 @@ internal fun PlayerTopBar(
                         Icon(
                             Icons.Default.Timer,
                             null,
-                            tint = if (sleepActive) MusicProCyanNeon else MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint = if (sleepActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )
                     },
@@ -248,7 +248,7 @@ private fun TrackMenuRow(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(icon, contentDescription = null, tint = MusicProCyanNeon, modifier = Modifier.size(20.dp))
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
             Text(
                 text = label,
                 fontSize = 14.sp,

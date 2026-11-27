@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -102,18 +103,18 @@ fun EmptyAudioStateView(
                 modifier = Modifier
                     .size(90.dp)
                     .blur(26.dp)
-                    .background(MusicProVioletGlow, CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.45f), CircleShape)
             )
 
             Box(
                 modifier = Modifier
                     .size(96.dp)
-                    .shadow(16.dp, RoundedCornerShape(26.dp), spotColor = MusicProVioletGlow)
+                    .shadow(16.dp, RoundedCornerShape(26.dp), spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
                     .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(26.dp))
                     .border(
                         1.dp,
                         Brush.linearGradient(
-                            listOf(MusicProVioletPrimary.copy(alpha = 0.6f), Color(0x26FFFFFF))
+                            listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), Color(0x26FFFFFF))
                         ),
                         RoundedCornerShape(26.dp)
                     ),
@@ -122,7 +123,7 @@ fun EmptyAudioStateView(
                 Icon(
                     imageVector = variant.icon,
                     contentDescription = null,
-                    tint = MusicProCyanNeon,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(64.dp)
                 )
             }
@@ -160,8 +161,8 @@ fun EmptyAudioStateView(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
-                .shadow(12.dp, RoundedCornerShape(14.dp), spotColor = MusicProVioletGlow)
-                .background(MusicProPrimaryGradient, RoundedCornerShape(14.dp))
+                .shadow(12.dp, RoundedCornerShape(14.dp), spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
+                .background(SolidColor(MaterialTheme.colorScheme.primary), RoundedCornerShape(14.dp))
                 .testTag("empty_state_action_button")
         ) {
             Text(

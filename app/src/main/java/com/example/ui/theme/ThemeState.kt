@@ -10,8 +10,8 @@ import androidx.compose.ui.graphics.Color
 import com.example.data.preferences.AppStyle
 import com.example.data.preferences.AppearanceMode
 
-/** Style actif, fourni par [MusicProTheme] (Néon par défaut, comme avant). */
-val LocalAppStyle = staticCompositionLocalOf { AppStyle.NEON }
+/** Style actif, fourni par [MusicProTheme] (Minimal = style de référence de la refonte). */
+val LocalAppStyle = staticCompositionLocalOf { AppStyle.MINIMAL }
 
 /** Vrai si le thème réellement affiché est sombre (apparence résolue), fourni par [MusicProTheme]. */
 val LocalIsDarkTheme = staticCompositionLocalOf { true }

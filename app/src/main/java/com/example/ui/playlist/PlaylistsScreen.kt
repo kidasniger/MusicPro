@@ -109,7 +109,7 @@ fun PlaylistsScreen(
                 Button(
                     onClick = { showCreateDialog = true },
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MusicProVioletPrimary),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
                     modifier = Modifier.testTag("create_playlist_top_button")
                 ) {
@@ -156,13 +156,13 @@ fun PlaylistsScreen(
         if (playlists.isNotEmpty()) {
             FloatingActionButton(
                 onClick = { showCreateDialog = true },
-                containerColor = MusicProVioletPrimary,
+                containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onBackground,
                 shape = CircleShape,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(end = 20.dp, bottom = 90.dp)
-                    .shadow(16.dp, CircleShape, spotColor = MusicProVioletGlow)
+                    .shadow(16.dp, CircleShape, spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
                     .testTag("create_playlist_fab")
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Créer une playlist")
@@ -218,7 +218,7 @@ fun PlaylistsScreen(
                         onDeletePlaylist(playlist.id)
                         playlistToDelete = null
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = MusicProError)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
                     Text("Supprimer")
                 }
@@ -299,7 +299,7 @@ private fun PlaylistCardItem(
                     ) {
                         Text(
                             text = "${playlist.trackCount} morceau(x)",
-                            color = MusicProCyanNeon,
+                            color = MaterialTheme.colorScheme.primary,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -324,13 +324,13 @@ private fun PlaylistCardItem(
                         .size(38.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .border(1.dp, MusicProVioletPrimary.copy(alpha = 0.5f), CircleShape)
+                        .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), CircleShape)
                         .testTag("playlist_play_direct_${playlist.id}")
                 ) {
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
                         contentDescription = "Lire la playlist",
-                        tint = MusicProCyanNeon,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(22.dp)
                     )
                 }
@@ -367,9 +367,9 @@ private fun PlaylistCardItem(
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Supprimer", color = MusicProError) },
+                        text = { Text("Supprimer", color = MaterialTheme.colorScheme.error) },
                         leadingIcon = {
-                            Icon(Icons.Default.Delete, contentDescription = null, tint = MusicProError)
+                            Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                         },
                         onClick = {
                             showMenu = false

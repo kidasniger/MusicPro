@@ -110,11 +110,11 @@ fun AppUpdateDialog(
         Surface(
             modifier = modifier
                 .fillMaxWidth()
-                .shadow(24.dp, RoundedCornerShape(24.dp), spotColor = MusicProVioletGlow)
+                .shadow(24.dp, RoundedCornerShape(24.dp), spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
                 .border(
                     width = 1.dp,
                     brush = Brush.verticalGradient(
-                        colors = listOf(MusicProVioletLight.copy(alpha = 0.6f), MusicProCyanNeon.copy(alpha = 0.3f))
+                        colors = listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
                     ),
                     shape = RoundedCornerShape(24.dp)
                 )
@@ -135,7 +135,7 @@ fun AppUpdateDialog(
                         .clip(CircleShape)
                         .background(
                             Brush.linearGradient(
-                                colors = listOf(MusicProVioletPrimary, MusicProCyanNeon)
+                                colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary)
                             )
                         ),
                     contentAlignment = Alignment.Center
@@ -201,7 +201,7 @@ fun AppUpdateDialog(
                         Icon(
                             imageVector = Icons.Default.NewReleases,
                             contentDescription = null,
-                            tint = MusicProCyanNeon,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
 
@@ -209,7 +209,7 @@ fun AppUpdateDialog(
                             Text(
                                 text = "Nouvelle",
                                 fontSize = 11.sp,
-                                color = MusicProCyanLight
+                                color = MaterialTheme.colorScheme.primary
                             )
                             val sizeText = if (updateInfo.apkSize > 0) {
                                 " • ${(updateInfo.apkSize / (1024 * 1024 * 1.0)).let { "%.1f".format(it) }} Mo"
@@ -218,7 +218,7 @@ fun AppUpdateDialog(
                                 text = "v${updateInfo.latestVersion}$sizeText",
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = MusicProCyanNeon
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
@@ -236,7 +236,7 @@ fun AppUpdateDialog(
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
                         contentDescription = null,
-                        tint = MusicProCyanNeon,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(14.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
@@ -297,7 +297,7 @@ fun AppUpdateDialog(
                                 onClick = { onDownloadAndInstall(updateInfo.downloadUrl) },
                                 shape = RoundedCornerShape(12.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = MusicProCyanNeon
+                                    containerColor = MaterialTheme.colorScheme.primary
                                 ),
                                 modifier = Modifier
                                     .weight(1.4f)
@@ -339,7 +339,7 @@ fun AppUpdateDialog(
                                     text = "${downloadState.progressPercent}%",
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = MusicProCyanNeon
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                             }
 
@@ -351,7 +351,7 @@ fun AppUpdateDialog(
                                     .fillMaxWidth()
                                     .height(8.dp)
                                     .clip(RoundedCornerShape(4.dp)),
-                                color = MusicProCyanNeon,
+                                color = MaterialTheme.colorScheme.primary,
                                 trackColor = MaterialTheme.colorScheme.surfaceVariant
                             )
 
@@ -452,14 +452,14 @@ fun AppUpdateDialog(
                                 Icon(
                                     imageVector = Icons.Default.ErrorOutline,
                                     contentDescription = null,
-                                    tint = MusicProError,
+                                    tint = MaterialTheme.colorScheme.error,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = downloadState.message,
                                     fontSize = 12.sp,
-                                    color = MusicProError,
+                                    color = MaterialTheme.colorScheme.error,
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -478,7 +478,7 @@ fun AppUpdateDialog(
                                 }
                                 Button(
                                     onClick = { onDownloadAndInstall(updateInfo.downloadUrl) },
-                                    colors = ButtonDefaults.buttonColors(containerColor = MusicProVioletPrimary),
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                                     shape = RoundedCornerShape(10.dp),
                                     modifier = Modifier.weight(1f)
                                 ) {

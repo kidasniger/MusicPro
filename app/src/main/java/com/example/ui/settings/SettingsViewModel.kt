@@ -61,9 +61,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val appearanceMode: StateFlow<AppearanceMode> = preferencesRepository.appearanceMode
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppearanceMode.DARK)
 
-    /** Style (Minimal, Néon, Verre) ; déduit de l'ancienne clé tant qu'il n'est pas écrit. */
+    /** Style (Minimal, Néon, Verre) ; Minimal = style de référence de la refonte. */
     val appStyle: StateFlow<AppStyle> = preferencesRepository.appStyle
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppStyle.NEON)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppStyle.MINIMAL)
 
     /** Accent ; Terracotta par défaut. */
     val accentChoice: StateFlow<AccentChoice> = preferencesRepository.accentChoice
@@ -277,6 +277,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun setAppStyle(style: AppStyle) {
         viewModelScope.launch { preferencesRepository.setAppStyle(style) }
+    }
+
+    /** Bascule unique vers le style Minimal (refonte) ; sans effet si déjà appliquée. */
+    fun applyMinimalRedesignOnce() {
+        viewModelScope.launch { preferencesRepository.applyMinimalRedesignOnce() }
     }
 
     fun setAccentChoice(choice: AccentChoice) {

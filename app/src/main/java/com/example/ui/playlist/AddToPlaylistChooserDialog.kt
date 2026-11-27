@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.QueueMusic
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -79,11 +80,11 @@ fun AddToPlaylistChooserDialog(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(24.dp, RoundedCornerShape(20.dp), spotColor = MusicProVioletGlow)
-                .border(1.dp, MusicProVioletPrimary.copy(alpha = 0.5f), RoundedCornerShape(20.dp))
+                .shadow(24.dp, RoundedCornerShape(20.dp), spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f))
+                .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), RoundedCornerShape(20.dp))
                 .testTag("add_to_playlist_chooser_dialog"),
             shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = MusicProCardBackground)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Column(
                 modifier = Modifier
@@ -104,13 +105,13 @@ fun AddToPlaylistChooserDialog(
                         Icon(
                             imageVector = Icons.Default.PlaylistAdd,
                             contentDescription = null,
-                            tint = MusicProCyanNeon,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(24.dp)
                         )
                         Column {
                             Text(
                                 text = stringResource(R.string.playlist_add_title),
-                                color = MusicProTextPrimary,
+                                color = MaterialTheme.colorScheme.onBackground,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -143,10 +144,10 @@ fun AddToPlaylistChooserDialog(
                 Surface(
                     onClick = { showCreateDialog = true },
                     shape = RoundedCornerShape(12.dp),
-                    color = MusicProSurfaceElevated,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, MusicProCyanNeon.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
                         .testTag("create_new_playlist_from_chooser")
                 ) {
                     Row(
@@ -158,14 +159,14 @@ fun AddToPlaylistChooserDialog(
                     ) {
                         Surface(
                             shape = CircleShape,
-                            color = MusicProVioletPrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(36.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
                                     contentDescription = null,
-                                    tint = MusicProTextPrimary,
+                                    tint = MaterialTheme.colorScheme.onBackground,
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
@@ -174,13 +175,13 @@ fun AddToPlaylistChooserDialog(
                         Column {
                             Text(
                                 text = stringResource(R.string.playlist_new),
-                                color = MusicProTextPrimary,
+                                color = MaterialTheme.colorScheme.onBackground,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
                                 text = stringResource(R.string.playlist_create_add),
-                                color = MusicProCyanNeon,
+                                color = MaterialTheme.colorScheme.primary,
                                 fontSize = 12.sp
                             )
                         }
@@ -213,7 +214,7 @@ fun AddToPlaylistChooserDialog(
                                     onDismiss()
                                 },
                                 shape = RoundedCornerShape(10.dp),
-                                color = MusicProSurface,
+                                color = MaterialTheme.colorScheme.surface,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .testTag("choose_playlist_${pl.id}")
@@ -228,14 +229,14 @@ fun AddToPlaylistChooserDialog(
                                     Icon(
                                         imageVector = Icons.Default.QueueMusic,
                                         contentDescription = null,
-                                        tint = MusicProVioletLight,
+                                        tint = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.size(20.dp)
                                     )
 
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
                                             text = pl.name,
-                                            color = MusicProTextPrimary,
+                                            color = MaterialTheme.colorScheme.onBackground,
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.Medium,
                                             maxLines = 1,
@@ -251,7 +252,7 @@ fun AddToPlaylistChooserDialog(
                                     Icon(
                                         imageVector = Icons.Default.Add,
                                         contentDescription = stringResource(R.string.playlist_add),
-                                        tint = MusicProCyanNeon,
+                                        tint = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.size(18.dp)
                                     )
                                 }
