@@ -107,6 +107,8 @@ import coil.compose.AsyncImage
 import com.example.R
 import com.example.ui.components.EqualizerIndicator
 import com.example.ui.components.pressFeedback
+import com.example.ui.artwork.ArtworkSize
+import com.example.ui.artwork.MusicProArtwork
 import com.example.ui.artwork.artworkGridRequest
 import com.example.ui.components.glass.SharedCoverVisibility
 import com.example.ui.components.glass.sharedCover
@@ -883,22 +885,13 @@ fun TrackRowItem(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            if (!track.albumArtUri.isNullOrBlank() && !imageLoadError) {
-                AsyncImage(
-                    model = rowContext.artworkGridRequest(track.albumArtUri),
-                    contentDescription = track.album,
-                    contentScale = ContentScale.Crop,
-                    onError = { imageLoadError = true },
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.Default.MusicNote,
-                    contentDescription = null,
-                    tint = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
+            MusicProArtwork(
+                model = track.albumArtUri,
+                contentDescription = track.album,
+                size = ArtworkSize.GRID,
+                fallbackIconSize = 22.dp,
+                modifier = Modifier.fillMaxSize()
+            )
         }
 
         Spacer(modifier = Modifier.width(12.dp))

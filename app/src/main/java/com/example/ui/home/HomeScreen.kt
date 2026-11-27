@@ -150,6 +150,8 @@ import com.example.ui.components.SkeletonTracksList
 import com.example.ui.components.TrackActionsSheet
 import com.example.ui.components.TrackShareCardDialog
 import com.example.ui.components.glass.GlassBackdropHost
+import com.example.ui.artwork.ArtworkSize
+import com.example.ui.artwork.MusicProArtwork
 import com.example.ui.components.glass.GlassMiniPlayer
 import com.example.ui.components.glass.GlassNavBar
 import com.example.ui.components.glass.GlassNavItem
@@ -1557,7 +1559,6 @@ private fun HomeTrackCard(
             .clickable(onClick = onClick)
             .padding(4.dp)
     ) {
-        var imageLoadError by remember(track.id) { mutableStateOf(false) }
         Box(
             modifier = Modifier
                 .size(120.dp)
@@ -1570,22 +1571,13 @@ private fun HomeTrackCard(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            if (!track.albumArtUri.isNullOrBlank() && !imageLoadError) {
-                AsyncImage(
-                    model = track.albumArtUri,
-                    contentDescription = track.title,
-                    contentScale = ContentScale.Crop,
-                    onError = { imageLoadError = true },
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.Default.MusicNote,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(36.dp)
-                )
-            }
+            MusicProArtwork(
+                model = track.albumArtUri,
+                contentDescription = track.title,
+                size = ArtworkSize.GRID,
+                fallbackIconSize = 36.dp,
+                modifier = Modifier.fillMaxSize()
+            )
         }
         Spacer(modifier = Modifier.height(6.dp))
         Text(
