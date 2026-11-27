@@ -1139,7 +1139,9 @@ private fun LyricLineItem(
 
     val targetColor = if (isActive) {
         when (activeColorName) {
-            "violet" -> MaterialTheme.colorScheme.primary
+            // Maquette (G8) : Accent / Secondaire / Blanc. Les clés « cyan » et « violet »
+            // restent les identifiants stockés (DataStore + sauvegarde), sans lien avec le néon.
+            "violet" -> MaterialTheme.colorScheme.onSurfaceVariant
             "white" -> MaterialTheme.colorScheme.onBackground
             else -> MaterialTheme.colorScheme.primary
         }

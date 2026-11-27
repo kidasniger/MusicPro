@@ -284,7 +284,7 @@ fun KaraokeSettingsDialog(
             }
         }
         Text("Ligne active", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { listOf("cyan" to "Cyan", "violet" to "Violet", "white" to "Blanc").forEach { pair -> FilterChip(selected = activeColor == pair.first, onClick = { onColorChange(pair.first) }, label = { Text(pair.second, fontSize = 10.sp) }) } }
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { listOf("cyan" to "Accent", "violet" to "Secondaire", "white" to "Blanc").forEach { pair -> FilterChip(selected = activeColor == pair.first, onClick = { onColorChange(pair.first) }, label = { Text(pair.second, fontSize = 10.sp) }) } }
         Text("Décalage", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 6.dp),

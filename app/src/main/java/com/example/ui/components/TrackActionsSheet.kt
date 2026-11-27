@@ -179,7 +179,7 @@ fun TrackActionsSheet(
             TrackActionRow(
                 icon = Icons.Default.DeleteOutline,
                 label = stringResource(R.string.track_action_delete),
-                tint = Color(0xFFE57373),
+                tint = MaterialTheme.colorScheme.error,
                 onClick = { onDismiss(); onDelete() }
             )
         }
